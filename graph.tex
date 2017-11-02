@@ -1,0 +1,118 @@
+\documentclass{article}
+\usepackage{pgfplots}
+
+	\pgfplotsset{
+    discard if not/.style 2 args={
+        x filter/.code={
+            \edef\tempa{\thisrow{#1}}
+            \edef\tempb{#2}
+            \ifx\tempa\tempb
+            \else
+                \def\pgfmathresult{inf}
+            \fi
+        }
+    }
+}
+
+\begin{document}
+
+% \pgfplotsset{width=3in}
+% \pgfplotsset{height=7.5in}
+% \begin{tikzpicture}
+% \begin{axis}[
+% 			title=Copper,
+% 			ylabel=Energy $(Ry)$,
+% 			% ymin=-0.2,
+% 			% ymax = 1.,
+% 			% xtick={0,50,100,125,150,175,200,225,250},
+% 			% xticklabels={$\Gamma$,$\Delta$,$X$,$Z$,$W$,$Q$, $L$,$\Lambda$, $\Gamma$},
+% 		]
+% % \addplot [thick, black, discard if not={P}{A}] table [x=X, y=Y] {moosles.txt};
+% % \addplot [thick, red, discard if not={P}{B}] table [x=X, y=Y] {moosles.txt};
+% % \addplot [thick, blue, discard if not={P}{C}] table [x=X, y=Y] {moosles.txt};
+% % \addplot [thick, purple, discard if not={P}{D}] table [x=X, y=Y] {moosles.txt};
+% % \addplot [thick, orange, discard if not={P}{E}] table [x=X, y=Y] {moosles.txt};
+% % \addplot [thick, gray, discard if not={P}{F}] table [x=X, y=Y] {moosles.txt};
+% % \addplot [thick, blue, discard if not={P}{G}] table [x=X, y=Y] {moosles.txt};
+% % \addplot [thick, red, discard if not={P}{H}] table [x=X, y=Y] {moosles.txt};
+% % \addplot [thick, purple, discard if not={P}{I}] table [x=X, y=Y] {moosles.txt};
+% \addplot [thick, black] table [x=x1, y=x2] {bands.CoCu100};
+% \addplot [thick, red] table [x=x1, y=x3] {bands.CoCu100};
+% \addplot [thick, blue] table [x=x1, y=x4] {bands.CoCu100};
+% \addplot [thick, purple] table [x=x1, y=x5] {bands.CoCu100};
+% \addplot [thick, orange] table [x=x1, y=x6] {bands.CoCu100};
+% \addplot [thick, gray] table [x=x1, y=x7] {bands.CoCu100};
+% \addplot [thick, blue] table [x=x1, y=x8] {bands.CoCu100};
+% \addplot [thick, red] table [x=x1, y=x9] {bands.CoCu100};
+% \addplot [thick, purple] table [x=x1, y=x10] {bands.CoCu100};
+% % \addplot [thick, black, discard if not={P}{J}] table [x=X, y=Y] {moosles.txt};
+% % \addplot [thick, red, discard if not={P}{K}] table [x=X, y=Y] {moosles.txt};
+% % \addplot [thick, blue, discard if not={P}{L}] table [x=X, y=Y] {moosles.txt};
+% % \addplot [thick, purple, discard if not={P}{M}] table [x=X, y=Y] {moosles.txt};
+% % \addplot [thick, orange, discard if not={P}{N}] table [x=X, y=Y] {moosles.txt};
+% % \addplot [thick, gray, discard if not={P}{O}] table [x=X, y=Y] {moosles.txt};
+% % \addplot [thick, blue, discard if not={P}{P}] table [x=X, y=Y] {moosles.txt};
+% % \addplot [thick, red, discard if not={P}{Q}] table [x=X, y=Y] {moosles.txt};
+% % \addplot [thick, purple, discard if not={P}{R}] table [x=X, y=Y] {moosles.txt};
+% \end{axis}
+% \end{tikzpicture}
+
+% \begin{tikzpicture}
+% \begin{axis}
+% [
+% 			title=Copper,
+% 			ylabel=Energy $(Ry)$,
+% 			% ymin=-0.2,
+% 			% ymax = 1.,
+% 			xtick={0,50,100,125,150,175,200,225,250},
+% 			xticklabels={$\Gamma$,$\Delta$,$X$,$Z$,$W$,$Q$, $L$,$\Lambda$, $\Gamma$},
+% 			% xmax = 100,
+% 		]
+% \addplot [thick, black, discard if not={P}{A}] table [x=X, y=Y] {test.txt};
+% \addplot [thick, red, discard if not={P}{B}] table [x=X, y=Y] {test.txt};
+% \addplot [thick, blue, discard if not={P}{C}] table [x=X, y=Y] {test.txt};
+% \addplot [thick, purple, discard if not={P}{D}] table [x=X, y=Y] {test.txt};
+% \addplot [thick, orange, discard if not={P}{E}] table [x=X, y=Y] {test.txt};
+% \addplot [thick, gray, discard if not={P}{F}] table [x=X, y=Y] {test.txt};
+% \addplot [thick, blue, discard if not={P}{G}] table [x=X, y=Y] {test.txt};
+% \addplot [thick, red, discard if not={P}{H}] table [x=X, y=Y] {test.txt};
+% \addplot [thick, purple, discard if not={P}{I}] table [x=X, y=Y] {test.txt};
+% 	\end{axis}
+% \end{tikzpicture}
+
+
+% \pgfplotsset{width=5in}
+% \pgfplotsset{height=5in}
+% \begin{tikzpicture}
+% 	\begin{axis}[
+% 			title = Exchange Coupling in Co/Cu/Co(100),
+% 			ylabel style = {yshift=1cm},
+% 			ylabel = J(n) \quad $(Ry)$,
+% 			xlabel = Spacer thickness \quad (n),
+% 			scaled y ticks = false,
+% 			xmin = 3,
+% 			xmax = 35,
+% 		]
+% 		\addplot [thick, green] table [col sep=comma] {Eff.txt};\addlegendentry{Mobius transformation method for continuous n}
+% 		\addplot [only marks, fill=red] table [col sep=comma] {Ef.txt};\addlegendentry{Adlayer method for integer n}
+% 	\end{axis}
+% \end{tikzpicture}
+
+\pgfplotsset{width=6in}
+\pgfplotsset{height=2in}
+\begin{tikzpicture}
+	\begin{axis}[
+			title = Total DOS in FCC Cu,
+			ylabel = DOS,
+			xlabel = Energy \qquad $(Ry)$,
+			scaled y ticks = false,
+			ymin =0,
+			ymax=100,
+		]
+		     \addplot +[black,mark=none, dashed] coordinates {(0.57553, 0) (0.57553, 100)};
+		     \addplot [thick] table {lddos.txt};
+	\end{axis}
+\end{tikzpicture}
+
+
+\end{document}
