@@ -34,7 +34,7 @@ ddmat gs(ddmat &OM, ddmat &T)
 	return GR;
 }
 
-VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
+dcomp greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 		dmat &t_1, dmat &t_2, dmat &t_3, dmat &t_4, dmat &t_5, dmat &t_6, dmat &t_7, 
 		dmat &t_8, dmat &t_9, dmat &t_10, dmat &t_11, dmat &t_12, dmat &t_13,
 	  	dmat &t_14, dmat &t_15, dmat &t_16, dmat &t_17, dmat &t_18, dmat &u_u, 
@@ -46,7 +46,7 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 		dmat &td_14, dmat &td_15, dmat &td_16, dmat &td_17, dmat &td_18, 
 		vec &d_3, vec &d_4,
 	       	vec &d_9, vec &d_10, vec &d_13, vec &d_14,
-	       	vec &d_17, vec &d_18){
+	       	vec &d_17, vec &d_18, double Ef){
 
 	dcomp i;
 	i = -1.;
@@ -77,7 +77,7 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 		tu_13*exp(i*d_13.dot(K))+ tu_14*exp(i*d_14.dot(K))+ tu_17*exp(i*d_17.dot(K)) + tu_18*exp(i*d_18.dot(K));
 	uu_12 = tu_1 + tu_5*exp(i*d_9.dot(K)) + tu_7*exp(i*d_14.dot(K)) + tu_12*exp(i*d_4.dot(K));
 	uu_21 = tu_2 + tu_8*exp(i*d_13.dot(K)) + tu_11*exp(i*d_3.dot(K)) + tu_6*exp(i*d_10.dot(K));
-	Matrix<dcomp, 18, 18> Uu, Tu, OMu, GLu, GRu;
+	Matrix<dcomp, 18, 18> Uu, Tu, OMLu, OMRu, GLu, GRu;
 	Uu << uu_11, uu_12, uu_21, uu_11;
 	Tu_21 = tu_7 + tu_1*exp(i*d_13.dot(K)) + tu_5*exp(i*d_3.dot(K)) + tu_12*exp(i*d_10.dot(K));
 	Tu << tu_15, zero, Tu_21, tu_15;
@@ -88,7 +88,7 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 		td_13*exp(i*d_13.dot(K))+ td_14*exp(i*d_14.dot(K))+ td_17*exp(i*d_17.dot(K)) + td_18*exp(i*d_18.dot(K));
 	ud_12 = td_1 + td_5*exp(i*d_9.dot(K)) + td_7*exp(i*d_14.dot(K)) + td_12*exp(i*d_4.dot(K));
 	ud_21 = td_2 + td_8*exp(i*d_13.dot(K)) + td_11*exp(i*d_3.dot(K)) + td_6*exp(i*d_10.dot(K));
-	Matrix<dcomp, 18, 18> Ud, Td, OMd, GLd, GRd;
+	Matrix<dcomp, 18, 18> Ud, Td, OMLd, OMRd, GLd, GRd;
 	Ud << ud_11, ud_12, ud_21, ud_11;
 	Td_21 = td_7 + td_1*exp(i*d_13.dot(K)) + td_5*exp(i*d_3.dot(K)) + td_12*exp(i*d_10.dot(K));
 	Td << td_15, zero, Td_21, td_15;
@@ -99,19 +99,20 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 	Tddagg = Td.adjoint();
 	Tdagg = T.adjoint();
 
-	OM = omega*I-U;
-	OMu = omega*I-Uu;
-	OMd = omega*I-Ud;
+	OM = omega*I - U;
+	OMLu = omega*I-Uu;
+	OMLd = omega*I-Ud;
+	OMRu = (omega - Ef)*I-Uu;
+	OMRd = (omega - Ef)*I-Ud;
 
-	GLu = gs(OMu, Tu);
-	GLd = gs(OMd, Td);
-	GRu = gs(OMu, Tudagg);
-	GRd = gs(OMd, Tddagg);
+	GLu = gs(OMLu, Tu);
+	GLd = gs(OMLd, Td);
+	GRu = gs(OMRu, Tudagg);
+	GRd = gs(OMRd, Tddagg);
 
 	ddmat Rsigma_0_u, Rsigma_0_d, Rsigma_PI_u, Rsigma_PI_d;
 	dcomp Fsigma;
-	VectorXcd result(N);
-	result.fill(0.);
+	dcomp result;
 
 //mobius transformation layer 2 from layer 1 to spacer thickness, N
 	ddmat Tinv;
@@ -140,18 +141,16 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 	b2 = O.topRightCorner(18, 18);
 	c2 = O.bottomLeftCorner(18, 18);
 	d2 = O.bottomRightCorner(18, 18);
-	for (int it=0; it < N; ++it){
-		tmpu = (A1.array().pow(it/10.).matrix()).asDiagonal()*fu*(A2.array().pow(-it/10.).matrix()).asDiagonal();
-		tmpd = (A1.array().pow(it/10.).matrix()).asDiagonal()*fd*(A2.array().pow(-it/10.).matrix()).asDiagonal();
-		GNu = (a2*tmpu + b2)*(c2*tmpu + d2).inverse();
-		GNd = (a2*tmpd + b2)*(c2*tmpd + d2).inverse();
-		Rsigma_0_u = (I-GRu*Tdagg*GNu*T);
-		Rsigma_0_d = (I-GRd*Tdagg*GNd*T);
-		Rsigma_PI_u = (I-GRd*Tdagg*GNu*T);
-		Rsigma_PI_d = (I-GRu*Tdagg*GNd*T);
-		Fsigma = (1./M_PI)*log((Rsigma_0_d*Rsigma_0_u*Rsigma_PI_u.inverse()*Rsigma_PI_d.inverse()).determinant());
-		result[it] = Fsigma;
-	}
+	tmpu = (A1.array().pow(N).matrix()).asDiagonal()*fu*(A2.array().pow(-N).matrix()).asDiagonal();
+	tmpd = (A1.array().pow(N).matrix()).asDiagonal()*fd*(A2.array().pow(-N).matrix()).asDiagonal();
+	GNu = (a2*tmpu + b2)*(c2*tmpu + d2).inverse();
+	GNd = (a2*tmpd + b2)*(c2*tmpd + d2).inverse();
+	Rsigma_0_u = (I-GRu*Tdagg*GNu*T);
+	Rsigma_0_d = (I-GRd*Tdagg*GNd*T);
+	Rsigma_PI_u = (I-GRd*Tdagg*GNu*T);
+	Rsigma_PI_d = (I-GRu*Tdagg*GNd*T);
+	Fsigma = (1./M_PI)*log((Rsigma_0_d*Rsigma_0_u*Rsigma_PI_u.inverse()*Rsigma_PI_d.inverse()).determinant());
+	result = Fsigma;
 
 /* //adlayer layer 2 from layer 1 to spacer thickness, N */
 /* 	for (int it=0; it < N; ++it){ */
@@ -298,41 +297,42 @@ int main(){
 
 	//number of principle layers of spacer
 	/* const int N = 50; */
-	const int N = 200;
+	const int N = 7;
+	Myfile<<"N  Gamma"<<endl;
 
 	dcomp E = 0.;
 	/* const double Ef = 0.5805; */
 	/* const double Ef = 0.57553; */
-	const double Ef = -0.038;
+	double Ef;
 	const double kT = 8.617342857e-5*316/13.6058;
-	VectorXcd result_complex(N);
-	result_complex.fill(0.);
-	for (int j=0; j!=10; j++){
-		E = Ef + (2.*j + 1.)*kT*M_PI*i;
-		result_complex = result_complex + kspace(&greens, 2, 5e-2, 2*a, E, N,
-				u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
-				t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18,
-				u_u, tu_1, tu_2, tu_3, tu_4, tu_5, tu_6, tu_7, tu_8, tu_9,
-			       	tu_10, tu_11, tu_12, tu_13, tu_14, tu_15, tu_16, tu_17, tu_18,
-				u_d, td_1, td_2, td_3, td_4, td_5, td_6, td_7, td_8, td_9,
-			       	td_10, td_11, td_12, td_13, td_14, td_15, td_16, td_17, td_18,
-				d_3, d_4, d_9, d_10,
-			       	d_13, d_14, d_17, d_18);
+	dcomp result_complex;
+	double result;
+	for (Ef = -0.04; Ef < 0.065 ; Ef = Ef + 0.005){
+		result_complex = 0;
+		for (int j=0; j!=10; j++){
+			E = Ef + (2.*j + 1.)*kT*M_PI*i;
+			result_complex = result_complex + kspace(&greens, 2, 5e-2, 2*a, E, N,
+					u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
+					t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18,
+					u_u, tu_1, tu_2, tu_3, tu_4, tu_5, tu_6, tu_7, tu_8, tu_9,
+				       	tu_10, tu_11, tu_12, tu_13, tu_14, tu_15, tu_16, tu_17, tu_18,
+					u_d, td_1, td_2, td_3, td_4, td_5, td_6, td_7, td_8, td_9,
+				       	td_10, td_11, td_12, td_13, td_14, td_15, td_16, td_17, td_18,
+					d_3, d_4, d_9, d_10,
+				       	d_13, d_14, d_17, d_18, Ef);
 
-	}
-	VectorXd result = result_complex.real();
+		}
+		result = real(result_complex);
 
-	result *= kT/(4.*M_PI*M_PI);
-	Myfile<<"N , Gamma"<<endl;
+		result *= kT/(4.*M_PI*M_PI);
 
-	for (int ii=0; ii < N ; ++ii){
 		/* Myfile << (ii+1)/10. <<" ,  "<< -2.*M_PI*result[ii] << endl; */
-		Myfile << 2*(ii)/10. <<" ,  "<< 4.*M_PI*result[ii] << endl;
+		Myfile <<Ef<<"  "<< 4.*M_PI*result << endl;
 		/* Myfile << ii+1 <<" ,  "<< -2.*M_PI*result[ii] << endl; */
 	}
 
 	cout<<"finished!"<<endl;
 
-			Myfile.close();
+	Myfile.close();
 	return 0;
 }

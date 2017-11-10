@@ -98,19 +98,43 @@
 % 	\end{axis}
 % \end{tikzpicture}
 
-\pgfplotsset{width=6in}
-\pgfplotsset{height=2in}
+% \pgfplotsset{width=6in}
+% \pgfplotsset{height=2in}
+% \begin{tikzpicture}
+% 	\begin{axis}[
+% 			title = Total DOS in FCC Cu,
+% 			ylabel = DOS,
+% 			xlabel = Energy \qquad $(Ry)$,
+% 			scaled y ticks = false,
+% 			ymin =0,
+% 			ymax=100,
+% 			xmin = -0.2,
+% 			xmax=1.1,
+% 		]
+% 		     \addplot +[black,mark=none, dashed] coordinates {(0.5805, 0) (0.5805, 100)};
+% 		     \addplot [thick] table {tdos.txt};
+% 	\end{axis}
+% \end{tikzpicture}
+
+\pgfplotsset{width=5in}
+\pgfplotsset{height=5in}
 \begin{tikzpicture}
 	\begin{axis}[
-			title = Total DOS in FCC Cu,
-			ylabel = DOS,
-			xlabel = Energy \qquad $(Ry)$,
+			title = Exchange Coupling in FCC CoCuCo(100),
+			ylabel = J \qquad $(Ry)$,
+			ylabel style = {yshift=1cm},
+			xlabel = Chemical potential in the LH lead \qquad $(Ry)$,
 			scaled y ticks = false,
-			ymin =0,
-			ymax=100,
+			scaled x ticks = false,
+			x tick label style={
+			/pgf/number format/fixed,
+		/pgf/number format/precision = 2},
+			% ymin =0,
+			% ymax=100,
+			% xmin = -0.2,
+			% xmax=1.1,
 		]
-		     \addplot +[black,mark=none, dashed] coordinates {(0.57553, 0) (0.57553, 100)};
-		     \addplot [thick] table {lddos.txt};
+		     \addplot [thick] table {phase.txt};
 	\end{axis}
 \end{tikzpicture}
 

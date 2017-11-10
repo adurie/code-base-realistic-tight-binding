@@ -142,12 +142,12 @@ int main(){
 	i = sqrt(i);
 
 	double result;
-	double start = 0.443;
-	double end = 0.447;
-	double step = 0.0001;
+	double start = 0.2;
+	double end = 0.7;
+	double step = 0.001;
 	for (double j = start; j<end + step; j=j+step){
 
-		result = kspace(&greens, 3, 0.01, 2*a, j + 1e-7*i, u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
+		result = kspace(&greens, 3, 0.01, 2*a, j + i, u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
 				t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18, d_1, d_2, d_3, d_4,
 				d_5, d_6, d_7, d_8, d_9, d_10, d_11, d_12, d_13, d_14, d_15, d_16, d_17, d_18);
 		cout<<100*(j-start+step)/(end-start+step)<<"% completed"<<endl;

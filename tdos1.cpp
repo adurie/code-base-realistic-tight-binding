@@ -2,12 +2,12 @@
 #include <cmath>
 #include <fstream>
 #include <eigen3/Eigen/Dense>
-#include "TB.h"
+#include "TBdynamic.h"
 
 using namespace std;
 using namespace Eigen;
 typedef complex<double> dcomp;
-typedef Matrix<dcomp, 9, 9> dmat;
+typedef Matrix<dcomp, 1, 1> dmat;
 typedef Vector3d vec;
 
 struct a_struct{
@@ -17,10 +17,10 @@ struct a_struct{
 	
 	double a = 1.;
 	
-	Matrix<dcomp, 9, 9> u, E;
-	Matrix<dcomp, 9, 9> t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9;
-	Matrix<dcomp, 9, 9> t_10, t_11, t_12, t_13, t_14, t_15, t_16;
-	Matrix<dcomp, 9, 9> t_17, t_18;
+	dmat u, E;
+	dmat t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9;
+	dmat t_10, t_11, t_12, t_13, t_14, t_15, t_16;
+	dmat t_17, t_18;
 	double j;
 	};
 
@@ -51,13 +51,8 @@ double greens(double k_x, double k_y, double k_z, dcomp omega, dmat &u, dmat &t_
 			+ t_15*exp(i*d_15.dot(K)) + t_16*exp(i*d_16.dot(K))
 			+ t_17*exp(i*d_17.dot(K)) + t_18*exp(i*d_18.dot(K));
 	dmat G;
-      	Matrix<complex<double>, 9, 9> I = Matrix<complex<double>, 9, 9>::Identity();
-	ComplexEigenSolver<Matrix<dcomp, 9, 9>> es;
-	es.compute(E);
-	Matrix<dcomp, 9, 9> O;
-	O = es.eigenvalues().asDiagonal();
-
-	G = (omega*I - O).inverse();
+      	dmat I = dmat::Identity();
+	G = (omega*I - E).inverse();
 	return (G.imag()).trace();
 }
 
@@ -66,11 +61,11 @@ double temp(a_struct &params) {
 	dcomp i, im, Ec;
 	i = -1;
 	i = sqrt(i);
-	im = 1e-5*i;	
+	im = 1e-3*i;	
 	double E = params.j;
 	Ec = E + im;
 
-	int N = 100;
+	int N = 200;
 	double k_x, k_y, k_z;
 	double A = M_PI/(2*params.a);
 	int n = 2*N;
@@ -162,37 +157,39 @@ int main(){
 	params.d_18 << 0, 0, -2*params.a;
 
 	//initialise onsite anparams.d hopping matrices for each nn
-	params.u = TB(2, 0, 0, 8, params.d_1);
-	params.t_1 = TB(2, 1, 0, 8, params.d_1);
-	params.t_2 = TB(2, 1, 0, 8, params.d_2);
-	params.t_3 = TB(2, 1, 0, 8, params.d_3);
-	params.t_4 = TB(2, 1, 0, 8, params.d_4);
-	params.t_5 = TB(2, 1, 0, 8, params.d_5);
-	params.t_6 = TB(2, 1, 0, 8, params.d_6);
-	params.t_7 = TB(2, 1, 0, 8, params.d_7);
-	params.t_8 = TB(2, 1, 0, 8, params.d_8);
-	params.t_9 = TB(2, 1, 0, 8, params.d_9);
-	params.t_10 = TB(2, 1, 0, 8, params.d_10);
-	params.t_11 = TB(2, 1, 0, 8, params.d_11);
-	params.t_12 = TB(2, 1, 0, 8, params.d_12);
+	params.u = TB(2, 0, 0, 1, params.d_1);
+	params.t_1 = TB(2, 1, 0, 1, params.d_1);
+	params.t_2 = TB(2, 1, 0, 1, params.d_2);
+	params.t_3 = TB(2, 1, 0, 1, params.d_3);
+	params.t_4 = TB(2, 1, 0, 1, params.d_4);
+	params.t_5 = TB(2, 1, 0, 1, params.d_5);
+	params.t_6 = TB(2, 1, 0, 1, params.d_6);
+	params.t_7 = TB(2, 1, 0, 1, params.d_7);
+	params.t_8 = TB(2, 1, 0, 1, params.d_8);
+	params.t_9 = TB(2, 1, 0, 1, params.d_9);
+	params.t_10 = TB(2, 1, 0, 1, params.d_10);
+	params.t_11 = TB(2, 1, 0, 1, params.d_11);
+	params.t_12 = TB(2, 1, 0, 1, params.d_12);
 
-	params.t_13 = TB(2, 1, 1, 8, params.d_13);
-	params.t_14 = TB(2, 1, 1, 8, params.d_14);
-	params.t_15 = TB(2, 1, 1, 8, params.d_15);
-	params.t_16 = TB(2, 1, 1, 8, params.d_16);
-	params.t_17 = TB(2, 1, 1, 8, params.d_17);
-	params.t_18 = TB(2, 1, 1, 8, params.d_18);
+	params.t_13 = TB(2, 1, 1, 1, params.d_13);
+	params.t_14 = TB(2, 1, 1, 1, params.d_14);
+	params.t_15 = TB(2, 1, 1, 1, params.d_15);
+	params.t_16 = TB(2, 1, 1, 1, params.d_16);
+	params.t_17 = TB(2, 1, 1, 1, params.d_17);
+	params.t_18 = TB(2, 1, 1, 1, params.d_18);
 
 	
-	double start = 0.2;
-	double end = 0.7;
+	double start = -0.2;
+	double end = 1.1;
 	/* double end = start; */
 	double step = 0.001;
 	double result;
 	for (params.j = start; params.j<end + step; params.j=params.j+step){
+		if ((params.j<0.2)||(params.j>0.7)){
 		result = (-1./M_PI)*temp(params);
 		Myfile<<params.j<<" "<<result<<endl;
 		cout<<100*(params.j-start+step)/(end-start+step)<<"% completed"<<endl;
+		}
 	}
 
 
