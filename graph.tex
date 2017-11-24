@@ -1,4 +1,5 @@
 \documentclass{article}
+\usepackage[margin=0.5in]{geometry}
 \usepackage{pgfplots}
 
 	\pgfplotsset{
@@ -102,7 +103,7 @@
 % \pgfplotsset{height=2in}
 % \begin{tikzpicture}
 % 	\begin{axis}[
-% 			title = Total DOS in FCC Cu,
+% 			title = Total DOS in FCC Cu direct 3D,
 % 			ylabel = DOS,
 % 			xlabel = Energy \qquad $(Ry)$,
 % 			scaled y ticks = false,
@@ -110,33 +111,73 @@
 % 			ymax=100,
 % 			xmin = -0.2,
 % 			xmax=1.1,
+% 			scaled x ticks = false,
+% 			x tick label style={
+% 			/pgf/number format/fixed,
+% 		/pgf/number format/precision = 2},
 % 		]
 % 		     \addplot +[black,mark=none, dashed] coordinates {(0.5805, 0) (0.5805, 100)};
-% 		     \addplot [thick] table {tdos.txt};
+% 		     % \addplot [thick] table {tdosrem2.txt};
+% 		     \addplot [thick] table {mnm.txt};
+% 		     \addplot [thick] table {mmm.txt};
 % 	\end{axis}
 % \end{tikzpicture}
 
-\pgfplotsset{width=5in}
-\pgfplotsset{height=5in}
+\pgfplotsset{width=6in}
+\pgfplotsset{height=6in}
 \begin{tikzpicture}
 	\begin{axis}[
-			title = Exchange Coupling in FCC CoCuCo(100),
-			ylabel = J \qquad $(Ry)$,
-			ylabel style = {yshift=1cm},
-			xlabel = Chemical potential in the LH lead \qquad $(Ry)$,
+			% title = Total DOS in FCC Cu 2D diagonalised in-plane,
+			title = Partial DOS, 
+			ylabel = DOS,
+			xlabel = Energy \qquad $(Ry)$,
 			scaled y ticks = false,
+			% ymin =0,
+			% ymax=100,
+			% xmin = 0,
+			% xmax=1,
 			scaled x ticks = false,
 			x tick label style={
 			/pgf/number format/fixed,
 		/pgf/number format/precision = 2},
-			% ymin =0,
-			% ymax=100,
-			% xmin = -0.2,
-			% xmax=1.1,
 		]
-		     \addplot [thick] table {phase.txt};
+		     % \addplot +[black,mark=none, dashed] coordinates {(0.5805, 0) (0.5805, 100)};
+		     \addplot [thick] table {X.txt};
+		     % \addplot [thick] table {rem.txt};
 	\end{axis}
 \end{tikzpicture}
+
+% \begin{figure}[h]
+% 	\begin{center}
+% 		\includegraphics{Cu.jpg}
+% 	\end{center}
+% \end{figure}
+
+% \pgfplotsset{width=5in}
+% \pgfplotsset{height=5in}
+% \begin{tikzpicture}
+% 	\begin{axis}[
+% 			title = Exchange Coupling in FCC CoCuCo(100),
+% 			ylabel = J \qquad $(mRy)$,
+% 			ylabel style = {yshift=1cm},
+% 			xlabel = Chemical potential in the LH lead \qquad $(Ry)$,
+% 			scaled y ticks = false,
+% 			scaled x ticks = false,
+% 			yticklabels = {0.05, 0.04, 0.03, 0.02, 0.01, 0, -0.01, -0.02, -0.03},
+% 			y dir = reverse,
+% 			x tick label style={
+% 			/pgf/number format/fixed,
+% 		/pgf/number format/precision = 2},
+% 			% ymin =0,
+% 			% ymax=100,
+% 			% xmin = -0.2,
+% 			% xmax=1.1,
+% 		]
+% 		\addplot [thick] table {newEC_6.txt};\addlegendentry{Co/Cu(6)/Co}
+% 		     \addplot [red,thick] table {newEC_10.txt};\addlegendentry{Co/Cu(10)/Co}
+% 		     \addplot [blue,thick] table {newEC_14.txt};\addlegendentry{Co/Cu(14)/Co}
+% 	\end{axis}
+% \end{tikzpicture}
 
 
 \end{document}

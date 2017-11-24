@@ -4,7 +4,9 @@
 #include <eigen3/Eigen/Dense>
 #include <eigen3/unsupported/Eigen/MatrixFunctions>
 #include "TB.h"
-#include "cunningham_spawn.h"
+/* #include "cunningham_spawn.h" */
+#include "cunningham.h"
+
 
 using namespace std;
 using namespace Eigen;
@@ -53,25 +55,34 @@ double greens(double k_x, double k_z, double a, dcomp omega, dmat &u, dmat &t_1,
 		t_13*exp(i*d_13.dot(K))+ t_14*exp(i*d_14.dot(K))+ t_17*exp(i*d_17.dot(K)) + t_18*exp(i*d_18.dot(K));
 	u_12 = t_1 + t_5*exp(i*d_9.dot(K)) + t_7*exp(i*d_14.dot(K)) + t_12*exp(i*d_4.dot(K));
 	u_21 = t_2 + t_8*exp(i*d_13.dot(K)) + t_11*exp(i*d_3.dot(K)) + t_6*exp(i*d_10.dot(K));
-	Matrix<dcomp, 18, 18> U, T, Tdagg, OM, GL, GR, GN, GLinv, GNinv;
-	U << u_11, u_12, u_21, u_11;
+	/* u_21 = u_12.adjoint(); */
 	Matrix<complex<double>, 9, 9> zero = Matrix<complex<double>, 9, 9>::Zero();
+	Matrix<dcomp, 18, 18> U, T, Tdagg, OM, GL, GR, GN, GRinv, GNinv;
+	U << u_11, u_12, u_21, u_11;
 	T_21 = t_7 + t_1*exp(i*d_13.dot(K)) + t_5*exp(i*d_3.dot(K)) + t_12*exp(i*d_10.dot(K));
 	T << t_15, zero, T_21, t_15;
 
       	Matrix<complex<double>, 18, 18> I = Matrix<complex<double>, 18, 18>::Identity();
       	/* Matrix<complex<double>, 18, 18> I = Matrix<complex<double>, 18, 18>::Ones(); */
+	/* cout<<U.trace()<<endl; */
+	/* cout<<T.trace()<<endl; */
+	/* cout<<U.determinant()<<endl; */
+	/* cout<<T.determinant()<<endl; */
+	/* SelfAdjointEigenSolver<Matrix<dcomp, 18, 18>> ces; */
+	/* ComplexEigenSolver<Matrix<dcomp, 18, 18>> ces; */
+	/* ces.compute(T); */
+	/* cout<<ces.eigenvalues()<<endl; */
 
 	OM = omega*I-U;
 	Tdagg = T.adjoint();
 
 	GL = gs(OM, T);
 	GR = gs(OM, Tdagg);
-	/* GRinv = GR.inverse(); */
-	GLinv = GL.inverse();
-	/* GNinv = GRinv - Tdagg*GL*T; */
-	GNinv = GLinv - T*GR*Tdagg;
+	GRinv = GR.inverse();
+	GNinv = GRinv - Tdagg*GL*T;
 	GN = GNinv.inverse();
+	/* cout<<GL.trace()<<endl; */
+	/* cout<<GR.trace()<<endl; */
 
 	return imag(GN.trace());
 
@@ -90,30 +101,29 @@ int main(){
 	Vector3d d_10, d_11, d_12, d_13, d_14, d_15, d_16;
 	Vector3d d_17, d_18;
 	
-	double a = 0.5;
-	/* double a = 1.; */
+	double a = 1;
 	
 	//position vectors of nearest neighbours in fcc
-	d_1 << a, a, 0;
-	d_2 << -a, -a, 0;
-	d_3 << a, 0, a;
-	d_4 << -a, 0, -a;
-	d_5 << 0, a, a;
-	d_6 << 0, -a, -a;
-	d_7 << -a, a, 0;
-	d_8 << a, -a, 0;
-	d_9 << -a, 0, a;
-	d_10 << a, 0, -a;
-	d_11 << 0, -a, a;
-	d_12 << 0, a, -a;
+	d_1 << a/2., a/2., 0;
+	d_2 << -a/2., -a/2., 0;
+	d_3 << a/2., 0, a/2.;
+	d_4 << -a/2., 0, -a/2.;
+	d_5 << 0, a/2., a/2.;
+	d_6 << 0, -a/2., -a/2.;
+	d_7 << -a/2., a/2., 0;
+	d_8 << a/2., -a/2., 0;
+	d_9 << -a/2., 0, a/2.;
+	d_10 << a/2., 0, -a/2.;
+	d_11 << 0, -a/2., a/2.;
+	d_12 << 0, a/2., -a/2.;
 
 	//position vectors of next nearest neighbours
-	d_13 << 2*a, 0, 0;
-	d_14 << -2*a, 0, 0;
-	d_15 << 0, 2*a, 0;
-	d_16 << 0, -2*a, 0;
-	d_17 << 0, 0, 2*a;
-	d_18 << 0, 0, -2*a;
+	d_13 << a, 0, 0;
+	d_14 << -a, 0, 0;
+	d_15 << 0, a, 0;
+	d_16 << 0, -a, 0;
+	d_17 << 0, 0, a;
+	d_18 << 0, 0, -a;
 
 	//initialise onsite and hopping matrices for each nn
 	Matrix<dcomp, 9, 9> u, E;
@@ -147,8 +157,8 @@ int main(){
 
 	double result;
 
-	double start = -0.2;
-	double end = 1.1;
+	double start = 0.35;
+	double end = 0.5;
 	double step = 0.0026;
 
 	/* double start = 0; */
@@ -157,21 +167,22 @@ int main(){
 
 	for (double j = start; j<end + step; j=j+step){
 
-		/* result = greens(j, 0, 2*a, 0.57553 + 1e-4*i, u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9, */
+		/* result = greens(M_PI/2., M_PI/2.0, a, 0.57553 + 1e-4*i, u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9, */
+		/* 		t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18, d_1, d_2, d_3, d_4, */
+		/* 		d_5, d_6, d_7, d_8, d_9, d_10, d_11, d_12, d_13, d_14, d_15, d_16, d_17, d_18); */
+		/* cout<<-0.5*result/M_PI<<endl; */
+
+		/* result = greens(0, 0, a, j + 1e-4*i, u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9, */
 		/* 		t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18, d_1, d_2, d_3, d_4, */
 		/* 		d_5, d_6, d_7, d_8, d_9, d_10, d_11, d_12, d_13, d_14, d_15, d_16, d_17, d_18); */
 
-		/* result = greens(0, 0, 2*a, j + 1e-4*i, u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9, */
-		/* 		t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18, d_1, d_2, d_3, d_4, */
-		/* 		d_5, d_6, d_7, d_8, d_9, d_10, d_11, d_12, d_13, d_14, d_15, d_16, d_17, d_18); */
-
-		result = kspace(&greens, 3, 0.01, 2*a, j + 1e-4*i, u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
+		result = kspace(&greens, 3000, 0.001, 10, a, j + 1e-4*i, u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
 				t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18, d_1, d_2, d_3, d_4,
 				d_5, d_6, d_7, d_8, d_9, d_10, d_11, d_12, d_13, d_14, d_15, d_16, d_17, d_18);
 
 		cout<<100*(j-start+step)/(end-start+step)<<"% completed"<<endl;
 
-		Myfile<<j<<" "<<-result*a*a/(M_PI*M_PI*M_PI)<<endl;
+		Myfile<<j<<" "<<-result*a*a/(4.*M_PI*M_PI*M_PI)<<endl;
 		/* Myfile<<j<<" "<<-0.5*result/M_PI<<endl; */
 	}
 

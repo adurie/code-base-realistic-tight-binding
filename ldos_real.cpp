@@ -52,12 +52,8 @@ double greens(double k_x, double k_y, double k_z, dcomp omega, dmat &u, dmat &t_
 			+ t_17*exp(i*d_17.dot(K)) + t_18*exp(i*d_18.dot(K));
 	dmat G;
       	Matrix<complex<double>, 9, 9> I = Matrix<complex<double>, 9, 9>::Identity();
-	ComplexEigenSolver<Matrix<dcomp, 9, 9>> es;
-	es.compute(E);
-	Matrix<dcomp, 9, 9> O;
-	O = es.eigenvalues().asDiagonal();
 
-	G = (omega*I - O).inverse();
+	G = (omega*I - E).inverse();
 	return (G.imag()).trace();
 }
 
@@ -66,11 +62,11 @@ double temp(a_struct &params) {
 	dcomp i, im, Ec;
 	i = -1;
 	i = sqrt(i);
-	im = 1e-5*i;	
+	im = 1e-3*i;	
 	double E = params.j;
 	Ec = E + im;
 
-	int N = 100;
+	int N = 50;
 	double k_x, k_y, k_z;
 	double A = M_PI/(2*params.a);
 	int n = 2*N;
@@ -125,7 +121,7 @@ double temp(a_struct &params) {
 			}
 		}
 	}
-	integral = (48.*A*A*A/(N*N*N))*integral;
+	integral = (48.*A*A*A/(N*N*N*32.))*integral;
 	return integral;
 }
 
@@ -184,13 +180,29 @@ int main(){
 	params.t_18 = TB(2, 1, 1, 8, params.d_18);
 
 	
-	double start = 0.2;
-	double end = 0.7;
+	double start = -0.2;
+	double end = 1.1;
 	/* double end = start; */
-	double step = 0.001;
+	double step = 0.0001;
 	double result;
+
+	/* dcomp i, im, Ec; */
+	/* i = -1; */
+	/* i = sqrt(i); */
+	/* im = 1e-4*i; */	
+
 	for (params.j = start; params.j<end + step; params.j=params.j+step){
 		result = (-1./M_PI)*temp(params);
+
+		/* double E = params.j; */
+		/* Ec = E + im; */
+		/* result = (-1./M_PI)*greens(0, 0, 0, Ec, params.u, params.t_1, params.t_2, params.t_3, */
+		/* 	params.t_4, params.t_5, params.t_6, params.t_7, params.t_8, params.t_9, */
+		/* 	params.t_10, params.t_11, params.t_12, params.t_13, params.t_14, params.t_15, */
+		/* 	params.t_16, params.t_17, params.t_18, params.d_1, params.d_2, params.d_3, params.d_4, */
+		/* 	params.d_5, params.d_6, params.d_7, params.d_8, params.d_9, params.d_10, params.d_11, */
+		/* 	params.d_12, params.d_13, params.d_14, params.d_15, params.d_16, params.d_17, params.d_18); */
+
 		Myfile<<params.j<<" "<<result<<endl;
 		cout<<100*(params.j-start+step)/(end-start+step)<<"% completed"<<endl;
 	}

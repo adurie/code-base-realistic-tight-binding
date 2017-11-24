@@ -46,7 +46,7 @@ dcomp greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 		dmat &td_14, dmat &td_15, dmat &td_16, dmat &td_17, dmat &td_18, 
 		vec &d_3, vec &d_4,
 	       	vec &d_9, vec &d_10, vec &d_13, vec &d_14,
-	       	vec &d_17, vec &d_18, double Ef){
+	       	vec &d_17, vec &d_18, double delta_Ef){
 
 	dcomp i;
 	i = -1.;
@@ -100,10 +100,10 @@ dcomp greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 	Tdagg = T.adjoint();
 
 	OM = omega*I - U;
-	OMLu = omega*I-Uu;
-	OMLd = omega*I-Ud;
-	OMRu = (omega - Ef)*I-Uu;
-	OMRd = (omega - Ef)*I-Ud;
+	OMRu = omega*I-Uu;
+	OMRd = omega*I-Ud;
+	OMLu = (omega + delta_Ef)*I-Uu;
+	OMLd = (omega + delta_Ef)*I-Ud;
 
 	GLu = gs(OMLu, Tu);
 	GLd = gs(OMLd, Td);
@@ -297,17 +297,17 @@ int main(){
 
 	//number of principle layers of spacer
 	/* const int N = 50; */
-	const int N = 7;
+	const int N = 14;
 	Myfile<<"N  Gamma"<<endl;
 
 	dcomp E = 0.;
 	/* const double Ef = 0.5805; */
-	/* const double Ef = 0.57553; */
-	double Ef;
+	const double Ef = 0.57553;
+	double delta_Ef;
 	const double kT = 8.617342857e-5*316/13.6058;
 	dcomp result_complex;
 	double result;
-	for (Ef = -0.04; Ef < 0.065 ; Ef = Ef + 0.005){
+	for (delta_Ef = -0.04; delta_Ef < 0.065 ; delta_Ef = delta_Ef + 0.005){
 		result_complex = 0;
 		for (int j=0; j!=10; j++){
 			E = Ef + (2.*j + 1.)*kT*M_PI*i;
@@ -319,7 +319,7 @@ int main(){
 					u_d, td_1, td_2, td_3, td_4, td_5, td_6, td_7, td_8, td_9,
 				       	td_10, td_11, td_12, td_13, td_14, td_15, td_16, td_17, td_18,
 					d_3, d_4, d_9, d_10,
-				       	d_13, d_14, d_17, d_18, Ef);
+				       	d_13, d_14, d_17, d_18, delta_Ef);
 
 		}
 		result = real(result_complex);
@@ -327,7 +327,7 @@ int main(){
 		result *= kT/(4.*M_PI*M_PI);
 
 		/* Myfile << (ii+1)/10. <<" ,  "<< -2.*M_PI*result[ii] << endl; */
-		Myfile <<Ef<<"  "<< 4.*M_PI*result << endl;
+		Myfile <<delta_Ef<<"  "<< 4.*M_PI*result << endl;
 		/* Myfile << ii+1 <<" ,  "<< -2.*M_PI*result[ii] << endl; */
 	}
 
