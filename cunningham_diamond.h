@@ -146,7 +146,78 @@ auto kspace(func&& predicate, int iterations, double rel, int start, const doubl
 			condition = 1;
 	}
 	integral = integral*(4*8.*A*A/(Nnew*Nnew));
+	ret integral_right;
+	ret tmp_right;
+	n = N*2;
 
-	return integral;
+	//this section of code makes the routine specific to Brillouin zones with corners (+/-2A, 0) and (0, +/-2A)
+	for (int k = 0; k!=n+1; k++){
+		if (k%2!=0){
+			x = A*k/n + A;
+			for (int l = 0; l!=k+1; l++){
+				if (l%2!=0){
+					z = A - A*l/n;
+					/* Myfile<<x<<" , "<<z<<endl; */
+					if ((k==1) && (l==1))
+						integral_right = 0.5*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+					else{
+						if (k==l){
+							/* integral += 0.5*predicate(x,z,forward<T>(params)); */
+							integral_right = integral_right + 0.5*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+						}
+						else
+							integral_right = integral_right + std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+					}
+				}
+			}
+		}
+	}
+	
+	condition = -2;
+	foo = 0;
+
+	while (condition != 1){
+		Nnew = 3*n;
+		tmp_right = integral_right;
+		for (int k = 0; k!=Nnew+1; k++){
+			if (k%2!=0){
+				x = A*k/Nnew + A;
+				for (int l = 0; l!=k+1; l++){
+					if ((l%2!=0) && ((k%3!=0) || (l%3!=0))){
+						z = A - A*l/Nnew;
+						/* Myfile<<x<<" , "<<z<<endl; */
+						if (k==l){
+							/* integral += 0.5*predicate(x,z,forward<T>(params)); */
+							integral_right = integral_right + 0.5*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+						}
+						else{
+							/* integral += predicate(x,z,forward<T>(params)); */
+							integral_right = integral_right + std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+						}
+					}
+				}
+			}
+		}
+		n = Nnew;
+
+		/* if (std::abs(integral) < 1e-25) */
+		/* 	integral = 0.; */
+		/* if (Nnew>64 && integral == 0. && tmp == 0.) */
+		/* 	condition = 1; */
+
+		//256 seems to be the magic number for the lower bound of sampling points
+		//3% margin of error as below works well when benchmarked against fixed method 
+		//of double Simpson's integral of rho-E/LDOS.cpp
+		rel_error = Condition(integral_right, tmp_right);//condition overloaded for all data types this header is designed for
+		if (Nnew > max_width){
+			cout<<"error, maximum number of iteration points reached. Estimated error = "<<rel_error<<endl;
+			condition = 1;
+		}
+		if (Nnew>=128 && rel_error <= error)
+			condition = 1;
+	}
+	integral_right = integral_right*(4*8.*A*A/(Nnew*Nnew));
+
+	return 0.5*(integral + integral_right);
 }
 #endif

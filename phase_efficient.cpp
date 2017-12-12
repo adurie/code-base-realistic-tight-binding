@@ -15,7 +15,6 @@ using namespace Eigen;
 typedef complex<double> dcomp;
 typedef Matrix<dcomp, 9, 9> dmat;
 typedef Matrix<dcomp, 18, 18> ddmat;
-typedef Matrix<dcomp, 36, 36> dddmat;
 typedef Vector3d vec;
 
 //calculates g at the interfaces
@@ -47,7 +46,7 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 		dmat &td_14, dmat &td_15, dmat &td_16, dmat &td_17, dmat &td_18, 
 		vec &d_3, vec &d_4,
 	       	vec &d_9, vec &d_10, vec &d_13, vec &d_14,
-	       	vec &d_17, vec &d_18){
+	       	vec &d_17, vec &d_18, double start, double end, double step, int total){
 
 	dcomp i;
 	i = -1.;
@@ -78,7 +77,7 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 		tu_13*exp(i*d_13.dot(K))+ tu_14*exp(i*d_14.dot(K))+ tu_17*exp(i*d_17.dot(K)) + tu_18*exp(i*d_18.dot(K));
 	uu_12 = tu_1 + tu_5*exp(i*d_9.dot(K)) + tu_7*exp(i*d_14.dot(K)) + tu_12*exp(i*d_4.dot(K));
 	uu_21 = tu_2 + tu_8*exp(i*d_13.dot(K)) + tu_11*exp(i*d_3.dot(K)) + tu_6*exp(i*d_10.dot(K));
-	Matrix<dcomp, 18, 18> Uu, Tu, OMu, GLu, GRu;
+	Matrix<dcomp, 18, 18> Uu, Tu, OMLu, OMRu, GLu, GRu;
 	Uu << uu_11, uu_12, uu_21, uu_11;
 	Tu_21 = tu_7 + tu_1*exp(i*d_13.dot(K)) + tu_5*exp(i*d_3.dot(K)) + tu_12*exp(i*d_10.dot(K));
 	Tu << tu_15, zero, Tu_21, tu_15;
@@ -89,7 +88,7 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 		td_13*exp(i*d_13.dot(K))+ td_14*exp(i*d_14.dot(K))+ td_17*exp(i*d_17.dot(K)) + td_18*exp(i*d_18.dot(K));
 	ud_12 = td_1 + td_5*exp(i*d_9.dot(K)) + td_7*exp(i*d_14.dot(K)) + td_12*exp(i*d_4.dot(K));
 	ud_21 = td_2 + td_8*exp(i*d_13.dot(K)) + td_11*exp(i*d_3.dot(K)) + td_6*exp(i*d_10.dot(K));
-	Matrix<dcomp, 18, 18> Ud, Td, OMd, GLd, GRd;
+	Matrix<dcomp, 18, 18> Ud, Td, OMLd, OMRd, GLd, GRd;
 	Ud << ud_11, ud_12, ud_21, ud_11;
 	Td_21 = td_7 + td_1*exp(i*d_13.dot(K)) + td_5*exp(i*d_3.dot(K)) + td_12*exp(i*d_10.dot(K));
 	Td << td_15, zero, Td_21, td_15;
@@ -100,69 +99,26 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 	Tddagg = Td.adjoint();
 	Tdagg = T.adjoint();
 
-	dmat miniOM;
-	dmat small_I = dmat::Identity();
-	miniOM = omega*small_I - u_11; 
-	OM = omega*I-U;
-	OMu = omega*I-Uu;
-	OMd = omega*I-Ud;
-
-	GLu = gs(OMu, Tu);
-	GLd = gs(OMd, Td);
-	GRu = gs(OMu, Tudagg);
-	GRd = gs(OMd, Tddagg);
-
-	ddmat Rsigma_0_u, Rsigma_0_d, Rsigma_PI_u, Rsigma_PI_d;
-	dcomp Fsigma;
-	VectorXcd result(N);
-	result.fill(0.);
+	OM = omega*I - U;
+	OMRu = omega*I-Uu;
+	OMRd = omega*I-Ud;
+	GRu = gs(OMRu, Tudagg);
+	GRd = gs(OMRd, Tddagg);
 
 //mobius transformation layer 2 from layer 1 to spacer thickness, N
 	ddmat Tinv;
 	Tinv = T.inverse();
 	ddmat zero2 = ddmat::Zero();
-
-	/* Matrix<dcomp, 36, 36> X,O,Oinv,OAOinv; */
-	/* Matrix<dcomp, 36, 1> A; */
-	/* X << 	zero2,	Tinv, */
-	/* 	-Tdagg,	OM*Tinv; */
-	/* ComplexEigenSolver<Matrix<dcomp, 36, 36>> ces; */
-	/* ces.compute(X); */
-	/* O = ces.eigenvectors(); */
-	/* A = ces.eigenvalues(); */
-	/* Oinv = O.inverse(); */
-	/* ddmat GNu, GNd, a1, b1, c1, d1, fu, fd, a2, b2, c2, d2, tmpu, tmpd; */
-	/* Matrix<dcomp, 18, 1> A1, A2; */
-	/* A1 = A.topLeftCorner(18, 1); */
-	/* A2 = A.bottomLeftCorner(18, 1); */
-	/* a1 = Oinv.topLeftCorner(18, 18); */
-	/* b1 = Oinv.topRightCorner(18, 18); */
-	/* c1 = Oinv.bottomLeftCorner(18, 18); */
-	/* d1 = Oinv.bottomRightCorner(18, 18); */
-	/* fu = (a1*GLu + b1)*(c1*GLu + d1).inverse(); */
-	/* fd = (a1*GLd + b1)*(c1*GLd + d1).inverse(); */
-	/* a2 = O.topLeftCorner(18, 18); */
-	/* b2 = O.topRightCorner(18, 18); */
-	/* c2 = O.bottomLeftCorner(18, 18); */
-	/* d2 = O.bottomRightCorner(18, 18); */
-
-	dmat t_15inv;
-	t_15inv = t_15.inverse();
-	ddmat GNu, GNd, a0, b0, c0, d0;
-	a0 << zero, small_I, zero, zero;
-	b0 << zero, zero, t_15inv, zero;
-	c0 << zero, zero, -t_15.adjoint(), -T_21.adjoint();
-	d0 << -T_21*t_15inv, small_I, miniOM*t_15inv, zero; 
-	dddmat stack, powstack;
-	stack << a0, b0, c0, d0;
-	ComplexEigenSolver<Matrix<dcomp, 36, 36>> ces;
-	ces.compute(stack);
-	Matrix<dcomp, 36, 36>O,Oinv,OAOinv;
+	Matrix<dcomp, 36, 36> X,O,Oinv,OAOinv;
 	Matrix<dcomp, 36, 1> A;
+	X << 	zero2,	Tinv,
+		-Tdagg,	OM*Tinv;
+	ComplexEigenSolver<Matrix<dcomp, 36, 36>> ces;
+	ces.compute(X);
 	O = ces.eigenvectors();
 	A = ces.eigenvalues();
 	Oinv = O.inverse();
-	ddmat a1, b1, c1, d1, fu, fd, a2, b2, c2, d2, tmpu, tmpd;
+	ddmat GNu, GNd, a1, b1, c1, d1, fu, fd, a2, b2, c2, d2, tmpu, tmpd;
 	Matrix<dcomp, 18, 1> A1, A2;
 	A1 = A.topLeftCorner(18, 1);
 	A2 = A.bottomLeftCorner(18, 1);
@@ -170,16 +126,29 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 	b1 = Oinv.topRightCorner(18, 18);
 	c1 = Oinv.bottomLeftCorner(18, 18);
 	d1 = Oinv.bottomRightCorner(18, 18);
-	fu = (a1*GLu + b1)*(c1*GLu + d1).inverse();
-	fd = (a1*GLd + b1)*(c1*GLd + d1).inverse();
 	a2 = O.topLeftCorner(18, 18);
 	b2 = O.topRightCorner(18, 18);
 	c2 = O.bottomLeftCorner(18, 18);
 	d2 = O.bottomRightCorner(18, 18);
 
-	for (int it=0; it < N; ++it){
-		tmpu = (A1.array().pow(it/10.).matrix()).asDiagonal()*fu*(A2.array().pow(-it/10.).matrix()).asDiagonal();
-		tmpd = (A1.array().pow(it/10.).matrix()).asDiagonal()*fd*(A2.array().pow(-it/10.).matrix()).asDiagonal();
+	ddmat Rsigma_0_u, Rsigma_0_d, Rsigma_PI_u, Rsigma_PI_d;
+	dcomp Fsigma;
+	VectorXcd result(total);
+	result.fill(0.);
+
+	double delta_Ef;
+	int iii = 0;
+	for (delta_Ef = start; delta_Ef <= end ; delta_Ef += step){
+		OMLu = (omega + delta_Ef)*I-Uu;
+		OMLd = (omega + delta_Ef)*I-Ud;
+
+		GLu = gs(OMLu, Tu);
+		GLd = gs(OMLd, Td);
+
+		fu = (a1*GLu + b1)*(c1*GLu + d1).inverse();
+		fd = (a1*GLd + b1)*(c1*GLd + d1).inverse();
+		tmpu = (A1.array().pow(N).matrix()).asDiagonal()*fu*(A2.array().pow(-N).matrix()).asDiagonal();
+		tmpd = (A1.array().pow(N).matrix()).asDiagonal()*fd*(A2.array().pow(-N).matrix()).asDiagonal();
 		GNu = (a2*tmpu + b2)*(c2*tmpu + d2).inverse();
 		GNd = (a2*tmpd + b2)*(c2*tmpd + d2).inverse();
 		Rsigma_0_u = (I-GRu*Tdagg*GNu*T);
@@ -187,20 +156,9 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 		Rsigma_PI_u = (I-GRd*Tdagg*GNu*T);
 		Rsigma_PI_d = (I-GRu*Tdagg*GNd*T);
 		Fsigma = (1./M_PI)*log((Rsigma_0_d*Rsigma_0_u*Rsigma_PI_u.inverse()*Rsigma_PI_d.inverse()).determinant());
-		result[it] = Fsigma;
+		result[iii] = Fsigma;
+		iii++;
 	}
-
-/* //adlayer layer 2 from layer 1 to spacer thickness, N */
-/* 	for (int it=0; it < N; ++it){ */
-/* 		GLu = (OM -Tdagg*GLu*T).inverse(); */
-/* 		GLd = (OM -Tdagg*GLd*T).inverse(); */
-/* 		Rsigma_0_u = (I-GRu*Tdagg*GLu*T); */
-/* 		Rsigma_0_d = (I-GRd*Tdagg*GLd*T); */
-/* 		Rsigma_PI_u = (I-GRd*Tdagg*GLu*T); */
-/* 		Rsigma_PI_d = (I-GRu*Tdagg*GLd*T); */
-/* 		Fsigma = (1./M_PI)*log((Rsigma_0_d*Rsigma_0_u*Rsigma_PI_u.inverse()*Rsigma_PI_d.inverse()).determinant()); */
-/* 		result[it] = Fsigma; */
-/* 	} */
 
 	return result;
 }
@@ -212,7 +170,7 @@ int main(){
 	getline(cin, Mydata);
 	ofstream Myfile;	
 	Mydata += ".txt";
-	Myfile.open( Mydata.c_str(),ios::trunc );
+	Myfile.open( Mydata.c_str(),ios::trunc);
 
 	Vector3d d_1, d_2, d_3, d_4, d_5, d_6, d_7, d_8, d_9;
 	Vector3d d_10, d_11, d_12, d_13, d_14, d_15, d_16;
@@ -335,15 +293,19 @@ int main(){
 
 	//number of principle layers of spacer
 	/* const int N = 50; */
-	const int N = 200;
+	const int N = 6;
 
 	dcomp E = 0.;
 	/* const double Ef = 0.5805; */
 	const double Ef = 0.57553;
-	/* const double Ef = -0.038; */
 	const double kT = 8.617342857e-5*316/13.6058;
-	VectorXcd result_complex(N);
+	double start = -0.04;
+	double end = 0.06;
+	double step = 0.005;
+	int total = (int) ceil((end-start)/step) +1;
+	VectorXcd result_complex(total);
 	result_complex.fill(0.);
+	VectorXd result;
 	for (int j=0; j!=10; j++){
 		E = Ef + (2.*j + 1.)*kT*M_PI*i;
 		result_complex = result_complex + kspace(&greens, 2, 5e-2, 2*a, E, N,
@@ -354,22 +316,22 @@ int main(){
 				u_d, td_1, td_2, td_3, td_4, td_5, td_6, td_7, td_8, td_9,
 			       	td_10, td_11, td_12, td_13, td_14, td_15, td_16, td_17, td_18,
 				d_3, d_4, d_9, d_10,
-			       	d_13, d_14, d_17, d_18);
-
+			       	d_13, d_14, d_17, d_18, start, end, step, total);
 	}
-	VectorXd result = result_complex.real();
 
+	result = result_complex.real();
 	result *= kT/(4.*M_PI*M_PI);
-	Myfile<<"N , Gamma"<<endl;
 
-	for (int ii=0; ii < N ; ++ii){
-		/* Myfile << (ii+1)/10. <<" ,  "<< -2.*M_PI*result[ii] << endl; */
-		Myfile << (ii)/10. <<" "<< 4.*M_PI*result[ii] << endl;
-		/* Myfile << ii+1 <<" ,  "<< -2.*M_PI*result[ii] << endl; */
+	int it = 0;
+	for (double j = start; j <= end; j+=step){
+		Myfile <<j<<"  "<< 4.*M_PI*result[it] << endl;
+		it++;
 	}
+	/* Myfile << (ii+1)/10. <<" ,  "<< -2.*M_PI*result[ii] << endl; */
+	/* Myfile << ii+1 <<" ,  "<< -2.*M_PI*result[ii] << endl; */
 
 	cout<<"finished!"<<endl;
 
-			Myfile.close();
+	Myfile.close();
 	return 0;
 }

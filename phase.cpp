@@ -3,7 +3,7 @@
 #include <fstream>
 #include <eigen3/Eigen/Dense>
 #include "TBdynamic.h"
-#include "cunningham_spawn.h"
+#include "cunningham_spawn_diamond.h"
 //This program calculates the realistic exchange coupling in a Co/Cu/Co(001)
 //trilayer. It does so for bcc Co and fcc Cu. Interatomic spacing is considered
 //identical and the interfaces are abrupt.
@@ -174,7 +174,7 @@ int main(){
 	getline(cin, Mydata);
 	ofstream Myfile;	
 	Mydata += ".txt";
-	Myfile.open( Mydata.c_str(),ios::trunc );
+	Myfile.open( Mydata.c_str(),ios::app);
 
 	Vector3d d_1, d_2, d_3, d_4, d_5, d_6, d_7, d_8, d_9;
 	Vector3d d_10, d_11, d_12, d_13, d_14, d_15, d_16;
@@ -298,7 +298,6 @@ int main(){
 	//number of principle layers of spacer
 	/* const int N = 50; */
 	const int N = 14;
-	Myfile<<"N  Gamma"<<endl;
 
 	dcomp E = 0.;
 	/* const double Ef = 0.5805; */

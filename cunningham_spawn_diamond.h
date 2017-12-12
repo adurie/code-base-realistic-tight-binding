@@ -97,7 +97,7 @@ ret aux_square(func&& predicate, int depth, double error, int n, double v, doubl
 	/* 	depth++; */
 
 	/* if ((rel_error != 0) || (n>90)){//avoids early convergence */
-	if (n>90){//avoids early convergence
+	if (n>20){//avoids early convergence
 		if ((rel_error <= error) || (depth <= 0))
 			return f_total;
 	}
@@ -120,6 +120,70 @@ ret aux_square(func&& predicate, int depth, double error, int n, double v, doubl
 	return g_total;
 }
 
+template <typename func, typename... Args, typename ret>// a triangle can spawn square and triangles, but only triangles when x = z
+ret aux_tri_dia(func&& predicate, int depth, double error, int n, double v, double w, const ret& f, double A, const double a, Args&&... params)
+{
+	ret f_1, f_2, f_3, f_4, f_5, f_6;
+	double x, z;
+	x = v;		z = w;	
+	f_1 = (1/9.)*f;
+
+	/* string Mydata; */
+	/* ofstream Myfile; */	
+	/* Mydata = "output2.txt"; */
+	/* Myfile.open( Mydata.c_str(),ios::app ); */
+
+	x = v - 2*A;	z = w;	
+	f_2 = (1/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+	/* Myfile<<x<<", "<<z<<", "<<f_2<<endl; */
+
+	x = v - 2*A;	z = w + 2*A;	
+	f_3 = (0.5/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+	/* Myfile<<x<<", "<<z<<", "<<f_3<<endl; */
+
+	x = v;	z = w - 2*A;	
+	f_4 = (1/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+	/* Myfile<<x<<", "<<z<<", "<<f_4<<endl; */
+
+	x = v + 2*A;	z = w - 2*A;	
+	f_5 = (1/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+	/* Myfile<<x<<", "<<z<<", "<<f_5<<endl; */
+
+	x = v - 2*A;	z = w - 2*A;	
+	f_6 = (0.5/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+	/* Myfile<<x<<", "<<z<<", "<<f_6<<endl; */
+
+	ret f_total;
+	f_total = f_1 + f_2 + f_3 + f_4 + f_5 + f_6;
+	/* cout<<f_total<<" "<<f<<" tri"<<endl; */
+	/* cout<<f_1<<" "<<f_2<<" "<<f_3<<" "<<f_4<<" "<<f_5<<" "<<f_6<<endl; */
+
+	double rel_error;
+	rel_error = Condition(f_total, f);//condition overloaded for all data types this header is designed for
+
+	/* if((rel_error>0.3)&&(rel_error<1)&&(n<1e6)) */
+	/* 	depth++; */
+
+	/* if ((rel_error != 0) || (n>90)){//avoids early convergence */
+	if (n>20){//avoids early convergence
+		if ((rel_error <= error) || (depth <= 0))
+			return f_total;
+	}
+
+	//begin spawning points around points already integrated over
+	ret g_1, g_2, g_3, g_4, g_5, g_6;
+
+	g_1 = aux_tri_dia(predicate, depth-1, error, n*9, v, w, f_1, A/3., a, params...);
+	g_2 = aux_square(predicate, depth-1, error, n*9, v - 2*A, w, f_2, A/3., a, params...);
+	g_3 = aux_tri_dia(predicate, depth-1, error, n*9, v - 2*A, w + 2*A, f_3, A/3., a, params...);
+	g_4 = aux_square(predicate, depth-1, error, n*9, v, w - 2*A, f_4, A/3., a, params...);
+	g_5 = aux_square(predicate, depth-1, error, n*9, v + 2*A, w - 2*A, f_5, A/3., a, params...);
+	g_6 = aux_tri_dia(predicate, depth-1, error, n*9, v - 2*A, w - 2*A, f_6, A/3., a, params...);
+
+	ret g_total;
+	g_total = g_1 + g_2 + g_3 + g_4 + g_5 + g_6;
+	return g_total;
+}
 template <typename func, typename... Args, typename ret>// a triangle can spawn square and triangles, but only triangles when x = z
 ret aux_tri(func&& predicate, int depth, double error, int n, double v, double w, const ret& f, double A, const double a, Args&&... params)
 {
@@ -165,7 +229,7 @@ ret aux_tri(func&& predicate, int depth, double error, int n, double v, double w
 	/* 	depth++; */
 
 	/* if ((rel_error != 0) || (n>90)){//avoids early convergence */
-	if (n>90){//avoids early convergence
+	if (n>20){//avoids early convergence
 		if ((rel_error <= error) || (depth <= 0))
 			return f_total;
 	}
@@ -269,6 +333,64 @@ auto kspace(func&& predicate, int depth, double rel, const double a, Args&&... p
 	ret g_total;
 	g_total = g_1 + g_2 + g_3 + g_4 + g_5 + g_6;
 	A = M_PI/a;
-	return g_total*8.*A*A;
+	ret holding;
+	holding = g_total*8.*A*A;
+	double new_mid = A/2. + A;
+
+	x = new_mid;
+	z = A/2.;
+	//calculate the mean value point only	
+	f = 0.5*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+
+	//calculate the 5 remaining points in the 6 point grid
+	A /= 6.;
+
+	x = new_mid - 2*A;	z = A;	
+	f_1 = (0.5/9.)*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+	/* Myfile<<x<<", "<<z<<", "<<f_1<<endl; */
+
+	x = new_mid;	z = A;	
+	f_2 = (1/9.)*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+	/* Myfile<<x<<", "<<z<<", "<<f_2<<endl; */
+
+	x = new_mid + 2*A;	z = A;	
+	f_3 = (1/9.)*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+	/* Myfile<<x<<", "<<z<<", "<<f_3<<endl; */
+
+	x = new_mid - 2*A;	z = 3*A;	
+	f_4 = (1/9.)*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+	/* Myfile<<x<<", "<<z<<", "<<f_4<<endl; */
+
+	x = new_mid;	z = 3*A;	
+	f_5 = (1/9.)*f;
+	/* Myfile<<x<<", "<<z<<", "<<f_5<<endl; */
+
+	x = new_mid - 2*A;	z = 5*A;	
+	f_6 = (0.5/9.)*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+	/* Myfile<<x<<", "<<z<<", "<<f_6<<endl; */
+
+	f_total = f_1 + f_2 + f_3 + f_4 + f_5 + f_6;
+
+	/* cout<<f_total<<" "<<f<<endl; */
+	/* cout<<f_1<<" "<<f_2<<" "<<f_3<<" "<<f_4<<" "<<f_5<<" "<<f_6<<endl; */
+	/* rel_error = Condition(f_total, f);//condition overloaded for all data types this header is designed for */
+
+	/* if (rel_error <= error){ */
+	/* 	A = M_PI/a; */
+	/* 	return f_total*8*A*A; */
+	/* } */
+
+	//begin spawning points around points already integrated over
+
+	g_1 = aux_tri_dia(predicate, depth, error, 9, new_mid - 2*A, A, f_1, A/3., a, params...);
+	g_2 = aux_square(predicate, depth, error, 9, new_mid, A, f_2, A/3., a, params...);
+	g_3 = aux_square(predicate, depth, error, 9, new_mid + 2*A, A, f_3, A/3., a, params...);
+	g_4 = aux_square(predicate, depth, error, 9, new_mid - 2*A, 3*A, f_4, A/3., a, params...);
+	g_5 = aux_tri_dia(predicate, depth, error, 9, new_mid, 3*A, f_5, A/3., a, params...);
+	g_6 = aux_tri_dia(predicate, depth, error, 9, new_mid - 2*A, 5*A, f_6, A/3., a, params...);
+
+	g_total = g_1 + g_2 + g_3 + g_4 + g_5 + g_6;
+	A = M_PI/a;
+	return 0.5*(g_total*8.*A*A + holding);
 }
 #endif

@@ -4,8 +4,8 @@
 #include <eigen3/Eigen/Dense>
 #include <eigen3/unsupported/Eigen/MatrixFunctions>
 #include "TB.h"
-/* #include "cunningham_spawn.h" */
-#include "cunningham.h"
+#include "cunningham_spawn_diamond.h"
+/* #include "cunningham_diamond.h" */
 
 
 using namespace std;
@@ -95,7 +95,7 @@ int main(){
 	getline(cin, Mydata);
 	ofstream Myfile;	
 	Mydata += ".txt";
-	Myfile.open( Mydata.c_str(),ios::trunc );
+	Myfile.open( Mydata.c_str(),ios::app );
 
 	Vector3d d_1, d_2, d_3, d_4, d_5, d_6, d_7, d_8, d_9;
 	Vector3d d_10, d_11, d_12, d_13, d_14, d_15, d_16;
@@ -157,8 +157,8 @@ int main(){
 
 	double result;
 
-	double start = 0.35;
-	double end = 0.5;
+	double start = -0.2;
+	double end = 1.1;
 	double step = 0.0026;
 
 	/* double start = 0; */
@@ -176,7 +176,7 @@ int main(){
 		/* 		t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18, d_1, d_2, d_3, d_4, */
 		/* 		d_5, d_6, d_7, d_8, d_9, d_10, d_11, d_12, d_13, d_14, d_15, d_16, d_17, d_18); */
 
-		result = kspace(&greens, 3000, 0.001, 10, a, j + 1e-4*i, u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
+		result = kspace(&greens, 1, 0.05, a, j + 1e-4*i, u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
 				t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18, d_1, d_2, d_3, d_4,
 				d_5, d_6, d_7, d_8, d_9, d_10, d_11, d_12, d_13, d_14, d_15, d_16, d_17, d_18);
 

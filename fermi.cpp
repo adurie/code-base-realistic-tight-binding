@@ -7,7 +7,7 @@ using namespace std;
 int main(){
 	/* ifstream infile("tdosrem2.txt"); */
 	/* ifstream infile("rem.txt"); */
-	ifstream infile("treverse.txt");
+	ifstream infile("diamond.txt");
 	/* ifstream infile("mn.txt"); */
 	/* ifstream infile("gsl.txt"); */
 	/* ifstream infile("mnm.txt"); */
@@ -19,7 +19,8 @@ int main(){
 	double step = 0.0026;
 	/* double step = 0.0001; */
 	double a, b;
-	while (E < 11) 
+	while (E < 22) 
+	/* while (E < 11) */ 
 	/* while (E < 11.308) */ 
 	/* while (E < 4.8762) */ 
 	/* while (E < 5.80353) */ 

@@ -178,10 +178,12 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 	d2 = O.bottomRightCorner(18, 18);
 
 	for (int it=0; it < N; ++it){
-		tmpu = (A1.array().pow(it/10.).matrix()).asDiagonal()*fu*(A2.array().pow(-it/10.).matrix()).asDiagonal();
-		tmpd = (A1.array().pow(it/10.).matrix()).asDiagonal()*fd*(A2.array().pow(-it/10.).matrix()).asDiagonal();
+
+		tmpu = (A1.array().pow(it).matrix()).asDiagonal()*fu*(A2.array().pow(-it).matrix()).asDiagonal();
+		tmpd = (A1.array().pow(it).matrix()).asDiagonal()*fd*(A2.array().pow(-it).matrix()).asDiagonal();
 		GNu = (a2*tmpu + b2)*(c2*tmpu + d2).inverse();
 		GNd = (a2*tmpd + b2)*(c2*tmpd + d2).inverse();
+
 		Rsigma_0_u = (I-GRu*Tdagg*GNu*T);
 		Rsigma_0_d = (I-GRd*Tdagg*GNd*T);
 		Rsigma_PI_u = (I-GRd*Tdagg*GNu*T);
@@ -335,36 +337,34 @@ int main(){
 
 	//number of principle layers of spacer
 	/* const int N = 50; */
-	const int N = 200;
+	const int N = 30;
 
 	dcomp E = 0.;
 	/* const double Ef = 0.5805; */
 	const double Ef = 0.57553;
 	/* const double Ef = -0.038; */
-	const double kT = 8.617342857e-5*316/13.6058;
+	const double kT = 8.617342857e-5*315.79/13.6058;
 	VectorXcd result_complex(N);
-	result_complex.fill(0.);
-	for (int j=0; j!=10; j++){
-		E = Ef + (2.*j + 1.)*kT*M_PI*i;
-		result_complex = result_complex + kspace(&greens, 2, 5e-2, 2*a, E, N,
-				u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
-				t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18,
-				u_u, tu_1, tu_2, tu_3, tu_4, tu_5, tu_6, tu_7, tu_8, tu_9,
-			       	tu_10, tu_11, tu_12, tu_13, tu_14, tu_15, tu_16, tu_17, tu_18,
-				u_d, td_1, td_2, td_3, td_4, td_5, td_6, td_7, td_8, td_9,
-			       	td_10, td_11, td_12, td_13, td_14, td_15, td_16, td_17, td_18,
-				d_3, d_4, d_9, d_10,
-			       	d_13, d_14, d_17, d_18);
+	E = Ef + kT*M_PI*i;
+	cout<<E<<endl;
+	result_complex = greens(-2.19911485751286, -0.314159265358979, 2*a, E, N,
+			u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
+			t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18,
+			u_u, tu_1, tu_2, tu_3, tu_4, tu_5, tu_6, tu_7, tu_8, tu_9,
+		       	tu_10, tu_11, tu_12, tu_13, tu_14, tu_15, tu_16, tu_17, tu_18,
+			u_d, td_1, td_2, td_3, td_4, td_5, td_6, td_7, td_8, td_9,
+		       	td_10, td_11, td_12, td_13, td_14, td_15, td_16, td_17, td_18,
+			d_3, d_4, d_9, d_10,
+		       	d_13, d_14, d_17, d_18);
 
-	}
 	VectorXd result = result_complex.real();
 
-	result *= kT/(4.*M_PI*M_PI);
+	/* result *= 1/(4.*M_PI*M_PI); */
 	Myfile<<"N , Gamma"<<endl;
 
 	for (int ii=0; ii < N ; ++ii){
 		/* Myfile << (ii+1)/10. <<" ,  "<< -2.*M_PI*result[ii] << endl; */
-		Myfile << (ii)/10. <<" "<< 4.*M_PI*result[ii] << endl;
+		Myfile << (ii) <<" "<< result[ii] << endl;
 		/* Myfile << ii+1 <<" ,  "<< -2.*M_PI*result[ii] << endl; */
 	}
 

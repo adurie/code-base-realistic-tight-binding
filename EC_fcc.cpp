@@ -19,14 +19,21 @@ typedef Matrix<dcomp, 36, 36> dddmat;
 typedef Vector3d vec;
 
 //calculates g at the interfaces
-ddmat gs(ddmat &OM, ddmat &T)
+ddmat gs(dmat &OM, dmat &t_1, dmat &t_2)
 {
-	ddmat zero = ddmat::Zero();
-	Matrix<dcomp, 36, 36> X,O;
-	X << 	zero,	T.inverse(),
-		-T.adjoint(),	OM*T.inverse();
+	dmat I = dmat::Identity();
+	dmat t_2inv;
+	t_2inv = t_2.inverse();
+	dmat zero = dmat::Zero();
+	ddmat a0, b0, c0, d0;
+	a0 << zero, I, zero, zero;
+	b0 << zero, zero, t_2inv, zero;
+	c0 << zero, zero, -t_2.adjoint(), -t_1.adjoint();
+	d0 << -t_1*t_2inv, I, OM*t_2inv, zero; 
+	dddmat stack, O;
+	stack << a0, b0, c0, d0;
 	ComplexEigenSolver<Matrix<dcomp, 36, 36>> ces;
-	ces.compute(X);
+	ces.compute(stack);
 	O = ces.eigenvectors();
 	ddmat b = O.topRightCorner(18, 18);
 	ddmat d = O.bottomRightCorner(18, 18);
@@ -34,6 +41,47 @@ ddmat gs(ddmat &OM, ddmat &T)
 	GR = b*d.inverse();
 	return GR;
 }
+
+//prepares SGF for RH surfaces
+ddmat gr(dmat &OM, dmat &t_1, dmat &t_2)
+{
+	dmat I = dmat::Identity();
+	dmat t_2adj, t_2adjinv;
+	t_2adj = t_2.adjoint();
+	t_2adjinv = t_2adj.inverse();
+	dmat zero = dmat::Zero();
+	ddmat a0, b0, c0, d0;
+	a0 << zero, zero, I, zero;
+	b0 << zero, t_2adjinv, zero, zero;
+	c0 << -t_1, -t_2, zero, zero; 
+	d0 << zero, OM*t_2adjinv, I, -t_1.adjoint()*t_2adjinv; 
+	dddmat stack, O;
+	stack << a0, b0, c0, d0;
+	ComplexEigenSolver<Matrix<dcomp, 36, 36>> ces;
+	ces.compute(stack);
+	O = ces.eigenvectors();
+	ddmat b = O.topRightCorner(18, 18);
+	ddmat d = O.bottomRightCorner(18, 18);
+	ddmat GR;
+	GR = b*d.inverse();
+	return GR;
+}
+
+/* ddmat gs(ddmat &OM, ddmat &T) */
+/* { */
+/* 	ddmat zero = ddmat::Zero(); */
+/* 	Matrix<dcomp, 36, 36> X,O; */
+/* 	X << 	zero,	T.inverse(), */
+/* 		-T.adjoint(),	OM*T.inverse(); */
+/* 	ComplexEigenSolver<Matrix<dcomp, 36, 36>> ces; */
+/* 	ces.compute(X); */
+/* 	O = ces.eigenvectors(); */
+/* 	ddmat b = O.topRightCorner(18, 18); */
+/* 	ddmat d = O.bottomRightCorner(18, 18); */
+/* 	ddmat GR; */
+/* 	GR = b*d.inverse(); */
+/* 	return GR; */
+/* } */
 
 VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 		dmat &t_1, dmat &t_2, dmat &t_3, dmat &t_4, dmat &t_5, dmat &t_6, dmat &t_7, 
@@ -61,36 +109,36 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 
 	//construct diagonalised in-plane matrices
 	//Cu fcc
-	Matrix<dcomp, 9, 9> u_11, u_12, u_21, T_21;
+	Matrix<dcomp, 9, 9> u_11, T_21;
 	u_11 = u + t_3*exp(i*d_3.dot(K))+ t_4*exp(i*d_4.dot(K))+ t_9*exp(i*d_9.dot(K)) + t_10*exp(i*d_10.dot(K)) + 
 		t_13*exp(i*d_13.dot(K))+ t_14*exp(i*d_14.dot(K))+ t_17*exp(i*d_17.dot(K)) + t_18*exp(i*d_18.dot(K));
-	u_12 = t_1 + t_5*exp(i*d_9.dot(K)) + t_7*exp(i*d_14.dot(K)) + t_12*exp(i*d_4.dot(K));
-	u_21 = t_2 + t_8*exp(i*d_13.dot(K)) + t_11*exp(i*d_3.dot(K)) + t_6*exp(i*d_10.dot(K));
-	Matrix<dcomp, 18, 18> U, T, OM, GL, GR, GN, GRinv, GNinv;
-	U << u_11, u_12, u_21, u_11;
+	/* u_12 = t_1 + t_5*exp(i*d_9.dot(K)) + t_7*exp(i*d_14.dot(K)) + t_12*exp(i*d_4.dot(K)); */
+	/* u_21 = t_2 + t_8*exp(i*d_13.dot(K)) + t_11*exp(i*d_3.dot(K)) + t_6*exp(i*d_10.dot(K)); */
+	Matrix<dcomp, 18, 18> T, GL, GR, GN, GRinv, GNinv;
+	/* U << u_11, u_12, u_21, u_11; */
 	Matrix<complex<double>, 9, 9> zero = Matrix<complex<double>, 9, 9>::Zero();
 	T_21 = t_7 + t_1*exp(i*d_13.dot(K)) + t_5*exp(i*d_3.dot(K)) + t_12*exp(i*d_10.dot(K));
 	T << t_15, zero, T_21, t_15;
 
 	//Co spin up fcc
-	Matrix<dcomp, 9, 9> uu_11, uu_12, uu_21, Tu_21;
+	Matrix<dcomp, 9, 9> uu_11, Tu_21;
 	uu_11 = u_u + tu_3*exp(i*d_3.dot(K))+ tu_4*exp(i*d_4.dot(K))+ tu_9*exp(i*d_9.dot(K)) + tu_10*exp(i*d_10.dot(K)) + 
 		tu_13*exp(i*d_13.dot(K))+ tu_14*exp(i*d_14.dot(K))+ tu_17*exp(i*d_17.dot(K)) + tu_18*exp(i*d_18.dot(K));
-	uu_12 = tu_1 + tu_5*exp(i*d_9.dot(K)) + tu_7*exp(i*d_14.dot(K)) + tu_12*exp(i*d_4.dot(K));
-	uu_21 = tu_2 + tu_8*exp(i*d_13.dot(K)) + tu_11*exp(i*d_3.dot(K)) + tu_6*exp(i*d_10.dot(K));
-	Matrix<dcomp, 18, 18> Uu, Tu, OMu, GLu, GRu;
-	Uu << uu_11, uu_12, uu_21, uu_11;
+	/* uu_12 = tu_1 + tu_5*exp(i*d_9.dot(K)) + tu_7*exp(i*d_14.dot(K)) + tu_12*exp(i*d_4.dot(K)); */
+	/* uu_21 = tu_2 + tu_8*exp(i*d_13.dot(K)) + tu_11*exp(i*d_3.dot(K)) + tu_6*exp(i*d_10.dot(K)); */
+	Matrix<dcomp, 18, 18> Tu, GLu, GRu;
+	/* Uu << uu_11, uu_12, uu_21, uu_11; */
 	Tu_21 = tu_7 + tu_1*exp(i*d_13.dot(K)) + tu_5*exp(i*d_3.dot(K)) + tu_12*exp(i*d_10.dot(K));
 	Tu << tu_15, zero, Tu_21, tu_15;
 
 	//Co spin up fcc
-	Matrix<dcomp, 9, 9> ud_11, ud_12, ud_21, Td_21;
+	Matrix<dcomp, 9, 9> ud_11, Td_21;
 	ud_11 = u_d + td_3*exp(i*d_3.dot(K))+ td_4*exp(i*d_4.dot(K))+ td_9*exp(i*d_9.dot(K)) + td_10*exp(i*d_10.dot(K)) + 
 		td_13*exp(i*d_13.dot(K))+ td_14*exp(i*d_14.dot(K))+ td_17*exp(i*d_17.dot(K)) + td_18*exp(i*d_18.dot(K));
-	ud_12 = td_1 + td_5*exp(i*d_9.dot(K)) + td_7*exp(i*d_14.dot(K)) + td_12*exp(i*d_4.dot(K));
-	ud_21 = td_2 + td_8*exp(i*d_13.dot(K)) + td_11*exp(i*d_3.dot(K)) + td_6*exp(i*d_10.dot(K));
-	Matrix<dcomp, 18, 18> Ud, Td, OMd, GLd, GRd;
-	Ud << ud_11, ud_12, ud_21, ud_11;
+	/* ud_12 = td_1 + td_5*exp(i*d_9.dot(K)) + td_7*exp(i*d_14.dot(K)) + td_12*exp(i*d_4.dot(K)); */
+	/* ud_21 = td_2 + td_8*exp(i*d_13.dot(K)) + td_11*exp(i*d_3.dot(K)) + td_6*exp(i*d_10.dot(K)); */
+	Matrix<dcomp, 18, 18>  Td, GLd, GRd;
+	/* Ud << ud_11, ud_12, ud_21, ud_11; */
 	Td_21 = td_7 + td_1*exp(i*d_13.dot(K)) + td_5*exp(i*d_3.dot(K)) + td_12*exp(i*d_10.dot(K));
 	Td << td_15, zero, Td_21, td_15;
 
@@ -100,17 +148,16 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 	Tddagg = Td.adjoint();
 	Tdagg = T.adjoint();
 
-	dmat miniOM;
 	dmat small_I = dmat::Identity();
-	miniOM = omega*small_I - u_11; 
-	OM = omega*I-U;
-	OMu = omega*I-Uu;
-	OMd = omega*I-Ud;
+	dmat OM, OMu, OMd;
+	OM = omega*small_I - u_11; 
+	OMu = omega*small_I-uu_11;
+	OMd = omega*small_I-ud_11;
 
-	GLu = gs(OMu, Tu);
-	GLd = gs(OMd, Td);
-	GRu = gs(OMu, Tudagg);
-	GRd = gs(OMd, Tddagg);
+	GLu = gs(OMu, Tu_21, tu_15);
+	GLd = gs(OMd, Td_21, td_15);
+	GRu = gr(OMu, Tu_21, tu_15);
+	GRd = gr(OMd, Td_21, td_15);
 
 	ddmat Rsigma_0_u, Rsigma_0_d, Rsigma_PI_u, Rsigma_PI_d;
 	dcomp Fsigma;
@@ -118,8 +165,8 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 	result.fill(0.);
 
 //mobius transformation layer 2 from layer 1 to spacer thickness, N
-	ddmat Tinv;
-	Tinv = T.inverse();
+	/* ddmat Tinv; */
+	/* Tinv = T.inverse(); */
 	ddmat zero2 = ddmat::Zero();
 
 	/* Matrix<dcomp, 36, 36> X,O,Oinv,OAOinv; */
@@ -152,7 +199,7 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 	a0 << zero, small_I, zero, zero;
 	b0 << zero, zero, t_15inv, zero;
 	c0 << zero, zero, -t_15.adjoint(), -T_21.adjoint();
-	d0 << -T_21*t_15inv, small_I, miniOM*t_15inv, zero; 
+	d0 << -T_21*t_15inv, small_I, OM*t_15inv, zero; 
 	dddmat stack, powstack;
 	stack << a0, b0, c0, d0;
 	ComplexEigenSolver<Matrix<dcomp, 36, 36>> ces;
