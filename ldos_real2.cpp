@@ -90,30 +90,29 @@ int main(){
 	Vector3d d_10, d_11, d_12, d_13, d_14, d_15, d_16;
 	Vector3d d_17, d_18;
 	
-	double a = 0.5;
-	/* double a = 1.; */
+	double a = 1.;
 	
 	//position vectors of nearest neighbours in fcc
-	d_1 << a, a, 0;
-	d_2 << -a, -a, 0;
-	d_3 << a, 0, a;
-	d_4 << -a, 0, -a;
-	d_5 << 0, a, a;
-	d_6 << 0, -a, -a;
-	d_7 << -a, a, 0;
-	d_8 << a, -a, 0;
-	d_9 << -a, 0, a;
-	d_10 << a, 0, -a;
-	d_11 << 0, -a, a;
-	d_12 << 0, a, -a;
+	d_1 << a/2., a/2., 0;
+	d_2 << -a/2., -a/2., 0;
+	d_3 << a/2., 0, a/2.;
+	d_4 << -a/2., 0, -a/2.;
+	d_5 << 0, a/2., a/2.;
+	d_6 << 0, -a/2., -a/2.;
+	d_7 << -a/2., a/2., 0;
+	d_8 << a/2., -a/2., 0;
+	d_9 << -a/2., 0, a/2.;
+	d_10 << a/2., 0, -a/2.;
+	d_11 << 0, -a/2., a/2.;
+	d_12 << 0, a/2., -a/2.;
 
 	//position vectors of next nearest neighbours
-	d_13 << 2*a, 0, 0;
-	d_14 << -2*a, 0, 0;
-	d_15 << 0, 2*a, 0;
-	d_16 << 0, -2*a, 0;
-	d_17 << 0, 0, 2*a;
-	d_18 << 0, 0, -2*a;
+	d_13 << a, 0, 0;
+	d_14 << -a, 0, 0;
+	d_15 << 0, a, 0;
+	d_16 << 0, -a, 0;
+	d_17 << 0, 0, a;
+	d_18 << 0, 0, -a;
 
 	//initialise onsite and hopping matrices for each nn
 	Matrix<dcomp, 9, 9> u, E;
@@ -165,7 +164,7 @@ int main(){
 		/* 		t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18, d_1, d_2, d_3, d_4, */
 		/* 		d_5, d_6, d_7, d_8, d_9, d_10, d_11, d_12, d_13, d_14, d_15, d_16, d_17, d_18); */
 
-		result = kspace(&greens, 3, 0.01, 2*a, j + 1e-4*i, u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
+		result = kspace(&greens, 3, 0.01, a, j + 1e-4*i, u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
 				t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18, d_1, d_2, d_3, d_4,
 				d_5, d_6, d_7, d_8, d_9, d_10, d_11, d_12, d_13, d_14, d_15, d_16, d_17, d_18);
 

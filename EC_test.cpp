@@ -94,6 +94,10 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 	Td_21 = td_7 + td_1*exp(i*d_13.dot(K)) + td_5*exp(i*d_3.dot(K)) + td_12*exp(i*d_10.dot(K));
 	Td << td_15, zero, Td_21, td_15;
 
+	/* cout<<u_12<<endl<<endl; */
+	/* cout<<T_21<<endl<<endl; */
+	/* cout<<" - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "<<endl; */
+
       	Matrix<complex<double>, 18, 18> I = Matrix<complex<double>, 18, 18>::Identity();
 	ddmat Tudagg, Tddagg, Tdagg;
 	Tudagg = Tu.adjoint();
@@ -120,8 +124,8 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 //mobius transformation layer 2 from layer 1 to spacer thickness, N
 	ddmat Tinv;
 	Tinv = T.inverse();
-	ddmat zero2 = ddmat::Zero();
 
+	/* ddmat zero2 = ddmat::Zero(); */
 	/* Matrix<dcomp, 36, 36> X,O,Oinv,OAOinv; */
 	/* Matrix<dcomp, 36, 1> A; */
 	/* X << 	zero2,	Tinv, */
@@ -153,14 +157,25 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 	b0 << zero, zero, t_15inv, zero;
 	c0 << zero, zero, -t_15.adjoint(), -T_21.adjoint();
 	d0 << -T_21*t_15inv, small_I, miniOM*t_15inv, zero; 
-	dddmat stack, powstack;
+	dddmat stack;
 	stack << a0, b0, c0, d0;
 	ComplexEigenSolver<Matrix<dcomp, 36, 36>> ces;
 	ces.compute(stack);
-	Matrix<dcomp, 36, 36>O,Oinv,OAOinv;
+	Matrix<dcomp, 36, 36>O,Oinv;
 	Matrix<dcomp, 36, 1> A;
+
+	/* ddmat zero2 = ddmat::Zero(); */
+	/* Matrix<dcomp, 36, 36> X; */
+	/* X << 	zero2,	Tinv, */
+	/* 	-Tdagg,	OM*Tinv; */
+	/* ComplexEigenSolver<Matrix<dcomp, 36, 36>> ces2; */
+	/* ces2.compute(X); */
+	/* O = ces2.eigenvectors(); */
+
 	O = ces.eigenvectors();
 	A = ces.eigenvalues();
+	/* for (int it = 0; it < 36; it++) */
+		/* cout<<sqrt(real(A(it))*real(A(it)) + imag(A(it))*imag(A(it)))<<endl; */
 	Oinv = O.inverse();
 	ddmat a1, b1, c1, d1, fu, fd, a2, b2, c2, d2, tmpu, tmpd;
 	Matrix<dcomp, 18, 1> A1, A2;
@@ -223,27 +238,26 @@ int main(){
 	double a = 1.;
 	
 	//position vectors of nearest neighbours in fcc
-	d_1 << a, a, 0;
-	d_2 << -a, -a, 0;
-	d_3 << a, 0, a;
-	d_4 << -a, 0, -a;
-	d_5 << 0, a, a;
-	d_6 << 0, -a, -a;
-	d_7 << -a, a, 0;
-	d_8 << a, -a, 0;
-	d_9 << -a, 0, a;
-	d_10 << a, 0, -a;
-	d_11 << 0, -a, a;
-	d_12 << 0, a, -a;
+	d_1 << a/2., a/2., 0;
+	d_2 << -a/2., -a/2., 0;
+	d_3 << a/2., 0, a/2.;
+	d_4 << -a/2., 0, -a/2.;
+	d_5 << 0, a/2., a/2.;
+	d_6 << 0, -a/2., -a/2.;
+	d_7 << -a/2., a/2., 0;
+	d_8 << a/2., -a/2., 0;
+	d_9 << -a/2., 0, a/2.;
+	d_10 << a/2., 0, -a/2.;
+	d_11 << 0, -a/2., a/2.;
+	d_12 << 0, a/2., -a/2.;
 
 	//position vectors of next nearest neighbours
-	d_13 << 2*a, 0, 0;
-	d_14 << -2*a, 0, 0;
-	d_15 << 0, 2*a, 0;
-	d_16 << 0, -2*a, 0;
-	d_17 << 0, 0, 2*a;
-	d_18 << 0, 0, -2*a;
-
+	d_13 << a, 0, 0;
+	d_14 << -a, 0, 0;
+	d_15 << 0, a, 0;
+	d_16 << 0, -a, 0;
+	d_17 << 0, 0, a;
+	d_18 << 0, 0, -a;
 	//initialise onsite for fcc Cu
 	Matrix<dcomp, 9, 9> u;
 	u = TB(2, 0, 0, 9, d_1);
@@ -347,7 +361,7 @@ int main(){
 	VectorXcd result_complex(N);
 	E = Ef + kT*M_PI*i;
 	cout<<E<<endl;
-	result_complex = greens(-2.19911485751286, -0.314159265358979, 2*a, E, N,
+	result_complex = greens(-2.19911485751286, -0.314159265358979, a, E, N,
 			u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
 			t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18,
 			u_u, tu_1, tu_2, tu_3, tu_4, tu_5, tu_6, tu_7, tu_8, tu_9,

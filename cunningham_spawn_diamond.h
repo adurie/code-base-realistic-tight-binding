@@ -259,7 +259,6 @@ auto kspace(func&& predicate, int depth, double rel, const double a, Args&&... p
 		error = 0.002;
 	else
 		error = rel;
-	int max_width;
 
 	/* string Mydata = "test.txt"; */
 	/* ofstream Myfile; */	
@@ -268,7 +267,6 @@ auto kspace(func&& predicate, int depth, double rel, const double a, Args&&... p
 	double A = M_PI/a;
 	double x,z;
 	ret f;
-	double rel_error;
 	
 	/* string Mydata; */
 	/* ofstream Myfile; */	

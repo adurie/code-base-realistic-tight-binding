@@ -120,8 +120,8 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 //mobius transformation layer 2 from layer 1 to spacer thickness, N
 	ddmat Tinv;
 	Tinv = T.inverse();
-	ddmat zero2 = ddmat::Zero();
 
+	/* ddmat zero2 = ddmat::Zero(); */
 	/* Matrix<dcomp, 36, 36> X,O,Oinv,OAOinv; */
 	/* Matrix<dcomp, 36, 1> A; */
 	/* X << 	zero2,	Tinv, */
@@ -153,11 +153,11 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 	b0 << zero, zero, t_15inv, zero;
 	c0 << zero, zero, -t_15.adjoint(), -T_21.adjoint();
 	d0 << -T_21*t_15inv, small_I, miniOM*t_15inv, zero; 
-	dddmat stack, powstack;
+	dddmat stack;
 	stack << a0, b0, c0, d0;
 	ComplexEigenSolver<Matrix<dcomp, 36, 36>> ces;
 	ces.compute(stack);
-	Matrix<dcomp, 36, 36>O,Oinv,OAOinv;
+	Matrix<dcomp, 36, 36>O,Oinv;
 	Matrix<dcomp, 36, 1> A;
 	O = ces.eigenvectors();
 	A = ces.eigenvalues();
@@ -221,26 +221,26 @@ int main(){
 	double a = 1.;
 	
 	//position vectors of nearest neighbours in fcc
-	d_1 << a, a, 0;
-	d_2 << -a, -a, 0;
-	d_3 << a, 0, a;
-	d_4 << -a, 0, -a;
-	d_5 << 0, a, a;
-	d_6 << 0, -a, -a;
-	d_7 << -a, a, 0;
-	d_8 << a, -a, 0;
-	d_9 << -a, 0, a;
-	d_10 << a, 0, -a;
-	d_11 << 0, -a, a;
-	d_12 << 0, a, -a;
+	d_1 << a/2., a/2., 0;
+	d_2 << -a/2., -a/2., 0;
+	d_3 << a/2., 0, a/2.;
+	d_4 << -a/2., 0, -a/2.;
+	d_5 << 0, a/2., a/2.;
+	d_6 << 0, -a/2., -a/2.;
+	d_7 << -a/2., a/2., 0;
+	d_8 << a/2., -a/2., 0;
+	d_9 << -a/2., 0, a/2.;
+	d_10 << a/2., 0, -a/2.;
+	d_11 << 0, -a/2., a/2.;
+	d_12 << 0, a/2., -a/2.;
 
 	//position vectors of next nearest neighbours
-	d_13 << 2*a, 0, 0;
-	d_14 << -2*a, 0, 0;
-	d_15 << 0, 2*a, 0;
-	d_16 << 0, -2*a, 0;
-	d_17 << 0, 0, 2*a;
-	d_18 << 0, 0, -2*a;
+	d_13 << a, 0, 0;
+	d_14 << -a, 0, 0;
+	d_15 << 0, a, 0;
+	d_16 << 0, -a, 0;
+	d_17 << 0, 0, a;
+	d_18 << 0, 0, -a;
 
 	//initialise onsite for fcc Cu
 	Matrix<dcomp, 9, 9> u;
@@ -346,7 +346,7 @@ int main(){
 	result_complex.fill(0.);
 	for (int j=0; j!=10; j++){
 		E = Ef + (2.*j + 1.)*kT*M_PI*i;
-		result_complex = result_complex + kspace(&greens, 2, 5e-2, 2*a, E, N,
+		result_complex = result_complex + kspace(&greens, 2, 5e-2, a, E, N,
 				u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
 				t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18,
 				u_u, tu_1, tu_2, tu_3, tu_4, tu_5, tu_6, tu_7, tu_8, tu_9,

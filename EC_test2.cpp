@@ -255,26 +255,26 @@ int main(){
 	double a = 1.;
 	
 	//position vectors of nearest neighbours in fcc
-	d_1 << a, a, 0;
-	d_2 << -a, -a, 0;
-	d_3 << a, 0, a;
-	d_4 << -a, 0, -a;
-	d_5 << 0, a, a;
-	d_6 << 0, -a, -a;
-	d_7 << -a, a, 0;
-	d_8 << a, -a, 0;
-	d_9 << -a, 0, a;
-	d_10 << a, 0, -a;
-	d_11 << 0, -a, a;
-	d_12 << 0, a, -a;
+	d_1 << a/2., a/2., 0;
+	d_2 << -a/2., -a/2., 0;
+	d_3 << a/2., 0, a/2.;
+	d_4 << -a/2., 0, -a/2.;
+	d_5 << 0, a/2., a/2.;
+	d_6 << 0, -a/2., -a/2.;
+	d_7 << -a/2., a/2., 0;
+	d_8 << a/2., -a/2., 0;
+	d_9 << -a/2., 0, a/2.;
+	d_10 << a/2., 0, -a/2.;
+	d_11 << 0, -a/2., a/2.;
+	d_12 << 0, a/2., -a/2.;
 
 	//position vectors of next nearest neighbours
-	d_13 << 2*a, 0, 0;
-	d_14 << -2*a, 0, 0;
-	d_15 << 0, 2*a, 0;
-	d_16 << 0, -2*a, 0;
-	d_17 << 0, 0, 2*a;
-	d_18 << 0, 0, -2*a;
+	d_13 << a, 0, 0;
+	d_14 << -a, 0, 0;
+	d_15 << 0, a, 0;
+	d_16 << 0, -a, 0;
+	d_17 << 0, 0, a;
+	d_18 << 0, 0, -a;
 
 	//initialise onsite for fcc Cu
 	Matrix<dcomp, 9, 9> u;
@@ -378,7 +378,7 @@ int main(){
 	const double kT = 8.617342857e-5*315.79/13.6058;
 	VectorXcd result_complex(N);
 	E = Ef + kT*M_PI*i;
-	result_complex = greens(-2.19911485751286, -0.314159265358979, 2*a, E, N,
+	result_complex = greens(-2.19911485751286, -0.314159265358979, a, E, N,
 			u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
 			t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18,
 			u_u, tu_1, tu_2, tu_3, tu_4, tu_5, tu_6, tu_7, tu_8, tu_9,
