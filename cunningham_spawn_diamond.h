@@ -55,34 +55,42 @@ ret aux_square(func&& predicate, int depth, double error, int n, double v, doubl
 	/* Myfile.open( Mydata.c_str(),ios::app ); */
 
 	x = v;	z = w + 2*A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_2 = (1/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_2<<endl; */
 
 	x = v;	z = w - 2*A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_3 = (1/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_3<<endl; */
 
 	x = v + 2*A;	z = w;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_4 = (1/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_4<<endl; */
 
 	x = v + 2*A;	z = w + 2*A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_5 = (1/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_5<<endl; */
 
 	x = v + 2*A;	z = w - 2*A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_6 = (1/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_6<<endl; */
 
 	x = v - 2*A;	z = w;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_7 = (1/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_7<<endl; */
 
 	x = v - 2*A;	z = w + 2*A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_8 = (1/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_8<<endl; */
 
 	x = v - 2*A;	z = w - 2*A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_9 = (1/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_9<<endl; */
 
@@ -134,23 +142,28 @@ ret aux_tri_dia(func&& predicate, int depth, double error, int n, double v, doub
 	/* Myfile.open( Mydata.c_str(),ios::app ); */
 
 	x = v - 2*A;	z = w;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_2 = (1/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_2<<endl; */
 
 	x = v - 2*A;	z = w + 2*A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_3 = (0.5/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_3<<endl; */
 
 	x = v;	z = w - 2*A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_4 = (1/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_4<<endl; */
 
 	x = v + 2*A;	z = w - 2*A;	
-	f_5 = (1/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+	/* cout<<x<<" "<<z<<endl; */
+	f_5 = (0.5/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_5<<endl; */
 
 	x = v - 2*A;	z = w - 2*A;	
-	f_6 = (0.5/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+	/* cout<<x<<" "<<z<<endl; */
+	f_6 = (1/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_6<<endl; */
 
 	ret f_total;
@@ -177,8 +190,8 @@ ret aux_tri_dia(func&& predicate, int depth, double error, int n, double v, doub
 	g_2 = aux_square(predicate, depth-1, error, n*9, v - 2*A, w, f_2, A/3., a, params...);
 	g_3 = aux_tri_dia(predicate, depth-1, error, n*9, v - 2*A, w + 2*A, f_3, A/3., a, params...);
 	g_4 = aux_square(predicate, depth-1, error, n*9, v, w - 2*A, f_4, A/3., a, params...);
-	g_5 = aux_square(predicate, depth-1, error, n*9, v + 2*A, w - 2*A, f_5, A/3., a, params...);
-	g_6 = aux_tri_dia(predicate, depth-1, error, n*9, v - 2*A, w - 2*A, f_6, A/3., a, params...);
+	g_5 = aux_tri_dia(predicate, depth-1, error, n*9, v + 2*A, w - 2*A, f_5, A/3., a, params...);
+	g_6 = aux_square(predicate, depth-1, error, n*9, v - 2*A, w - 2*A, f_6, A/3., a, params...);
 
 	ret g_total;
 	g_total = g_1 + g_2 + g_3 + g_4 + g_5 + g_6;
@@ -190,6 +203,7 @@ ret aux_tri(func&& predicate, int depth, double error, int n, double v, double w
 	ret f_1, f_2, f_3, f_4, f_5, f_6;
 	double x, z;
 	x = v;		z = w;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_1 = (1/9.)*f;
 
 	/* string Mydata; */
@@ -198,22 +212,27 @@ ret aux_tri(func&& predicate, int depth, double error, int n, double v, double w
 	/* Myfile.open( Mydata.c_str(),ios::app ); */
 
 	x = v + 2*A;	z = w;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_2 = (1/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_2<<endl; */
 
 	x = v + 2*A;	z = w + 2*A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_3 = (0.5/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_3<<endl; */
 
 	x = v;	z = w - 2*A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_4 = (1/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_4<<endl; */
 
 	x = v + 2*A;	z = w - 2*A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_5 = (1/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_5<<endl; */
 
 	x = v - 2*A;	z = w - 2*A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_6 = (0.5/(n*9.))*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_6<<endl; */
 
@@ -275,6 +294,7 @@ auto kspace(func&& predicate, int depth, double rel, const double a, Args&&... p
 
 	x = A/2.;
 	z = A/2.;
+	/* cout<<x<<" "<<z<<endl; */
 	//calculate the mean value point only	
 	f = 0.5*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 
@@ -283,26 +303,32 @@ auto kspace(func&& predicate, int depth, double rel, const double a, Args&&... p
 	A /= 6.;
 
 	x = A;		z = A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_1 = (0.5/9.)*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_1<<endl; */
 
 	x = 3*A;	z = A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_2 = (1/9.)*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_2<<endl; */
 
 	x = 5*A;	z = A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_3 = (1/9.)*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_3<<endl; */
 
 	x = 5*A;	z = 3*A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_4 = (1/9.)*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_4<<endl; */
 
 	x = 3*A;	z = 3*A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_5 = (1/9.)*f;
 	/* Myfile<<x<<", "<<z<<", "<<f_5<<endl; */
 
 	x = 5*A;	z = 5*A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_6 = (0.5/9.)*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_6<<endl; */
 
@@ -337,6 +363,7 @@ auto kspace(func&& predicate, int depth, double rel, const double a, Args&&... p
 
 	x = new_mid;
 	z = A/2.;
+	/* cout<<x<<" "<<z<<endl; */
 	//calculate the mean value point only	
 	f = 0.5*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 
@@ -344,26 +371,32 @@ auto kspace(func&& predicate, int depth, double rel, const double a, Args&&... p
 	A /= 6.;
 
 	x = new_mid - 2*A;	z = A;	
-	f_1 = (0.5/9.)*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+	/* cout<<x<<" "<<z<<endl; */
+	f_1 = (1/9.)*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_1<<endl; */
 
 	x = new_mid;	z = A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_2 = (1/9.)*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_2<<endl; */
 
 	x = new_mid + 2*A;	z = A;	
-	f_3 = (1/9.)*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
+	/* cout<<x<<" "<<z<<endl; */
+	f_3 = (0.5/9.)*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_3<<endl; */
 
 	x = new_mid - 2*A;	z = 3*A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_4 = (1/9.)*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_4<<endl; */
 
 	x = new_mid;	z = 3*A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_5 = (1/9.)*f;
 	/* Myfile<<x<<", "<<z<<", "<<f_5<<endl; */
 
 	x = new_mid - 2*A;	z = 5*A;	
+	/* cout<<x<<" "<<z<<endl; */
 	f_6 = (0.5/9.)*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
 	/* Myfile<<x<<", "<<z<<", "<<f_6<<endl; */
 
@@ -380,9 +413,9 @@ auto kspace(func&& predicate, int depth, double rel, const double a, Args&&... p
 
 	//begin spawning points around points already integrated over
 
-	g_1 = aux_tri_dia(predicate, depth, error, 9, new_mid - 2*A, A, f_1, A/3., a, params...);
+	g_1 = aux_square(predicate, depth, error, 9, new_mid - 2*A, A, f_1, A/3., a, params...);
 	g_2 = aux_square(predicate, depth, error, 9, new_mid, A, f_2, A/3., a, params...);
-	g_3 = aux_square(predicate, depth, error, 9, new_mid + 2*A, A, f_3, A/3., a, params...);
+	g_3 = aux_tri_dia(predicate, depth, error, 9, new_mid + 2*A, A, f_3, A/3., a, params...);
 	g_4 = aux_square(predicate, depth, error, 9, new_mid - 2*A, 3*A, f_4, A/3., a, params...);
 	g_5 = aux_tri_dia(predicate, depth, error, 9, new_mid, 3*A, f_5, A/3., a, params...);
 	g_6 = aux_tri_dia(predicate, depth, error, 9, new_mid - 2*A, 5*A, f_6, A/3., a, params...);

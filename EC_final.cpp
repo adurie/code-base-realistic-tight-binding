@@ -3,8 +3,8 @@
 #include <fstream>
 #include <eigen3/Eigen/Dense>
 #include "TBdynamic.h"
-#include "cunningham_spawn_diamond.h"
-/* #include "cunningham_diamond.h" */
+/* #include "cunningham_spawn_diamond.h" */
+#include "cunningham_diamond.h"
 /* #include "displace.h" */
 //This program calculates the realistic exchange coupling in a Co/Cu/Co(001)
 //trilayer. It does so for bcc Co and fcc Cu. Interatomic spacing is considered
@@ -327,7 +327,7 @@ int main(){
 	result_complex.fill(0.);
 	for (int j=0; j!=10; j++){
 		E = Ef + (2.*j + 1.)*kT*M_PI*i;
-		result_complex = result_complex + kspace(&greens, 2, 5e-2, a, E, N,
+		result_complex = result_complex + kspace(&greens, 0, 5e-3, 0, a, E, N,
 				u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
 				t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18,
 				u_u, tu_1, tu_2, tu_3, tu_4, tu_5, tu_6, tu_7, tu_8, tu_9,
@@ -338,7 +338,7 @@ int main(){
 			       	d_13, d_14, d_17, d_18);
 	}
 	VectorXd result = result_complex.real();
-	result *= kT/(8.*M_PI*M_PI);
+	result *= kT/(4.*M_PI*M_PI);
 
 	/* E = Ef + kT*M_PI*i; */
 	/* result_complex = greens(-2.19911485751286, -0.314159265358979, a, E, N, */

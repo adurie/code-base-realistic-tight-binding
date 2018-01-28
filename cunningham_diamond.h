@@ -41,6 +41,7 @@ double Condition(const Eigen::VectorXcd &result, const Eigen::VectorXcd &part_re
 		condition = 0;
 	else
 		condition = std::abs(std::abs(9.*part_result.sum())/std::abs(result.sum())-1.);
+	cout<<condition<<endl;
 	return condition;
 }
 
@@ -142,10 +143,11 @@ auto kspace(func&& predicate, int iterations, double rel, int start, const doubl
 			cout<<"error, maximum number of iteration points reached. Estimated error = "<<rel_error<<endl;
 			condition = 1;
 		}
-		if (Nnew>=128 && rel_error <= error)
+		if (Nnew>=16 && rel_error <= error)
 			condition = 1;
 	}
 	integral = integral*(4*8.*A*A/(Nnew*Nnew));
+	cout<<"converged for "<<Nnew/2<<" points"<<endl;
 	ret integral_right;
 	ret tmp_right;
 	n = N*2;
@@ -213,10 +215,11 @@ auto kspace(func&& predicate, int iterations, double rel, int start, const doubl
 			cout<<"error, maximum number of iteration points reached. Estimated error = "<<rel_error<<endl;
 			condition = 1;
 		}
-		if (Nnew>=128 && rel_error <= error)
+		if (Nnew>=16 && rel_error <= error)
 			condition = 1;
 	}
 	integral_right = integral_right*(4*8.*A*A/(Nnew*Nnew));
+	cout<<"converged for "<<Nnew/2<<" points"<<endl;
 
 	return 0.5*(integral + integral_right);
 }
