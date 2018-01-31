@@ -50,7 +50,11 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 		dmat &td_14, dmat &td_15, dmat &td_16, dmat &td_17, dmat &td_18, 
 		vec &d_3, vec &d_4,
 	       	vec &d_9, vec &d_10, vec &d_13, vec &d_14,
-	       	vec &d_17, vec &d_18){
+	       	vec &d_17, vec &d_18,
+		dmat &tu_1_gmean, dmat &tu_2_gmean, dmat &tu_5_gmean, dmat &tu_6_gmean, dmat &tu_7_gmean,
+		dmat &tu_8_gmean, dmat &tu_11_gmean, dmat &tu_12_gmean, dmat &tu_15_gmean,
+		dmat &td_1_gmean, dmat &td_2_gmean, dmat &td_5_gmean, dmat &td_6_gmean, dmat &td_7_gmean,
+		dmat &td_8_gmean, dmat &td_11_gmean, dmat &td_12_gmean, dmat &td_15_gmean){
 
 	dcomp i;
 	i = -1.;
@@ -85,7 +89,6 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 	Uu << uu_11, uu_12, uu_21, uu_11;
 	Tu_21 = tu_7 + tu_1*exp(i*d_13.dot(K)) + tu_5*exp(i*d_3.dot(K)) + tu_12*exp(i*d_10.dot(K));
 	Tu << tu_15, zero, Tu_21, tu_15;
-	Tu_odd_init << tu_15, zero, Tu_21, t_15;
 
 	//Co spin up fcc
 	Matrix<dcomp, 9, 9> ud_11, ud_12, ud_21, Td_21;
@@ -97,21 +100,45 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 	Ud << ud_11, ud_12, ud_21, ud_11;
 	Td_21 = td_7 + td_1*exp(i*d_13.dot(K)) + td_5*exp(i*d_3.dot(K)) + td_12*exp(i*d_10.dot(K));
 	Td << td_15, zero, Td_21, td_15;
-	Td_odd_init << td_15, zero, Td_21, t_15;
 
+	//interface potentials
+	//don't know if these are spot on yet
+	ddmat Tu_gmean, Td_gmean, Tu_odd_sec, Td_odd_sec;
+	dmat Tu_21_gmean, Td_21_gmean, uu_12_gmean, ud_12_gmean,
+	     uu_21_gmean, ud_21_gmean;
+	uu_12_gmean = tu_1_gmean + tu_5_gmean*exp(i*d_9.dot(K)) + 
+		tu_7_gmean*exp(i*d_14.dot(K)) + tu_12_gmean*exp(i*d_4.dot(K));
+	uu_21_gmean = tu_2_gmean + tu_8_gmean*exp(i*d_13.dot(K)) + 
+		tu_11_gmean*exp(i*d_3.dot(K)) + tu_6_gmean*exp(i*d_10.dot(K));
+	ud_12_gmean = td_1_gmean + td_5_gmean*exp(i*d_9.dot(K)) + 
+		td_7_gmean*exp(i*d_14.dot(K)) + td_12_gmean*exp(i*d_4.dot(K));
+	ud_21_gmean = td_2_gmean + td_8_gmean*exp(i*d_13.dot(K)) + 
+		td_11_gmean*exp(i*d_3.dot(K)) + td_6_gmean*exp(i*d_10.dot(K));
+	Tu_21_gmean = tu_7_gmean + tu_1_gmean*exp(i*d_13.dot(K)) + 
+		tu_5_gmean*exp(i*d_3.dot(K)) + tu_12_gmean*exp(i*d_10.dot(K));
+	Td_21_gmean = td_7_gmean + td_1_gmean*exp(i*d_13.dot(K)) + 
+		td_5_gmean*exp(i*d_3.dot(K)) + td_12_gmean*exp(i*d_10.dot(K));
+	Tu_gmean << tu_15_gmean, zero, Tu_21_gmean, tu_15_gmean;
+	Td_gmean << td_15_gmean, zero, Td_21_gmean, td_15_gmean;
+	Td_odd_init << td_15, zero, Td_21, td_15_gmean;
+	Tu_odd_init << tu_15, zero, Tu_21, tu_15_gmean;
+	Tu_odd_sec << tu_15_gmean, zero, T_21, t_15;
+	Td_odd_sec << td_15_gmean, zero, T_21, t_15;
 	//Co|Cu bilayer spin up (required for odd planes)
 	ddmat Ucocu_u;
-	Ucocu_u << uu_11, u_12, u_21, u_11;
+	Ucocu_u << uu_11, uu_12_gmean, uu_21_gmean, u_11;
 
 	//Co|Cu bilayer spin down (required for odd planes)
 	ddmat Ucocu_d;
-	Ucocu_d << ud_11, u_12, u_21, u_11;
+	Ucocu_d << ud_11, ud_12_gmean, ud_21_gmean, u_11;
 
       	Matrix<complex<double>, 18, 18> I = Matrix<complex<double>, 18, 18>::Identity();
-	ddmat Tudagg, Tddagg, Tdagg;
+	ddmat Tudagg, Tddagg, Tdagg, Tu_gmeandagg, Td_gmeandagg;
 	Tudagg = Tu.adjoint();
 	Tddagg = Td.adjoint();
 	Tdagg = T.adjoint();
+	Tu_gmeandagg = Tu_gmean.adjoint();
+	Td_gmeandagg = Td_gmean.adjoint();
 
 	OM = omega*I-U;
 	OMu = omega*I-Uu;
@@ -133,12 +160,10 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 	VectorXcd result(N);
 	result.fill(0.);
 
-	ddmat GNu_odd, GNu_even, GNd_odd, GNd_even;
-
-	Rsigma_0_u = (I-GRu*Tdagg*GLu_even*T);
-	Rsigma_0_d = (I-GRd*Tdagg*GLd_even*T);
-	Rsigma_PI_u = (I-GRd*Tdagg*GLu_even*T);
-	Rsigma_PI_d = (I-GRu*Tdagg*GLd_even*T);
+	Rsigma_0_u = (I-GRu*Tu_gmeandagg*GLu_even*Tu_gmean);
+	Rsigma_0_d = (I-GRd*Td_gmeandagg*GLd_even*Td_gmean);
+	Rsigma_PI_u = (I-GRd*Td_gmeandagg*GLu_even*Td_gmean);
+	Rsigma_PI_d = (I-GRu*Tu_gmeandagg*GLd_even*Tu_gmean);
 
 	Fsigma = (1./M_PI)*log((Rsigma_0_d*Rsigma_0_u*Rsigma_PI_u.inverse()*Rsigma_PI_d.inverse()).determinant());
 	result[0] = Fsigma;
@@ -146,10 +171,10 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 	GLu_odd = (OMu_odd_init - Tu_odd_init.adjoint()*GLu_even*Tu_odd_init).inverse();
 	GLd_odd = (OMd_odd_init - Td_odd_init.adjoint()*GLd_even*Td_odd_init).inverse();
 
-	Rsigma_0_u = (I-GRu*Tdagg*GLu_odd*T);
-	Rsigma_0_d = (I-GRd*Tdagg*GLd_odd*T);
-	Rsigma_PI_u = (I-GRd*Tdagg*GLu_odd*T);
-	Rsigma_PI_d = (I-GRu*Tdagg*GLd_odd*T);
+	Rsigma_0_u = (I-GRu*Tu_gmeandagg*GLu_odd*Tu_gmean);
+	Rsigma_0_d = (I-GRd*Td_gmeandagg*GLd_odd*Td_gmean);
+	Rsigma_PI_u = (I-GRd*Td_gmeandagg*GLu_odd*Td_gmean);
+	Rsigma_PI_d = (I-GRu*Tu_gmeandagg*GLd_odd*Tu_gmean);
 
 	Fsigma = (1./M_PI)*log((Rsigma_0_d*Rsigma_0_u*Rsigma_PI_u.inverse()*Rsigma_PI_d.inverse()).determinant());
 	result[1] = Fsigma;
@@ -157,20 +182,32 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 //adlayer layer 2 from layer 1 to spacer thickness, N
 	for (int it=2; it < N; ++it){
 		if (it%2 == 0){
-			GLu_even = (OM - Tdagg*GLu_even*T).inverse();
-			GLd_even = (OM - Tdagg*GLd_even*T).inverse();
-			Rsigma_0_u = (I-GRu*Tdagg*GLu_even*T);
-			Rsigma_0_d = (I-GRd*Tdagg*GLd_even*T);
-			Rsigma_PI_u = (I-GRd*Tdagg*GLu_even*T);
-			Rsigma_PI_d = (I-GRu*Tdagg*GLd_even*T);
+			if (it == 2){
+				GLu_even = (OM - Tu_gmeandagg*GLu_even*Tu_gmean).inverse();
+				GLd_even = (OM - Td_gmeandagg*GLd_even*Td_gmean).inverse();
+			}
+			else{
+				GLu_even = (OM - Tdagg*GLu_even*T).inverse();
+				GLd_even = (OM - Tdagg*GLd_even*T).inverse();
+			}
+			Rsigma_0_u = (I-GRu*Tu_gmeandagg*GLu_even*Tu_gmean);
+			Rsigma_0_d = (I-GRd*Td_gmeandagg*GLd_even*Td_gmean);
+			Rsigma_PI_u = (I-GRd*Td_gmeandagg*GLu_even*Td_gmean);
+			Rsigma_PI_d = (I-GRu*Tu_gmeandagg*GLd_even*Tu_gmean);
 		}
 		if (it%2 == 1){
-			GLu_odd = (OM -Tdagg*GLu_odd*T).inverse();
-			GLd_odd = (OM -Tdagg*GLd_odd*T).inverse();
-			Rsigma_0_u = (I-GRu*Tdagg*GLu_odd*T);
-			Rsigma_0_d = (I-GRd*Tdagg*GLd_odd*T);
-			Rsigma_PI_u = (I-GRd*Tdagg*GLu_odd*T);
-			Rsigma_PI_d = (I-GRu*Tdagg*GLd_odd*T);
+			if (it == 3){
+				GLu_odd = (OM -Tu_odd_sec.adjoint()*GLu_odd*Tu_odd_sec).inverse();
+				GLd_odd = (OM -Td_odd_sec.adjoint()*GLd_odd*Td_odd_sec).inverse();
+			}
+			else{
+				GLu_odd = (OM -Tdagg*GLu_odd*T).inverse();
+				GLd_odd = (OM -Tdagg*GLd_odd*T).inverse();
+			}
+			Rsigma_0_u = (I-GRu*Tu_gmeandagg*GLu_odd*Tu_gmean);
+			Rsigma_0_d = (I-GRd*Td_gmeandagg*GLd_odd*Td_gmean);
+			Rsigma_PI_u = (I-GRd*Td_gmeandagg*GLu_odd*Td_gmean);
+			Rsigma_PI_d = (I-GRu*Tu_gmeandagg*GLd_odd*Tu_gmean);
 
 		}
 		Fsigma = (1./M_PI)*log((Rsigma_0_d*Rsigma_0_u*Rsigma_PI_u.inverse()*Rsigma_PI_d.inverse()).determinant());
@@ -303,6 +340,31 @@ int main(){
 	td_17 = TB(1, 1, 1, 9, d_17);
 	td_18 = TB(1, 1, 1, 9, d_18);
 
+	//initialise matrices required for surfaces (gmean)
+	Matrix<dcomp, 9, 9> tu_1_gmean, tu_2_gmean, tu_5_gmean, 
+		tu_6_gmean, tu_7_gmean, tu_8_gmean, tu_11_gmean, tu_12_gmean, tu_15_gmean;
+	tu_1_gmean = TB(3, 1, 0, 9, d_1);
+	tu_2_gmean = TB(3, 1, 0, 9, d_2);
+	tu_5_gmean = TB(3, 1, 0, 9, d_5);
+	tu_6_gmean = TB(3, 1, 0, 9, d_6);
+	tu_7_gmean = TB(3, 1, 0, 9, d_7);
+	tu_8_gmean = TB(3, 1, 0, 9, d_8);
+	tu_11_gmean = TB(3, 1, 0, 9, d_11);
+	tu_12_gmean = TB(3, 1, 0, 9, d_12);
+	tu_15_gmean = TB(3, 1, 1, 9, d_15);
+
+	Matrix<dcomp, 9, 9> td_1_gmean, td_2_gmean, td_5_gmean, 
+		td_6_gmean, td_7_gmean, td_8_gmean, td_11_gmean, td_12_gmean, td_15_gmean;
+	td_1_gmean = TB(4, 1, 0, 9, d_1);
+	td_2_gmean = TB(4, 1, 0, 9, d_2);
+	td_5_gmean = TB(4, 1, 0, 9, d_5);
+	td_6_gmean = TB(4, 1, 0, 9, d_6);
+	td_7_gmean = TB(4, 1, 0, 9, d_7);
+	td_8_gmean = TB(4, 1, 0, 9, d_8);
+	td_11_gmean = TB(4, 1, 0, 9, d_11);
+	td_12_gmean = TB(4, 1, 0, 9, d_12);
+	td_15_gmean = TB(4, 1, 1, 9, d_15);
+
 	dcomp i;
 	i = -1.;
 	i = sqrt(i);
@@ -356,9 +418,14 @@ int main(){
 				u_d, td_1, td_2, td_3, td_4, td_5, td_6, td_7, td_8, td_9,
 			       	td_10, td_11, td_12, td_13, td_14, td_15, td_16, td_17, td_18,
 				d_3, d_4, d_9, d_10,
-			       	d_13, d_14, d_17, d_18);
+			       	d_13, d_14, d_17, d_18,
+				tu_1_gmean, tu_2_gmean, tu_5_gmean, tu_6_gmean, tu_7_gmean,
+				tu_8_gmean, tu_11_gmean, tu_12_gmean, tu_15_gmean,
+				td_1_gmean, td_2_gmean, td_5_gmean, td_6_gmean, td_7_gmean,
+				td_8_gmean, td_11_gmean, td_12_gmean, td_15_gmean);
 			cout<<j<<endl;
 		}
+
 		if ((x > 1) && (x < 5)){
 			if ((j%x == omp_get_thread_num()) && (omp_get_thread_num() == 1)){
 				E = Ef + (2.*j + 1.)*kT*M_PI*i;
@@ -370,7 +437,11 @@ int main(){
 					u_d, td_1, td_2, td_3, td_4, td_5, td_6, td_7, td_8, td_9,
 				       	td_10, td_11, td_12, td_13, td_14, td_15, td_16, td_17, td_18,
 					d_3, d_4, d_9, d_10,
-				       	d_13, d_14, d_17, d_18);
+				       	d_13, d_14, d_17, d_18,
+					tu_1_gmean, tu_2_gmean, tu_5_gmean, tu_6_gmean, tu_7_gmean,
+					tu_8_gmean, tu_11_gmean, tu_12_gmean, tu_15_gmean,
+					td_1_gmean, td_2_gmean, td_5_gmean, td_6_gmean, td_7_gmean,
+					td_8_gmean, td_11_gmean, td_12_gmean, td_15_gmean);
 				cout<<j<<endl;
 			}
 
@@ -384,7 +455,11 @@ int main(){
 					u_d, td_1, td_2, td_3, td_4, td_5, td_6, td_7, td_8, td_9,
 				       	td_10, td_11, td_12, td_13, td_14, td_15, td_16, td_17, td_18,
 					d_3, d_4, d_9, d_10,
-				       	d_13, d_14, d_17, d_18);
+				       	d_13, d_14, d_17, d_18,
+					tu_1_gmean, tu_2_gmean, tu_5_gmean, tu_6_gmean, tu_7_gmean,
+					tu_8_gmean, tu_11_gmean, tu_12_gmean, tu_15_gmean,
+					td_1_gmean, td_2_gmean, td_5_gmean, td_6_gmean, td_7_gmean,
+					td_8_gmean, td_11_gmean, td_12_gmean, td_15_gmean);
 				cout<<j<<endl;
 			}
 
@@ -398,9 +473,14 @@ int main(){
 					u_d, td_1, td_2, td_3, td_4, td_5, td_6, td_7, td_8, td_9,
 				       	td_10, td_11, td_12, td_13, td_14, td_15, td_16, td_17, td_18,
 					d_3, d_4, d_9, d_10,
-				       	d_13, d_14, d_17, d_18);
+				       	d_13, d_14, d_17, d_18,
+					tu_1_gmean, tu_2_gmean, tu_5_gmean, tu_6_gmean, tu_7_gmean,
+					tu_8_gmean, tu_11_gmean, tu_12_gmean, tu_15_gmean,
+					td_1_gmean, td_2_gmean, td_5_gmean, td_6_gmean, td_7_gmean,
+					td_8_gmean, td_11_gmean, td_12_gmean, td_15_gmean);
 				cout<<j<<endl;
 			}
+
 		}
 	}
 	}

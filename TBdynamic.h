@@ -7,13 +7,29 @@
 using namespace std;
 using namespace Eigen;
 
+typedef Matrix<double, 5, 1> Vector5d;
+
 Matrix<complex<double>, 9, 9> eint1(double, double, double, double,
 		     double, double, double, double, double,
 		     double, double, double, double);
 
+double gmean(double x, double y){
+	double gmean;
+	if (x*y > 0){
+		if (x < 0)
+			gmean=-sqrt(x*y);
+		if (x > 0)
+		gmean = sqrt(x*y);
+      	}
+	else
+       	gmean=(x+y)/2.;
+ 	return gmean;
+}
+
 MatrixXcd TB(int ind, int dd, int nn, int nspin, Vector3d &pos){
 //  lattice constant a set to 1 as is irrelevant, disappears after integration
-//  ind = atom type,    0=Co up, 1=Co down,  2=Cu
+//  ind = atom type,    0=Co up, 1=Co down,  2=Cu, 3=gmean of Co up & Cu, 
+//  4 = gmean of Co down & Cu
 //  dd = type of matrix, 0 = U, 1 = T
 //  nn = 0 or 1 depending on 1st or 2nd NN
 //  nspin is the number of orbitals to be modelled (1-9)
@@ -31,19 +47,12 @@ MatrixXcd TB(int ind, int dd, int nn, int nspin, Vector3d &pos){
 //    bcc Cr bulk spin bands:;
 //    Also from R H Victora's paper (Udd=Usp=0 eV);
 
+	Vector5d s0;
+	Vector5d p0;
+	Vector5d d0t;
+	Vector5d d0e;
 
-//    -----------------------------------------------------------------;
-//    The first index in the tight binding parameter arrays refers to;
-//    1: Co up;
-//    2: Co down;
-//    3: Cu;
-
-	Vector3d s0;
-	Vector3d p0;
-	Vector3d d0t;
-	Vector3d d0e;
-
-	Matrix<double, 3, 2> sss, sps, pps, ppp, sds, pds, pdp, dds, ddp, ddd;
+	Matrix<double, 5, 2> sss, sps, pps, ppp, sds, pds, pdp, dds, ddp, ddd;
 //    -----------------------------------------------------------------;
 //    Co up:;
 
@@ -148,6 +157,73 @@ MatrixXcd TB(int ind, int dd, int nn, int nspin, Vector3d &pos){
       dds(2,1) = -0.00451;
       ddp(2,1) =  0.00241;
       ddd(2,1) = -0.00029;
+//    -----------------------------------------------------------------;
+//    Geometric mean of CoCu spin up:
+
+      s0(3) =  gmean(s0(0), s0(2));
+      p0(3) =  gmean(p0(0), p0(2));
+      d0t(3) = gmean(d0t(0), d0t(2));
+      d0e(3) = gmean(d0e(0), d0e(2));
+
+//    first n.n.;
+
+      sss(3,0) = gmean(sss(0,0), sss(2,0));
+      sps(3,0) = gmean(sps(0,0), sps(2,0));
+      pps(3,0) = gmean(pps(0,0), pps(2,0));
+      ppp(3,0) = gmean(ppp(0,0), ppp(2,0));
+      sds(3,0) = gmean(sds(0,0), sds(2,0));
+      pds(3,0) = gmean(pds(0,0), pds(2,0));
+      pdp(3,0) = gmean(pdp(0,0), pdp(2,0));
+      dds(3,0) = gmean(dds(0,0), dds(2,0));
+      ddp(3,0) = gmean(ddp(0,0), ddp(2,0));
+      ddd(3,0) = gmean(ddd(0,0), ddd(2,0));
+
+//    second n.n.;
+
+      sss(3,1) = gmean(sss(0,1), sss(2,1));
+      sps(3,1) = gmean(sps(0,1), sps(2,1));
+      pps(3,1) = gmean(pps(0,1), pps(2,1));
+      ppp(3,1) = gmean(ppp(0,1), ppp(2,1));
+      sds(3,1) = gmean(sds(0,1), sds(2,1));
+      pds(3,1) = gmean(pds(0,1), pds(2,1));
+      pdp(3,1) = gmean(pdp(0,1), pdp(2,1));
+      dds(3,1) = gmean(dds(0,1), dds(2,1));
+      ddp(3,1) = gmean(ddp(0,1), ddp(2,1));
+      ddd(3,1) = gmean(ddd(0,1), ddd(2,1));
+
+//    -----------------------------------------------------------------;
+//    Geometric mean of CoCu spin down:
+
+      s0(4) =  gmean(s0(1), s0(2));
+      p0(4) =  gmean(p0(1), p0(2));
+      d0t(4) = gmean(d0t(1), d0t(2));
+      d0e(4) = gmean(d0e(1), d0e(2));
+
+//    first n.n.;
+
+      sss(4,0) = gmean(sss(1,0), sss(2,0));
+      sps(4,0) = gmean(sps(1,0), sps(2,0));
+      pps(4,0) = gmean(pps(1,0), pps(2,0));
+      ppp(4,0) = gmean(ppp(1,0), ppp(2,0));
+      sds(4,0) = gmean(sds(1,0), sds(2,0));
+      pds(4,0) = gmean(pds(1,0), pds(2,0));
+      pdp(4,0) = gmean(pdp(1,0), pdp(2,0));
+      dds(4,0) = gmean(dds(1,0), dds(2,0));
+      ddp(4,0) = gmean(ddp(1,0), ddp(2,0));
+      ddd(4,0) = gmean(ddd(1,0), ddd(2,0));
+
+//    second n.n.;
+
+      sss(4,1) = gmean(sss(1,1), sss(2,1));
+      sps(4,1) = gmean(sps(1,1), sps(2,1));
+      pps(4,1) = gmean(pps(1,1), pps(2,1));
+      ppp(4,1) = gmean(ppp(1,1), ppp(2,1));
+      sds(4,1) = gmean(sds(1,1), sds(2,1));
+      pds(4,1) = gmean(pds(1,1), pds(2,1));
+      pdp(4,1) = gmean(pdp(1,1), pdp(2,1));
+      dds(4,1) = gmean(dds(1,1), dds(2,1));
+      ddp(4,1) = gmean(ddp(1,1), ddp(2,1));
+      ddd(4,1) = gmean(ddd(1,1), ddd(2,1));
 
       Matrix<complex<double>, 9, 9> MAT = Matrix<complex<double>, 9, 9>::Zero();
 

@@ -25,7 +25,6 @@ c     There are two spins per atom type.
 
 c     ******************************************************************
 c     
-      Use nag_library, Only:f07arf, nag_wp ! NEW
       implicit double precision (a-h,o-y)
       implicit complex*16 (z)
 c
@@ -1668,7 +1667,6 @@ c
 c     *****************************************************************
 c
       subroutine coupl(zgsl,zgsr,zt,zcoupl)
-      Use nag_library, Only:f07arf, nag_wp !NEW
       implicit double precision (a-h,o-y)
       implicit complex*16 (z)
       parameter (nplx=75,nslx=1,nspinx=9,nsubx=2,nsubatx=2)
@@ -1684,11 +1682,6 @@ c
       dimension ztmp1(nmatx,nmatx),ztmp2(nmatx,nmatx)
       dimension ztdag(nmatx,nmatx)
       dimension wkspc(nmatx,nmatx),indx(nmatx)
-      integer info   !NEW
-
-      dimension ipiv(nmat) !NEW
-      complex DET !NEW
-      DET = CMPLX(1.0D0, KIND = nag_wp) !NEW
 
 c
       do ir=1,nmat
@@ -1706,33 +1699,8 @@ c
       enddo
 
 
-      ! call f03ahf(nmat,ztmp1,nmatx,detr,deti,id,wkspc,indx)
-      ! call f07arf(nmat, nmat, ztmp1, nmat, ipiv, info) !NEW
-      call zgetrf(nmat, nmat, ztmp1, nmat, ipiv, indx) !NEW
-      
-      ! id = 0                                                     !NEW
-      do 899 I = 1, nmat                                         !NEW
-        if (ipiv(I).NE.I) THEN                                   !NEW
-        DET = -DET*ztmp1(I,I)                                    !NEW
-        else
-        DET = DET*ztmp1(I,I)
-      endif
-
-! 897     if (max(abs(real(DET)), ABS(AIMAG(DET))).GE.1.0D0) THEN  !NEW
-!           DET = DET*0.062D0                                      !NEW
-!           id = id + 4                                            !NEW
-!           go to 897                                              !NEW
-!         end if                                                   !NEW
-! 898     if (max(abs(real(DET)), ABS(AIMAG(DET))).LT.0.0625D0) THEN !NEW
-!           DET = DET*16.0D0                                       !NEW
-!           id = id - 4                                            !NEW
-!           go to 898                                              !NEW
-!         end if                                                   !NEW
-
-899     continue                                                 !NEW
-        detr = real(DET)                                         !NEW
-        deti = AIMAG(DET)                                        !NEW
-
+      ifail = 0
+      call f03ahf(nmat,ztmp1,nmatx,detr,deti,id,wkspc,indx)
       xcon=2.d0**id
       detr = detr*xcon
       deti = deti*xcon

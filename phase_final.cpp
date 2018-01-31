@@ -3,15 +3,11 @@
 #include <fstream>
 #include <eigen3/Eigen/Dense>
 #include "TBdynamic.h"
-/* #include "cunningham_diamond.h"//works best with error 5e-3 */
-#include "cunningham_diamond_abs.h"//works best with error 1e-1
-#include <omp.h>
+#include "cunningham_diamond.h"
 //This program calculates the realistic exchange coupling in a Co/Cu/Co(001)
 //trilayer. It does so for fcc Co and fcc Cu. Interatomic spacing is considered
 //identical and the interfaces are abrupt.
 //use adlayer for integer thickness n, mobius method for surfaces.
-//
-//Use abs error as this is more efficient when summing residues
 
 using namespace std;
 using namespace Eigen;
@@ -50,7 +46,7 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 		dmat &td_14, dmat &td_15, dmat &td_16, dmat &td_17, dmat &td_18, 
 		vec &d_3, vec &d_4,
 	       	vec &d_9, vec &d_10, vec &d_13, vec &d_14,
-	       	vec &d_17, vec &d_18){
+	       	vec &d_17, vec &d_18, double start, double end, double step, int total){
 
 	dcomp i;
 	i = -1.;
@@ -117,64 +113,66 @@ VectorXcd greens(double k_x, double k_z, double a, dcomp omega, int N, dmat &u,
 	OMu = omega*I-Uu;
 	OMd = omega*I-Ud;
 
-	ddmat OMu_odd_init, OMd_odd_init;
-	OMu_odd_init = omega*I-Ucocu_u;
-	OMd_odd_init = omega*I-Ucocu_d;
+//This doesn't cater for odd planes yet
+	/* ddmat OMu_odd_init, OMd_odd_init; */
+	/* OMu_odd_init = omega*I-Ucocu_u; */
+	/* OMd_odd_init = omega*I-Ucocu_d; */
 
 	GLu_even = gs(OMu, Tu);
 	GLd_even = gs(OMd, Td);
 	GRu = gs(OMu, Tudagg);
 	GRd = gs(OMd, Tddagg);
 
-	ddmat GLu_odd, GLd_odd;
-	
+	/* ddmat GLu_odd, GLd_odd; */
+
 	ddmat Rsigma_0_u, Rsigma_0_d, Rsigma_PI_u, Rsigma_PI_d;
 	dcomp Fsigma;
-	VectorXcd result(N);
+	VectorXcd result(total);
 	result.fill(0.);
 
-	ddmat GNu_odd, GNu_even, GNd_odd, GNd_even;
+	ddmat GNu_even, GNd_even;
+	/* ddmat GNu_odd, GNd_odd; */
 
-	Rsigma_0_u = (I-GRu*Tdagg*GLu_even*T);
-	Rsigma_0_d = (I-GRd*Tdagg*GLd_even*T);
-	Rsigma_PI_u = (I-GRd*Tdagg*GLu_even*T);
-	Rsigma_PI_d = (I-GRu*Tdagg*GLd_even*T);
+	ddmat OMLu, OMLd;
 
-	Fsigma = (1./M_PI)*log((Rsigma_0_d*Rsigma_0_u*Rsigma_PI_u.inverse()*Rsigma_PI_d.inverse()).determinant());
-	result[0] = Fsigma;
+//This doesn't cater for odd planes yet
+	double delta_Ef;
+	int iii = 0;
+	for (delta_Ef = start; delta_Ef <= end; delta_Ef += step){
+		OMLu = (omega + delta_Ef)*I-Uu;
+		OMLd = (omega + delta_Ef)*I-Ud;
 
-	GLu_odd = (OMu_odd_init - Tu_odd_init.adjoint()*GLu_even*Tu_odd_init).inverse();
-	GLd_odd = (OMd_odd_init - Td_odd_init.adjoint()*GLd_even*Td_odd_init).inverse();
+		GLu_even = gs(OMLu, Tu);
+		GLd_even = gs(OMLd, Td);
 
-	Rsigma_0_u = (I-GRu*Tdagg*GLu_odd*T);
-	Rsigma_0_d = (I-GRd*Tdagg*GLd_odd*T);
-	Rsigma_PI_u = (I-GRd*Tdagg*GLu_odd*T);
-	Rsigma_PI_d = (I-GRu*Tdagg*GLd_odd*T);
+		/* GLu_odd = (OMu_odd_init - Tu_odd_init.adjoint()*GLu_even*Tu_odd_init).inverse(); */
+		/* GLd_odd = (OMd_odd_init - Td_odd_init.adjoint()*GLd_even*Td_odd_init).inverse(); */
 
-	Fsigma = (1./M_PI)*log((Rsigma_0_d*Rsigma_0_u*Rsigma_PI_u.inverse()*Rsigma_PI_d.inverse()).determinant());
-	result[1] = Fsigma;
 
 //adlayer layer 2 from layer 1 to spacer thickness, N
-	for (int it=2; it < N; ++it){
-		if (it%2 == 0){
-			GLu_even = (OM - Tdagg*GLu_even*T).inverse();
-			GLd_even = (OM - Tdagg*GLd_even*T).inverse();
-			Rsigma_0_u = (I-GRu*Tdagg*GLu_even*T);
-			Rsigma_0_d = (I-GRd*Tdagg*GLd_even*T);
-			Rsigma_PI_u = (I-GRd*Tdagg*GLu_even*T);
-			Rsigma_PI_d = (I-GRu*Tdagg*GLd_even*T);
-		}
-		if (it%2 == 1){
-			GLu_odd = (OM -Tdagg*GLu_odd*T).inverse();
-			GLd_odd = (OM -Tdagg*GLd_odd*T).inverse();
-			Rsigma_0_u = (I-GRu*Tdagg*GLu_odd*T);
-			Rsigma_0_d = (I-GRd*Tdagg*GLd_odd*T);
-			Rsigma_PI_u = (I-GRd*Tdagg*GLu_odd*T);
-			Rsigma_PI_d = (I-GRu*Tdagg*GLd_odd*T);
+		for (int it=2; it < N + 1; ++it){
+			if (it%2 == 0){
+				GLu_even = (OM - Tdagg*GLu_even*T).inverse();
+				GLd_even = (OM - Tdagg*GLd_even*T).inverse();
+				Rsigma_0_u = (I-GRu*Tdagg*GLu_even*T);
+				Rsigma_0_d = (I-GRd*Tdagg*GLd_even*T);
+				Rsigma_PI_u = (I-GRd*Tdagg*GLu_even*T);
+				Rsigma_PI_d = (I-GRu*Tdagg*GLd_even*T);
+			}
 
+			/* if (it%2 == 1){ */
+			/* 	GLu_odd = (OM -Tdagg*GLu_odd*T).inverse(); */
+			/* 	GLd_odd = (OM -Tdagg*GLd_odd*T).inverse(); */
+			/* 	Rsigma_0_u = (I-GRu*Tdagg*GLu_odd*T); */
+			/* 	Rsigma_0_d = (I-GRd*Tdagg*GLd_odd*T); */
+			/* 	Rsigma_PI_u = (I-GRd*Tdagg*GLu_odd*T); */
+			/* 	Rsigma_PI_d = (I-GRu*Tdagg*GLd_odd*T); */
+			/* } */
 		}
+
 		Fsigma = (1./M_PI)*log((Rsigma_0_d*Rsigma_0_u*Rsigma_PI_u.inverse()*Rsigma_PI_d.inverse()).determinant());
-		result[it] = Fsigma;
+		result[iii] = Fsigma;
+		iii++;
 	}
 
 	return result;
@@ -187,7 +185,7 @@ int main(){
 	getline(cin, Mydata);
 	ofstream Myfile;	
 	Mydata += ".txt";
-	Myfile.open( Mydata.c_str(),ios::trunc );
+	Myfile.open( Mydata.c_str(),ios::trunc);
 
 	Vector3d d_1, d_2, d_3, d_4, d_5, d_6, d_7, d_8, d_9;
 	Vector3d d_10, d_11, d_12, d_13, d_14, d_15, d_16;
@@ -196,26 +194,27 @@ int main(){
 	double a = 1.;
 	
 	//position vectors of nearest neighbours in fcc
-	d_1 << a/2., a/2., 0;
-	d_2 << -a/2., -a/2., 0;
-	d_3 << a/2., 0, a/2.;
-	d_4 << -a/2., 0, -a/2.;
-	d_5 << 0, a/2., a/2.;
-	d_6 << 0, -a/2., -a/2.;
-	d_7 << -a/2., a/2., 0;
-	d_8 << a/2., -a/2., 0;
-	d_9 << -a/2., 0, a/2.;
-	d_10 << a/2., 0, -a/2.;
-	d_11 << 0, -a/2., a/2.;
-	d_12 << 0, a/2., -a/2.;
+	d_1 << a, a, 0;
+	d_2 << -a, -a, 0;
+	d_3 << a, 0, a;
+	d_4 << -a, 0, -a;
+	d_5 << 0, a, a;
+	d_6 << 0, -a, -a;
+	d_7 << -a, a, 0;
+	d_8 << a, -a, 0;
+	d_9 << -a, 0, a;
+	d_10 << a, 0, -a;
+	d_11 << 0, -a, a;
+	d_12 << 0, a, -a;
 
 	//position vectors of next nearest neighbours
-	d_13 << a, 0, 0;
-	d_14 << -a, 0, 0;
-	d_15 << 0, a, 0;
-	d_16 << 0, -a, 0;
-	d_17 << 0, 0, a;
-	d_18 << 0, 0, -a;
+	d_13 << 2*a, 0, 0;
+	d_14 << -2*a, 0, 0;
+	d_15 << 0, 2*a, 0;
+	d_16 << 0, -2*a, 0;
+	d_17 << 0, 0, 2*a;
+	d_18 << 0, 0, -2*a;
+
 	//initialise onsite for fcc Cu
 	Matrix<dcomp, 9, 9> u;
 	u = TB(2, 0, 0, 9, d_1);
@@ -308,47 +307,21 @@ int main(){
 	i = sqrt(i);
 
 	//number of principle layers of spacer
-	/* const int N = 50; */
-	const int N = 30;
+	const int N = 14;
+
 	dcomp E = 0.;
 	const double Ef = 0.57553;
-	const double kT = 8.617342857e-5*315.79/13.6058;
-	//multiple vectors created for parallelisation
-	VectorXcd result_complex(N);
+	const double kT = 8.617342857e-5*316/13.6058;
+	double start = -0.06;
+	double end = 0.04;
+	double step = 0.005;
+	int total = (int) ceil((end-start)/step) +1;
+	VectorXcd result_complex(total);
 	result_complex.fill(0.);
-
-	VectorXcd result_complex_t1(N);
-	result_complex_t1.fill(0.);
-
-	VectorXcd result_complex_t2(N);
-	result_complex_t2.fill(0.);
-
-	VectorXcd result_complex_t3(N);
-	result_complex_t3.fill(0.);
-
-	double abs_error = 1e-1;
-	//see integration header for what the following zero values are interpreted as
-	int k_start = 0;
-	int k_max = 0;
-//now begin setup of parallelisation
-	omp_set_num_threads(4);
-	int tid, x;
-	#pragma omp parallel private(E)
-	{
-	tid = omp_get_thread_num();
-	if (tid == 0){
-		x = omp_get_max_threads();
-
-		if (x<5)
-			cout<<"there are "<<x<<" thread(s) working on this task"<<endl;
-
-		if (x>4)
-			cout<<"warning, the program can be made more efficient as num_threads > 4"<<endl;
-	}
+	VectorXd result;
 	for (int j=0; j!=10; j++){
-		if ((j%x == omp_get_thread_num()) && (omp_get_thread_num() == 0)){
-			E = Ef + (2.*j + 1.)*kT*M_PI*i;
-			result_complex = result_complex + kspace(&greens, k_start, abs_error, k_max, a, E, N,
+		E = Ef + (2.*j + 1.)*kT*M_PI*i;
+		result_complex = result_complex + kspace(&greens, 0, 5e-3, 0, a, E, N,
 				u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
 				t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18,
 				u_u, tu_1, tu_2, tu_3, tu_4, tu_5, tu_6, tu_7, tu_8, tu_9,
@@ -356,79 +329,20 @@ int main(){
 				u_d, td_1, td_2, td_3, td_4, td_5, td_6, td_7, td_8, td_9,
 			       	td_10, td_11, td_12, td_13, td_14, td_15, td_16, td_17, td_18,
 				d_3, d_4, d_9, d_10,
-			       	d_13, d_14, d_17, d_18);
-			cout<<j<<endl;
-		}
-		if ((x > 1) && (x < 5)){
-			if ((j%x == omp_get_thread_num()) && (omp_get_thread_num() == 1)){
-				E = Ef + (2.*j + 1.)*kT*M_PI*i;
-				result_complex_t1 = result_complex_t1 + kspace(&greens, k_start, abs_error, k_max, a, E, N,
-					u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
-					t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18,
-					u_u, tu_1, tu_2, tu_3, tu_4, tu_5, tu_6, tu_7, tu_8, tu_9,
-				       	tu_10, tu_11, tu_12, tu_13, tu_14, tu_15, tu_16, tu_17, tu_18,
-					u_d, td_1, td_2, td_3, td_4, td_5, td_6, td_7, td_8, td_9,
-				       	td_10, td_11, td_12, td_13, td_14, td_15, td_16, td_17, td_18,
-					d_3, d_4, d_9, d_10,
-				       	d_13, d_14, d_17, d_18);
-				cout<<j<<endl;
-			}
-
-			if ((j%x == omp_get_thread_num()) && (omp_get_thread_num() == 2)){
-				E = Ef + (2.*j + 1.)*kT*M_PI*i;
-				result_complex_t2 = result_complex_t2 + kspace(&greens, k_start, abs_error, k_max, a, E, N,
-					u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
-					t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18,
-					u_u, tu_1, tu_2, tu_3, tu_4, tu_5, tu_6, tu_7, tu_8, tu_9,
-				       	tu_10, tu_11, tu_12, tu_13, tu_14, tu_15, tu_16, tu_17, tu_18,
-					u_d, td_1, td_2, td_3, td_4, td_5, td_6, td_7, td_8, td_9,
-				       	td_10, td_11, td_12, td_13, td_14, td_15, td_16, td_17, td_18,
-					d_3, d_4, d_9, d_10,
-				       	d_13, d_14, d_17, d_18);
-				cout<<j<<endl;
-			}
-
-			if ((j%x == omp_get_thread_num()) && (omp_get_thread_num() == 3)){
-				E = Ef + (2.*j + 1.)*kT*M_PI*i;
-				result_complex_t3 = result_complex_t3 + kspace(&greens, k_start, abs_error, k_max, a, E, N,
-					u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9,
-					t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18,
-					u_u, tu_1, tu_2, tu_3, tu_4, tu_5, tu_6, tu_7, tu_8, tu_9,
-				       	tu_10, tu_11, tu_12, tu_13, tu_14, tu_15, tu_16, tu_17, tu_18,
-					u_d, td_1, td_2, td_3, td_4, td_5, td_6, td_7, td_8, td_9,
-				       	td_10, td_11, td_12, td_13, td_14, td_15, td_16, td_17, td_18,
-					d_3, d_4, d_9, d_10,
-				       	d_13, d_14, d_17, d_18);
-				cout<<j<<endl;
-			}
-		}
+			       	d_13, d_14, d_17, d_18, start, end, step, total);
 	}
-	}
-	result_complex = result_complex + result_complex_t1 + result_complex_t2 + result_complex_t3;
 
-	VectorXd result = result_complex.real();
+	result = result_complex.real();
 	result *= kT/(4.*M_PI*M_PI);
 
-	/* E = Ef + kT*M_PI*i; */
-	/* result_complex = greens(-2.19911485751286, -0.314159265358979, a, E, N, */
-	/* 		u, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, t_9, */
-	/* 		t_10, t_11, t_12, t_13, t_14, t_15, t_16, t_17, t_18, */
-	/* 		u_u, tu_1, tu_2, tu_3, tu_4, tu_5, tu_6, tu_7, tu_8, tu_9, */
-	/* 	       	tu_10, tu_11, tu_12, tu_13, tu_14, tu_15, tu_16, tu_17, tu_18, */
-	/* 		u_d, td_1, td_2, td_3, td_4, td_5, td_6, td_7, td_8, td_9, */
-	/* 	       	td_10, td_11, td_12, td_13, td_14, td_15, td_16, td_17, td_18, */
-	/* 		d_3, d_4, d_9, d_10, */
-	/* 	       	d_13, d_14, d_17, d_18); */
-	/* VectorXd result = result_complex.real(); */
-
-	Myfile<<"N Gamma"<<endl;
-
-	for (int ii=0; ii < N ; ++ii){
-		Myfile << ii <<" ,  "<< 2.*M_PI*result[ii] << endl;
+	int it = 0;
+	for (double j = start; j <= end; j+=step){
+		Myfile <<-j<<"  "<< -2.*M_PI*result[it] << endl;
+		it++;
 	}
 
 	cout<<"finished!"<<endl;
 
-			Myfile.close();
+	Myfile.close();
 	return 0;
 }
