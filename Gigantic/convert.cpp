@@ -1,69 +1,105 @@
+#include <iostream>
+#include <string>
+#include <eigen3/Eigen/Dense>
+#include <cmath>
+#include <fstream>
+#include <eigen3/Eigen/StdVector>
+#include <utility>
+#include <gsl/gsl_math.h>
+#include <cstdlib>
 
+//________                 _____________
+//... x  x| o  o ... o    |  +     + ...
+//________|               |_____________
+//    1  2  3  4  nlay-2  nlay-1  nlay
 
+using namespace std;
+using namespace Eigen;
+typedef complex<double> dcomp;
+typedef vector<Vector3d, aligned_allocator<Vector3d>> vV3d;
+typedef vector<vector<Vector3d, aligned_allocator<Vector3d>>> vvV3d;
 
+bool WayToSort(double i, double j){ return abs(i) < abs(j);}
 
-      implicit double precision (a-h,o-y)
-      implicit complex*16 (z)
-      parameter (nplx=75,nslx=1,nspinx=9,nsubx=2,nsubatx=2)
-      parameter (nmatx=nslx*nsubx*nspinx,natomx=nslx*nspinx*nsubatx)
-      parameter (nlayx=nplx*nslx)
-      parameter (nnx=4,npmax=100) // upto nnx.th N.N's
-//                                    npmax - max No of points per plane
-      parameter (numatx=7)       // No of atom types
-      parameter (nfoldx=100)
-      complex*16 ec
-      common/shift/xmgo_shift,au_shift
-      common /fermi/ ef
-      common/lbl/ pi, sq2, sq3
-      common/data/nmat,nins,mlay,natom,nspin,nlay,nsub,numnn
-      common/data1/frat,ifrac
-      common/layer/ndiff
-      common/ssstruct/a1(3),a2(3),a3(3,nlayx),vsub(3,nsubx,nlayx),
-     $  dnn(nnx,nlayx,nlayx),ddnn(numatx,numatx,nnx),itype(nsubx,nlayx)
-      dimension vtmp(3),dist(nnx)
-      dimension b1(3),b2(3)
-      dimension zresu(0:nlayx),zresd(0:nlayx)
-      dimension zresud(0:nlayx),zresdu(0:nlayx)
-      dimension vcuu(0:nlayx),vcdd(0:nlayx),vcdu(0:nlayx),vcud(0:nlayx)
-      dimension rr(3)
-      common/elements/iatfe(5),numat
-      character*2 atname(nlayx)
-      common/parallel/myid,numprocs
-      dimension imp(0:nsubx)
-      dimension xn(3)
+vector<double> prestructij(int ilay, int jlay, int nsub, const vvV3d &vsub, 
+		int numnn, const Vector3d &a1, const Vector3d &a2, const vV3d &a3){
+//     find the NN distances from layer ilay to the layer jlay.
+//     -----------------------------------------------------------------
+//     INPUT : {a1,a2,a3} - primitive lattice vectors
+//             nsub       - number of sub-lattice vectors
+//             vsub       - the set of nsub sublattice vectors
+//                          {vsub(1),...,vsub(nsub)}
+//             numnn      - upto order numnn.th N.N interactions
+//
+//     OUTPUT : dist(i)   - the distance from the origin to the ith N.N
+//     -----------------------------------------------------------------
+//     Construct vectors from (isub,ilay) --> (jsub,jlay)
 
+      vector<double> disttmp;
+      disttmp.reserve(numnn);
+      for (int i = 0; i<numnn; i++)
+        disttmp.emplace_back(1e10);
+      Vector3d v;
+      double dv;
+      int kmax;
+      int tempo;
 
-      common/ssstructat/aa1(3),aa2(3),aa3(3,nlayx),vsubat(3,nsubx,nlayx)
-     $,itypeat(nsubx,nlayx),imapl(nsubx),imapr(nsubx),nsubat
-      common/fold/xfold(3,nfoldx),xshift(3,nfoldx),ifold(2,nfoldx),
-     $  baib(3,3),nxfold,nfold,irecipa
-      dimension ba1(3),ba2(3)
-      dimension disttmp(numatx,numatx,nnx)
+      for (int i=-numnn; i<=numnn; i++){
+        for (int j=-numnn; j<=numnn; j++){
+          for (int isub=0; isub<nsub; isub++){
+            for (int jsub=0; jsub<nsub; jsub++){
+              v=(vsub[ilay-1][isub]+a3[ilay-1])-(vsub[jlay-1][jsub]+a3[jlay-1]+i*a1+j*a2);
+	      dv = v.hypotNorm();
 
-//     ------------------------------------------------------------
-      double pi    = M_PI; 
-      double sq2   = sqrt(2.0);
-      double sq3   = sqrt(3.0);
-//     ------------------------------------------------------------
+//   check dv not already in disttmp and replace the largest element it is smaller than
+              if (dv > 1e-8){
+		tempo = 1;
+                for (int k=0; k<numnn; k++){
+                  if (abs(dv-disttmp[k]) < 1e-10){
+		    tempo = 0;
+		    break;
+		  }
+		}
+		if (tempo == 0)
+		  continue;
+                kmax=0;
+                for (int k=1; k<numnn; k++){
+                  if (disttmp[k] > disttmp[kmax])
+		    kmax=k;
+		}
+                if (dv < disttmp[kmax])
+		  disttmp[kmax]=dv;
+	      }
+	    }
+	  }
+	}
+      }
+//     -----------------------------------------------------------------
+//     sort into distance from origin
+      sort(disttmp.begin(), disttmp.end(), WayToSort);
+//     -----------------------------------------------------------------
+      return disttmp;
+}
+
+int main(){
+
 //     DATA
+      const int nspin=9;    // Number of energy bands
+      const int numnn=2;    // No of nearest neighbours 
 
-      int nspin=9;
-      int numnn=2;
+      const int nins=10;    // No of spacer principal layers
+      const int mlay=0;     // No of substrate layers on each side of SGF
+      const int numat=2;    // No of atom types: one for each element
 
-      int nins=10;
-      int mlay=0;     // No of substrate layers on each side of SGF
-      int numat=2;    // No of atom types: one for each element
+      const int nlay=nins+2*mlay+4;  // total No of layers inc 4 lead layers
+      const int ndiff=nins;
 
-      int nlay=nins+2*mlay+4;  // total No of layers inc 4 lead layers
-      int ndiff=nins;
+      const double ef=0.57553;  // fermi energy
+      double wm = 1e-14;  // infinitesimal imaginary contribution to energy
 
-      double ef=0.57553;
-      double wm = 1e-14;
-
-      int iwmax = 15;
-      double tfac     = 8.617e-5/13.6058;
-      double temp  = 315.79*tfac;
-
+      const int iwmax = 15;  // No of Matsubara frequencies
+      const double tfac     = 8.617e-5/13.6058;
+      const double temp  = 315.79*tfac;
 
 //     =================================================================
 //     ATOMIC DATA FOR LEADS
@@ -72,469 +108,392 @@
 //     in this code we assume that the LH and RH leads have the same 
 //     lattice vectors and No of basis vectors
 
-      nsubat=2
-      natom=nsl*nspin*nsubat
+      const int nsubat=2; // No. of sublayer atoms in leads
+      const int natom=nspin*nsubat;
+      Vector3d aa1, aa2;
 
-      aa1(1)=0.5d0
-      aa1(2)=0.5d0
-      aa1(3)=0.d0
-      aa2(1)=0.5d0
-      aa2(2)=-0.5d
-      aa2(3)=0.d0
+      aa1 << 0.5, 0.5, 0;
+      aa2 << 0.5, -0.5, 0;
 
 //     =================================================================
 //     LH LEAD BASIS VECTORS
 //     =================================================================
+	vector<Vector3d, aligned_allocator<Vector3d>> aa3, a3;
+	aa3.reserve(4);
+	a3.reserve(nlay);
+	vector<Vector3d, aligned_allocator<Vector3d>> vsubtmp, vsubattmp;
+	vsubattmp.reserve(nsubat);
+	vector<vector<Vector3d, aligned_allocator<Vector3d>>> vsubat, vsub;
+	vsubat.reserve(4);
+	vsub.reserve(nlay);
+	Vector3d tmp;
+	VectorXd attype(nsubat);
+	vector<VectorXd, aligned_allocator<VectorXd>> itypeat;
 
-      do ilay=1,2
+      for (int ilay=1; ilay<=2; ilay++){
 //       Out of plane lattice vector
-        aa3(1,ilay)=0.d0
-        aa3(2,ilay)=0.d0
-        aa3(3,ilay)=ilay-1.d0
+	tmp << 0, 0, ilay - 1;
+	aa3.emplace_back(tmp);
 
 //       Sublattice
-        vsubat(1,1,ilay)=0.0d0
-        vsubat(2,1,ilay)=0.0d0
-        vsubat(3,1,ilay)=0.0d0
-        vsubat(1,2,ilay)=0.5d0
-        vsubat(2,2,ilay)=0.0d0
-        vsubat(3,2,ilay)=-0.5d0
-
+//       size nsubat, here fixed to 2
+	tmp << 0, 0, 0;
+	vsubattmp.emplace_back(tmp);
+	tmp << 0.5, 0, -0.5;
+	vsubattmp.emplace_back(tmp);
+	vsubat.emplace_back(vsubattmp);
 
 //       Atom types
-        do kk=1,nsubat
-          itypeat(kk,ilay)=1
-        enddo
-      enddo
+        for (int kk=1; kk <= nsubat; kk++)
+	  attype(kk-1) = 1;
+	itypeat.emplace_back(attype);
+      }
 
 //     =================================================================
 //     SUPERCELL STRUCTURE
 //     =================================================================
 
-      nsub=2
+      const int nsub=2; //No. of sublayer atoms in spacer
+      vsubtmp.reserve(nsub);
 
 //     2 in-plane lattice vectors
 //     CUBIC
-      a1(1)=0.5d0
-      a1(2)=0.5d0
-      a1(3)=0.d0
-      a2(1)=0.5d0
-      a2(2)=-0.5d0
-      a2(3)=0.d0
+      Vector3d a1, a2;
+
+      a1 << 0.5, 0.5, 0;
+      a2 << 0.5, -0.5, 0;
 
 //    ----------  Crystal structure ----------------------
-      do ilay=1,nlay
+      vector<vector<int>> itype;
+      itype.reserve(nlay);
+      vector<int> itmp;
+      itmp.reserve(nsub);
+      for (int ilay=1; ilay <= nlay; ilay++){
 //       Out of plane lattice vector
-        a3(1,ilay)=0.d0
-        a3(2,ilay)=0.d0
-        a3(3,ilay)=ilay-1.d0
+	tmp << 0, 0, ilay - 1;
+	a3.emplace_back(tmp);
 
 //       Sublattice
-        vsub(1,1,ilay)=0.d0
-        vsub(2,1,ilay)=0.d0
-        vsub(3,1,ilay)=0.d0
-        vsub(1,2,ilay)=0.5d0
-        vsub(2,2,ilay)=0.d0
-        vsub(3,2,ilay)=-0.5d0
+      // Presently only set up for nsub = 2  
+	tmp << 0, 0, 0;
+	vsubtmp.emplace_back(tmp);
+	tmp << 0.5, 0, -0.5;
+	vsubtmp.emplace_back(tmp);
+	vsub.emplace_back(vsubtmp);
 
 //       Atom types
-        itype(1,ilay)=1   !!!   Co
-        itype(2,ilay)=1
-        if((ilay >= 3) && (ilay <= nins+2))then
-          itype(1,ilay)=2   !!!   Cu
-          itype(2,ilay)=2
-        endif
-      enddo
+//       The pair here likely stems from nsub = 2
+//       above. This means for nsub /= 2, the code 
+//       will break, unless this, and vsub is changed
+        if((ilay >= 3) && (ilay <= nins+2)){
+	  for (int isub = 0; isub < nsub; isub++)
+	    itmp.emplace_back(2); // Cu
+	  itype.emplace_back(itmp);
+	  itmp.clear();
+	}
+	else{
+	  for (int isub = 0; isub < nsub; isub++)
+	    itmp.emplace_back(1); //  Co
+	  itype.emplace_back(itmp);
+	  itmp.clear();
+	}
+      }
 
 //     =================================================================
 //     RH LEAD BASIS VECTORS
 //     =================================================================
 
-      do ilay=nlay-1,nlay
+      for (int ilay=nlay-1; ilay <= nlay; ilay++){
 //       Out of plane lattice vector
-        aa3(1,ilay)=0.d0
-        aa3(2,ilay)=0.d0
-        aa3(3,ilay)=ilay-1.d0
+	tmp << 0, 0, ilay - 1;
+	aa3.emplace_back(tmp);
 
 //       Sublattice
-        vsubat(1,1,ilay)=0.d0
-        vsubat(2,1,ilay)=0.d0
-        vsubat(3,1,ilay)=0.d0
-        vsubat(1,2,ilay)=0.5d0
-        vsubat(2,2,ilay)=0.d0
-        vsubat(3,2,ilay)=-0.5d0
+	tmp << 0, 0, 0;
+	vsubattmp.emplace_back(tmp);
+	tmp << 0.5, 0, -0.5;
+	vsubattmp.emplace_back(tmp);
+	vsubat.emplace_back(vsubattmp);
 
 //       Atom types
-        do kk=1,nsubat
-          itypeat(kk,ilay)=1
-        enddo
-      enddo
-//
+        for (int kk=1; kk <= nsubat; kk++)
+	  attype(kk-1) = 1;
+	itypeat.emplace_back(attype);
+      }
 
 //     =================================================================
 //     The map between Supercell sublattice and LH atomic sublattice :
 //     imap:   supercell --> atomic
 //     Defined s.t.     vsub(k)=vsubat(imap(k)) + atomic lattice vector
 
-      imapl(1)=1
-      imapl(2)=2
+      vector<int> imapl, imapr;
+      for (int isub = 0; isub < nsub; isub++){
+	if (isub == 0){
+          imapl.emplace_back(1);//Co
+          imapr.emplace_back(1);//Co
+	}
+	if (isub == 1){
+          imapl.emplace_back(2);//Cu
+          imapr.emplace_back(2);//Cu
+	}
+      }
 
-      imapr(1)=1
-      imapr(2)=2
-
-//
 //     =================================================================
 //     THIS SECTION TO GET NN DISTANCES ONLY
 
 //     In and out of plane distances:
-      do ilay=2,nlay
-        call prestructij(ilay,ilay,dist)
-        do i=1,numnn
-          dnn(i,ilay,ilay)=dist(i)
-        enddo
+      MatrixXd mdist(nlay-1, nlay-1);
+      mdist.fill(0);
+      vector<double> dist;
+      dist.reserve(numnn);
+      vector<MatrixXd, aligned_allocator<MatrixXd>> dnn;
+      dnn.reserve(numnn);
+      for (int i=1; i <= numnn; i++){
 
-        call prestructij(ilay,ilay-1,dist)
-        do i=1,numnn
-          dnn(i,ilay,ilay-1)=dist(i)
-          dnn(i,ilay-1,ilay)=dist(i)
-        enddo
-      end do
+        for (int ilay=2; ilay <= nlay; ilay++){
+          dist = prestructij(ilay,ilay, nsub, vsub, numnn, a1, a2, a3);
+          mdist(ilay-2,ilay-2)=dist[i-1];
+          dist = prestructij(ilay,ilay-1, nsub, vsub, numnn, a1, a2, a3);
+	  if (ilay > 2){
+            mdist(ilay-2,ilay-3)=dist[i-1];
+            mdist(ilay-3,ilay-2)=dist[i-1];
+	  }
+	}
 
-//     ddnn - atom-atom distances  ... this needs to be checked
-//     Better to put NN distances in by hand as in next section.
-      do iat=1,numat
-        do jat=1,numat
-          do inn=1,numnn
-            disttmp(iat,jat,inn)=1.d10
-          enddo
-        enddo
-      enddo
-      do ilay=2,nlay
-        call prestructijnew(ilay,ilay,disttmp)
-        call prestructijnew(ilay,ilay-1,disttmp)
-        call prestructijnew(ilay-1,ilay,disttmp)
-      enddo
+	dnn.emplace_back(mdist);
+      }
+
 //     =================================================================
 //     NN DISTANCES
 //     1,2 Fe  ; 3 Mg ; 4 O 
 //     ddnn(type1,type2,NN)
 
-      do i=1,numat
-        do j=1,numat
-          do k=1,numnn
-            ddnn(i,j,k)=0.d0
-          enddo 
-        enddo
-      enddo
-
-      do ii=1,numat
-        do jj=1,numat
-          ddnn(ii,jj,1)=1.d0/sqrt(2.d0)
-          ddnn(ii,jj,2)=1.d0
-        enddo
-      enddo
-
+      // As in original code, ddnn is set up for an arbitrary
+      // number of nearest neighbours, but the following code
+      // only caters for up to two nearest neighbours
+      vector<MatrixXd, aligned_allocator<MatrixXd>> ddnn;
+      ddnn.reserve(numnn);
+      MatrixXd ddnntmp(numat, numat);
+      ddnntmp.fill(1./M_SQRT2);// be aware, this appears to be for fcc only
+      ddnn.emplace_back(ddnntmp);
+      ddnntmp.fill(1.);
+      ddnn.emplace_back(ddnntmp);
 
 //     =================================================================
 //     !!!!!!! OUTPUT ATOMIC POSITIONS FOR RASMOL VIEWER !!!!!!
 //     load into rasmol with command :    > load xyz pos0.dat
-      atname(1)="Co"
-      atname(2)="Cu"
+      vector<string> atname;
+      atname.reserve(2);
+      atname.emplace_back("Co");
+      atname.emplace_back("Cu");
 
 //     whole cluster
-      open(20,file='pos0.dat')
-      idum0=0
+      ofstream Myfile;	
+      string Mydata = "pos0.dat";
+      Myfile.open( Mydata.c_str(),ios::trunc );
 
-      do ilay=1,nlay
-        do isub=1,nsub
-          do i1=-nlay,nlay
-            do i2=-nlay,nlay
-              do k=1,3
-                rr(k)=a3(k,ilay)+vsub(k,isub,ilay)+i1*a1(k)+i2*a2(k)
-              enddo
-              if(abs(rr(1)).lt.0.5001.and.abs(rr(2)).lt.0.5001)then
-                idum0=idum0+1
-              endif
-            enddo
-          enddo
-        enddo
-      enddo
+      int idum0=0;
 
+      Vector3d rr;
+      for (int ilay = 0; ilay < nlay; ilay++){
+	for (int iii = 0; iii < nsub; iii++){
+          for (int i1=-nlay; i1 <= nlay; i1++){
+            for (int i2=-nlay; i2 <= nlay; i2++){
+              rr=a3[ilay]+vsub[ilay][iii]+i1*a1+i2*a2;
+              if ((abs(rr(0)) < 0.5001) && (abs(rr(1)) < 0.5001))
+                idum0++;
+	    }
+      	  }
+	}
+      }
 
-      if(myid.eq.0)then
-        write(20,*)idum0
-        write(20,*)"foo"
-        do ilay=1,nlay
-          do isub=1,nsub
-            do i1=-nlay,nlay
-              do i2=-nlay,nlay
-                do k=1,3
-                  rr(k)=a3(k,ilay)+vsub(k,isub,ilay)+i1*a1(k)+i2*a2(k)
-                enddo
-                if(abs(rr(1)).lt.0.5001.and.abs(rr(2)).lt.0.5001)then
-                  write(20,'(a2,5x,3f12.8)')atname(itype(isub,ilay)),
-     $           (4*rr(k),k=1,3)
-                endif
-              enddo
-            enddo
-          enddo
-        enddo
-      endif
+      Myfile<<idum0<<endl<<"foo"<<endl;
+
+      for (int ilay = 0; ilay < nlay; ilay++){
+	for (int iii = 0; iii < nsub; iii++){
+          for (int i1=-nlay; i1 <= nlay; i1++){
+            for (int i2=-nlay; i2 <= nlay; i2++){
+              rr=a3[ilay]+vsub[ilay][iii]+i1*a1+i2*a2;
+              if ((abs(rr(0)) < 0.5001) && (abs(rr(1)) < 0.5001)){
+                Myfile<<atname[(itype[ilay][iii]) - 1]<<" "<<4*rr.transpose()<<endl;
+	      }
+	    }
+	  }
+	}
+      }
+      Myfile.close();
 
 //     =================================================================
-//     Dimensionality Checks
-
-      nmat=nsl*nspin*nsub
-
-      if(myid.eq.0)then
-        if(numnn.gt.nnx)then
-          write(*,*)' ERROR : numnn > nnx'
-          stop
-        endif
-
-        if(nsub.gt.nsubx)then
-          write(*,*)' ERROR : nsub > nsubx'
-          stop
-        endif
-
-        if(ndiff.gt.nlayx)then
-          write(*,*)' ERROR : ndiff > nlayx ',ndiff,nlayx
-          stop
-        endif
-      endif
-
-      if(numat.gt.numatx)then
-        write(*,*)"ERROR: numat>numatx",numat,numatx
-        stop
-      endif
-
 //     construct the growth direction:
-      call cross(a1,a2,xn,3)
-      xnorm=dot(xn,xn,3)
-      do i=1,3
-        xn(i)=xn(i)/sqrt(xnorm)
-      enddo
+      Vector3d xn;
+      xn = a1.cross(a2);
+      xn.normalize();
 //     =================================================================
 
-      if(myid.eq.0)then
-        write(*,*)' Supercell GMR'
-        write(*,*)
-        write(*,*)' Substrate lattice vectors'
-        write(*,*)(a1(i),i=1,3)
-        write(*,*)(a2(i),i=1,3)
-        write(*,*)
-        write(*,*)
-        write(*,*)' Growth direction'
-        write(*,*)(xn(i),i=1,3)
-        write(*,*)
-        write(*,*)' nq =',nq
-        write(*,*)' ef =',ef
-        write(*,*)
-        write(*,*)' No of MgO at. layers =',nins
-        write(*,*)
+        cout<<"Supercell GMR"<<endl<<endl;
+        cout<<"Substrate lattice vectors"<<endl;
+        cout<<fixed<<a1.transpose()<<endl;
+        cout<<a2.transpose()<<endl<<endl<<endl;
+        cout<<"Growth direction"<<endl;
+        cout<<xn.transpose()<<endl<<endl;
+        cout<<"ef = "<<ef<<endl<<endl;
+        cout<<"No of MgO at. layers = "<<nins<<endl<<endl;
 
 //       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 //       this prints out all interplanar distances
-        do ii=1,nlay
-          write(*,'(72("-"))')
-          write(*,*)' The ',ii,'th Layer'
-          write(*,*)
-          write(*,'("a3 = ",3f12.8)')(a3(k,ii),k=1,3)
-          write(*,*)
-          write(*,*)' Sub-lattice vectors'
-          do i=1,nsub
-            write(*,'("vsub(",i2,")=",3f8.4)')i,vsub(1,i,ii),
-     $vsub(2,i,ii),vsub(3,i,ii)
-          enddo
-          if(ii.ge.2)then
-            write(*,*)
-            write(*,*)"In-Plane NN distances"
-            do i=1,numnn
-              write(*,*)ii,dnn(i,ii,ii)
-            enddo
-            write(*,*)
-            write(*,*)"Out of Plane NN distances"
-            do i=1,numnn
-              write(*,*)ii,dnn(i,ii,ii-1)
-            enddo
-          endif
-        enddo
-        write(*,'(72("-"))')
+	for (int ii = 0; ii < nlay; ii++){
+	  cout<<string(72, '-')<<endl;
+          cout<<"The "<<ii+1<<"'th Layer"<<endl<<endl;
+          cout<<a3[ii].transpose()<<endl<<endl;
+          cout<<"Sub-lattice vectors"<<endl;
+	  for (int iii = 0; iii < nsub; iii++)
+	    cout<<"vsub("<<iii+1<<")= "<<(vsub[ii][iii]).transpose()<<endl;
+          if (ii >= 1){
+            cout<<endl<<"In-Plane NN distances"<<endl;
+            for (int i=0; i < numnn; i++)
+              cout<<ii+1<<" "<<dnn[i](ii-1,ii-1)<<endl;
+            cout<<endl<<"Out of Plane NN distances"<<endl;
+            for (int i=0; i < numnn; i++){
+	      if (ii == 1)
+                cout<<ii+1<<" "<<dnn[i](ii-1,ii)<<endl;
+	      else
+                cout<<ii+1<<" "<<dnn[i](ii-1,ii-2)<<endl;
+	    }
+	  }
+	}
+	cout<<string(72, '-')<<endl;
 
-//       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-        write(*,'(65("="))')
-        write(*,*)"      CALCULATED NN DISTANCES --- check these"
-        write(*,'(65("="))')
-        write(*,'("  at1   at2  ",100("    dNN",i1,"       "))')
-     $(k,k=1,numnn-1)
-        do i=1,numat
-          do j=1,numat
-            write(*,'(2i5,100d15.6)')i,j,(disttmp(i,j,k),k=1,numnn)
-          enddo
-        enddo
-        write(*,'(65("="))')
-        write(*,'(65("="))')
-      endif
-c
-c     -----------------------------------------------------------------
+//     -----------------------------------------------------------------
 
-      call param
+      /* call param */
 
-c     -----------------------------------------------------------------
-c     determine the reciprocal lattice structure
-      call recip(a1,a2,b1,b2,irecip)
-      if(myid.eq.0)then
-        write(*,*)
-        write(*,*)' perpr reciprocal lattice vectors'
-        write(*,'(3f12.4)')(b1(i),i=1,3)
-        write(*,'(3f12.4)')(b2(i),i=1,3)
-        write(*,*)
-      endif
-c     -----------------------------------------------------------------
+//     -----------------------------------------------------------------
+//     determine the reciprocal lattice structure
+      /* call recip(a1,a2,b1,b2,irecip) */
 
-c     determine the atomic reciprocal lattice vectors ba1,ba2
-      call recip(aa1,aa2,ba1,ba2,irecipa)
-      if(myid.eq.0)then
-        write(*,*)
-        write(*,*)'----------------------------------------------------'
-        write(*,*)
-        write(*,*)' perpr atomic reciprocal lattice vectors'
-        write(*,'(3f12.4)')(ba1(i),i=1,3)
-        write(*,'(3f12.4)')(ba2(i),i=1,3)
-        write(*,*)
-        write(*,*)'----------------------------------------------------'
-        write(*,*)
-      endif
+	      //these are for testing only
+	      
+	Vector3d b1, b2, ba1, ba2;
+	b1 << 3,4,5;
+	b2 << 5.2, 2, 2.2;
+	ba1 << 2.3, 3, 1.23;
+	ba2 << 2.3, 2.6, 23.2;
 
-c     -----------------------------------------------------------------
-c     now find the 'folding' vectors j[1:nfold]
-      call folding(b1,b2,ba1,ba2)
+        cout<<endl<<"perpr reciprocal lattice vectors"<<endl;
+        cout<<b1.transpose()<<endl;
+        cout<<b2.transpose()<<endl<<endl;
+//     -----------------------------------------------------------------
 
-C     =================================================================
-C     CHECK THAT IMAP IS CORRECTLY DEFINED
-C     ie.    vsub(k)=vsubat(imap(k)) + n1.aa1 + n2.aa2
+//     determine the atomic reciprocal lattice vectors ba1,ba2
+      /* call recip(aa1,aa2,ba1,ba2,irecipa) */
+	cout<<string(52, '-')<<endl<<endl;
+        cout<<"perpr atomic reciprocal lattice vectors"<<endl;
+        cout<<ba1.transpose()<<endl;
+        cout<<ba2.transpose()<<endl;
+	cout<<endl<<string(52, '-')<<endl<<endl;
 
-c     LH lead
-      do ilay=1,2
-        do isub=1,nsub
-          do k=1,3
-            vtmp(k)=vsub(k,isub,ilay)-vsubat(k,imapl(isub),ilay)
-          enddo
-          vba1=(abs(dot(vtmp,ba1,3))+1.d-10)/(2*pi)
-          vba2=(abs(dot(vtmp,ba2,3))+1.d-10)/(2*pi)
-          if(abs(int(vba1)-vba1).gt.1.d-10.or.
-     $abs(int(vba2)-vba2).gt.1.d-10)then
-            write(*,*)"imapl is wrong",vba1,vba2
-            stop
-          endif
-          if(itype(isub,ilay).ne.itypeat(imapl(isub),ilay))then
-            write(*,*)"imapl is wrong",itype(isub,ilay),
-     $itypeat(imapl(isub),ilay)
-            stop
-          endif
-        enddo
-      enddo
+//     -----------------------------------------------------------------
+//     now find the 'folding' vectors j[1:nfold]
+      /* call folding(b1,b2,ba1,ba2) */
 
-c     RH lead
-      do ilay=nlay-1,nlay
-        do isub=1,nsub
-          do k=1,3
-            vtmp(k)=vsub(k,isub,ilay)-vsubat(k,imapr(isub),ilay)
-          enddo
-          vba1=(abs(dot(vtmp,ba1,3))+1.d-10)/(2*pi)
-          vba2=(abs(dot(vtmp,ba2,3))+1.d-10)/(2*pi)
-          if(abs(int(vba1)-vba1).gt.1.d-10.or.
-     $abs(int(vba2)-vba2).gt.1.d-10)then
-            write(*,*)"imapr is wrong",vba1,vba2
-            stop
-          endif
-          if(itype(isub,ilay).ne.itypeat(imapr(isub),ilay))then
-            write(*,*)"imapr is wrong",itype(isub,ilay),
-     $itypeat(imapr(isub),ilay)
-            stop
-          endif
-        enddo
-      enddo
+//     =================================================================
+//     CHECK THAT IMAP IS CORRECTLY DEFINED
+//     ie.    vsub(k)=vsubat(imap(k)) + n1.aa1 + n2.aa2
 
-C     =================================================================
-C     DO THE CALCULATION
-
-
-C     ec = dcmplx(ef,wm)
-C     if(myid.eq.0)write(*,*)' Complex Energy = ',ec
-C     do in=0,ndiff
-C       zresu(in)=0.d0
-C       zresd(in)=0.d0
-C       zresud(in)=0.d0
-C       zresdu(in)=0.d0
-C     enddo
-C     call sumk(irecip,ec,nq,b1,b2,zresu,zresd,zresud,zresdu)
-
-
-
-      do in=0,ndiff
-        vcuu(in) = 0.d0
-        vcud(in) = 0.d0
-        vcdu(in) = 0.d0
-        vcdd(in) = 0.d0
-        zresu(in) = 0.d0
-        zresd(in) = 0.d0
-        zresud(in) = 0.d0
-        zresdu(in) = 0.d0
-      enddo
-
-      fact = (pi + pi)*temp
-      do iw=1,iwmax
-        wm = pi*dfloat(2*iw-1)*temp
-        ec = dcmplx(ef,wm)
-        call kcon(irecip,ec,fact,b1,b2,zresu,zresd,zresud,zresdu)
-//     call sumk(irecip,ec,nq,b1,b2,zresu,zresd,zresud,zresdu)
-        do in=0,ndiff
-          vcuu(in) = vcuu(in) - fact*dreal(zresu(in))
-          vcud(in) = vcud(in) - fact*dreal(zresud(in))
-          vcdu(in) = vcdu(in) - fact*dreal(zresdu(in))
-          vcdd(in) = vcdd(in) - fact*dreal(zresd(in))
-        enddo
-        if(myid.eq.0)write(*,*)' iw =',iw,'   complete'
-        if(myid.eq.0)write(*,*)
-        call flush(6)
-      enddo
-
-      if (myid == 0){
-	      cout<<endl;
-	      cout<<"****************************************************"<<endl;
-	      cout<<"****************************************************"<<endl;
-	      cout<<"UP SPIN"<<endl;
-	      for (int in=0; in <=ndiff; in++){
-	        cout<<2*in<<" "<<vcuu(in)/nsub<<endl;
-	      }
-	      cout<<endl;
-	      cout<<"****************************************************"<<endl;
-	      cout<<"****************************************************"<<endl;
-	      cout<<"DOWN SPIN"<<endl;
-	      for (int in=0; in <=ndiff; in++){
-	        cout<<2*in<<" "<<vcdd(in)/nsub<<endl;
-	      }
-	      cout<<endl;
-	      cout<<"****************************************************"<<endl;
-	      cout<<"****************************************************"<<endl;
-	      cout<<"UP-DOWN SPIN"<<endl;
-	      for (int in=0; in <=ndiff; in++){
-	        cout<<2*in<<" "<<vcud(in)/nsub<<endl;
-	      }
-	      cout<<endl;
-	      cout<<"****************************************************"<<endl;
-	      cout<<"****************************************************"<<endl;
-	      cout<<"DOWN-UP SPIN"<<endl;
-	      for (int in=0; in <=ndiff; in++){
-	        cout<<2*in<<" "<<vcdu(in)/nsub<<endl;
-	      }
-	      cout<<endl;
-	      cout<<"****************************************************"<<endl;
-	      cout<<"****************************************************"<<endl;
-	      cout<<"(UP + DOWN - 2*AF)"<<endl;
-	      for (int in=0; in <=ndiff; in++){
-	        cout<<2*in<<" "<<-(vcuu(in)+vcdd(in)-vcdu(in)-vcud(in))/nsub<<endl;
-	      }
+//     LH lead
+      Vector3d vtmp;
+      double vba1, vba2;
+      for (int ilay=1; ilay<=2; ilay++){
+        for (int isub=1; isub<=nsub; isub++){
+           tmp=vsub[ilay - 1][isub - 1] - vsubat[ilay - 1][imapl[isub - 1]];
+           vba1=(abs(vtmp.dot(ba1))+1e-10)/(2*M_PI);
+           vba2=(abs(vtmp.dot(ba2))+1e-10)/(2*M_PI);
+           if ((abs(floor(abs(vba1))-abs(vba1)) > 1e-10) || (abs(floor(abs(vba2))-abs(vba2)) > 1e-10)){
+             cout<<"imapl is wrong "<<vba1<<" "<<vba2<<endl;
+	     exit(EXIT_FAILURE);
+	   }
+           if (itype[ilay - 1][isub - 1] != (itypeat[ilay - 1])(imapl[isub - 1] - 1)){
+             cout<<"imapl is wrong "<<itype[ilay - 1][isub - 1]<<" "<<(itypeat[ilay - 1])(imapl[isub - 1] - 1)<<endl;
+ 	     exit(EXIT_FAILURE);
+	   }
+	}
       }
+
+//     RH lead
+      for (int ilay=nlay-1; ilay<=nlay; ilay++){
+        for (int isub=1; isub<=nsub; isub++){
+           tmp=vsub[ilay - 1][isub - 1] - vsubat[ilay - nlay + 3][imapr[isub - 1]];
+           vba1=(abs(vtmp.dot(ba1))+1e-10)/(2*M_PI);
+           vba2=(abs(vtmp.dot(ba2))+1e-10)/(2*M_PI);
+           if ((abs(floor(abs(vba1))-abs(vba1)) > 1e-10) || (abs(floor(abs(vba2))-abs(vba2)) > 1e-10)){
+             cout<<"imapl is wrong "<<vba1<<" "<<vba2<<endl;
+	     exit(EXIT_FAILURE);
+	   }
+           if (itype[ilay - 1][isub - 1] != (itypeat[ilay - nlay + 3])(imapr[isub - 1] - 1)){
+             cout<<"imapr is wrong "<<itype[ilay - 1][isub - 1]<<" "<<(itypeat[ilay - nlay + 3])(imapr[isub - 1] - 1)<<endl;
+ 	     exit(EXIT_FAILURE);
+	   }
+	}
+      }
+
+//     =================================================================
+//     DO THE CALCULATION
+
+      VectorXd vcuu(ndiff+1), vcud(ndiff+1), vcdu(ndiff+1), vcdd(ndiff+1);
+      VectorXcd zresu(ndiff+1), zresd(ndiff+1), zresud(ndiff+1), zresdu(ndiff+1);
+      vcuu.fill(0);
+      vcud.fill(0);
+      vcdu.fill(0);
+      vcdd.fill(0);
+      zresu.fill(0);
+      zresd.fill(0);
+      zresud.fill(0);
+      zresdu.fill(0);
+
+      double fact = (M_PI + M_PI)*temp;
+      dcomp ec, i;
+      i = -1.;
+      i = sqrt(i);
+      for (int iw=1; iw <= iwmax; iw++){
+        wm = M_PI*(2*iw-1)*temp;
+        ec = ef + i*wm;
+        /* call kcon(irecip,ec,fact,b1,b2,zresu,zresd,zresud,zresdu) */
+        vcuu = vcuu - fact*zresu.real();
+        vcud = vcud - fact*zresud.real();
+        vcdu = vcdu - fact*zresdu.real();
+        vcdd = vcdd - fact*zresd.real();
+	cout<<"iw = "<<iw<<" complete"<<endl;
+      }
+
+      cout<<endl;
+      cout<<"****************************************************"<<endl;
+      cout<<"****************************************************"<<endl;
+      cout<<"UP SPIN"<<endl;
+      for (int in = 0; in <= ndiff; in++)
+        cout<<2*in<<" "<<vcuu(in)/nsub<<endl;
+      cout<<endl;
+      cout<<"****************************************************"<<endl;
+      cout<<"****************************************************"<<endl;
+      cout<<"DOWN SPIN"<<endl;
+      for (int in = 0; in <= ndiff; in++)
+        cout<<2*in<<" "<<vcdd(in)/nsub<<endl;
+      cout<<endl;
+      cout<<"****************************************************"<<endl;
+      cout<<"****************************************************"<<endl;
+      cout<<"UP-DOWN SPIN"<<endl;
+      for (int in = 0; in <= ndiff; in++)
+        cout<<2*in<<" "<<vcud(in)/nsub<<endl;
+      cout<<endl;
+      cout<<"****************************************************"<<endl;
+      cout<<"****************************************************"<<endl;
+      cout<<"DOWN-UP SPIN"<<endl;
+      for (int in = 0; in <= ndiff; in++)
+        cout<<2*in<<" "<<vcdu(in)/nsub<<endl;
+      cout<<endl;
+      cout<<"****************************************************"<<endl;
+      cout<<"****************************************************"<<endl;
+      cout<<"(UP + DOWN - 2*AF)"<<endl;
+      for (int in = 0; in <= ndiff; in++)
+        cout<<2*in<<" "<<-(vcuu(in)+vcdd(in)-vcdu(in)-vcud(in))/nsub<<endl;
+      return 0;
 }
