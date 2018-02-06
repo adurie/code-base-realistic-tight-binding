@@ -1,4 +1,5 @@
 #include <eigen3/Eigen/Core>
+#include <eigen3/Eigen/Dense>
 #include <iostream>
 #include <eigen3/Eigen/StdVector>
 #include <gsl/gsl_math.h>
@@ -97,9 +98,21 @@ int main()
 	/* for (int i = 0; i < 4; i++) */
 	/* 	cout<<test[i]<<endl; */
 
-	vector<double> test = {53.43, -52.28, -54.23, 0.32, -1.5};
-      sort(test.begin(), test.end(), WayToSort);
-      for (double i:test)
-	      cout<<i<<endl;
+	/* vector<double> test = {53.43, -52.28, -54.23, 0.32, -1.5}; */
+      /* sort(test.begin(), test.end(), WayToSort); */
+      /* for (double i:test) */
+	/*       cout<<i<<endl; */
+	
+	Matrix3d test1, test2;
+	test1 << 1,2,3,1,2,3,1,2,3;
+	test2 << 4,5,6,4,5,6,4,5,6;
+	/* cout<<test(0,1)<<endl; */
+	/* Vector3d tmp, tmp2; */
+	/* tmp << 12,13,14; */
+	/* tmp2 << 32, 34, 35; */
+	/* test.block<3,1>(0,1) = tmp; */
+	/* test.rightCols(1) = tmp2; */
+	cout<<test2*test1<<endl;
+
 
 }

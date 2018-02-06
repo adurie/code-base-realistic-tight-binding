@@ -8,6 +8,26 @@
 #include <gsl/gsl_math.h>
 #include <cstdlib>
 
+//     This program calculates the coupling for a general multilayer,
+//     with general supercell configuration, and general growth direction.
+//     Each layer is allowed to have a different geometry.
+//     However, the in-plane geometry (defined by (a1,a2)) of the lattice
+//     must be common to all layers. This is so that the 2 
+//     geometries can be simultaneously diagonalised in-plane.
+//
+//     There are nlay layers :
+//     Layers 1 and 2 define the LH semi-infinite substrate.
+//     Layers nlay-1 and nlay define the RH semi-infinite substrate.      
+//     Layers 3..(nlay-2) define the intermediate multilayer. 
+//     The ith multilayer has perpendicular position given by a3(i),
+//     and basis vsub(i,1-->nsub). So the lattice for the ith layer is
+//           R = \sum{n1,n2,m} [n1.a1 + n2.a2 + a3(i)  + vsub(i,m)]
+
+//     There are significant changes to subroutine param
+//     The hopping between different atoms is now given by the geometric
+//     mean, unless this is overridden --- as in the case of Fe-MgO.
+//     There are two spins per atom type.
+
 //________                 _____________
 //... x  x| o  o ... o    |  +     + ...
 //________|               |_____________
@@ -20,6 +40,113 @@ typedef vector<Vector3d, aligned_allocator<Vector3d>> vV3d;
 typedef vector<vector<Vector3d, aligned_allocator<Vector3d>>> vvV3d;
 
 bool WayToSort(double i, double j){ return abs(i) < abs(j);}
+
+vector<pair<int,int>> folding(const Vector3d &b1, const Vector3d &b2, const Vector3d &ba1, const Vector3d &ba2, int irecipa, int nsub, int &nfold){
+//     check {b1,b2} and {ba1,ba2} in the same plane
+      Vector3d b12, ba12;
+      b12 = b1.cross(b2);
+      ba12 = ba1.cross(ba2);
+      if ((abs(b12.dot(ba1)) > 1e-10) || (abs(b12.dot(ba2)) > 1e-10)){
+        cout<<"{b1,b2} not in same plane as {ba1,ba2}"<<endl;
+	exit(EXIT_FAILURE);
+      }
+//     -----------------------------------------------------------------
+//     construct the transformation matrix from {ba1,ba2} --> {b1,b2}
+      Matrix3d bbatmp, bb, bba, baib;
+      bb.leftCols(1)        =b1;
+      bb.block<3,1>(0,1)    =b2;
+      bb.rightCols(1)       =b12;
+      bbatmp.leftCols(1)    =ba1;
+      bbatmp.block<3,1>(0,1)=ba2;
+      bbatmp.rightCols(1)   =ba12;
+      bba = bbatmp.inverse();
+      baib = bba*bb;
+//     -----------------------------------------------------------------
+      vector<pair<int,int>> ifold;
+      if (irecipa == 0){
+        cout<<"TESTK : irecip = 0 ---- NOT CODED"<<endl;
+	exit(EXIT_FAILURE);
+      }
+      if (irecipa == 3){
+        cout<<"HEXAGONAL ATOMIC RECIPROCAL LATTICE NOT CODED"<<endl;
+        exit(EXIT_FAILURE);
+      }
+      if (irecipa == 4){
+        cout<<"CENTRED-RECTANGULAR ATOMIC RECIPROCAL LATTICE NOT CODED"<<endl;
+        exit(EXIT_FAILURE);
+      }
+      if ((irecipa == 1) || (irecipa == 2)){
+//     -----------------------------------------------------------------
+//     CUBIC AND RECTANGULAR ATOMIC RECIPROCAL LATTICE
+//     first construct supercell reciprocal lattice cluster
+//     for the vector J = i*b1 + j*b2 + vsym(k)
+//     then           J = x1*ba1 + x2*ba2
+        int icnt=0;
+        Vector3d tmp1, tmp2;
+	double xsym, ysym, x1, x2;
+	int cond;
+	pair<int,int> foldtmp;
+        for (int isym=1; isym <= 4; isym++){
+          if (isym == 1){
+            xsym=0.;
+            ysym=0.;
+	  }
+          if (isym == 2){
+            xsym=0.5;
+            ysym=0.;
+	  }
+          if (isym == 3){
+            xsym=0.;
+            ysym=0.5;
+  	  }
+          if (isym == 4){
+            xsym=0.5;
+            ysym=0.5;
+	  }
+          for (int i=-nsub; i<=nsub; i++){
+            for (int j=-nsub; j<=nsub; j++){
+	      cond = 0;
+              x1=baib(0,0)*(i+xsym)+baib(0,1)*(j+ysym);
+              x2=baib(1,0)*(i+xsym)+baib(1,1)*(j+ysym);
+
+//           check consistency
+              tmp1=(i+xsym)*b1+(j+ysym)*b2;
+              tmp2=x1*ba1+x2*ba2;
+              for (int l=0; l<3; l++){
+                if (abs(tmp1(l)-tmp2(l)) > 1e-10){
+                  cout<<"ERROR FOLDING "<<tmp1<<" "<<tmp2<<endl;
+		  exit(EXIT_FAILURE);
+		}
+	      }
+
+//           check that this vector lies inside the atomic BZ
+              if((abs(x1) <= 0.50000001) && (abs(x2) <= 0.50000001)){
+//           check if this point the same as any of the others
+                for (int iii=0; iii<icnt; iii++){
+                  if((i == ifold[iii].first) && (j == ifold[iii].second)){
+		    cond = 1;
+		    break;
+	          }
+	        }
+
+	        if (cond == false){
+		  foldtmp = make_pair(i, j);
+		  ifold.emplace_back(foldtmp);
+                  icnt++;
+		}
+	      }
+	    }
+	  }
+	}
+        nfold=icnt;
+      }
+
+      cout<<endl<<"FOLDING VECTORS"<<endl;
+      for ( int i=0; i < nfold; i++)
+        cout<<i+1<<" "<<ifold[i].first<<" "<<ifold[i].second<<endl;
+      cout<<endl<<endl;
+      return ifold;
+}
 
 vector<double> prestructij(int ilay, int jlay, int nsub, const vvV3d &vsub, 
 		int numnn, const Vector3d &a1, const Vector3d &a2, const vV3d &a3){
@@ -182,9 +309,6 @@ int main(){
 	vsub.emplace_back(vsubtmp);
 
 //       Atom types
-//       The pair here likely stems from nsub = 2
-//       above. This means for nsub /= 2, the code 
-//       will break, unless this, and vsub is changed
         if((ilay >= 3) && (ilay <= nins+2)){
 	  for (int isub = 0; isub < nsub; isub++)
 	    itmp.emplace_back(2); // Cu
@@ -373,11 +497,11 @@ int main(){
 
 	      //these are for testing only
 	      
-	Vector3d b1, b2, ba1, ba2;
-	b1 << 3,4,5;
-	b2 << 5.2, 2, 2.2;
-	ba1 << 2.3, 3, 1.23;
-	ba2 << 2.3, 2.6, 23.2;
+	/* Vector3d b1, b2, ba1, ba2; */
+	/* b1 << 6.2832,6.2832,0; */
+	/* b2 << 6.2832, -6.2832, 0; */
+	/* ba1 << 6.2832, 6.2832, 0; */
+	/* ba2 << 6.2832, -6.2832, 0; */
 
         cout<<endl<<"perpr reciprocal lattice vectors"<<endl;
         cout<<b1.transpose()<<endl;
@@ -394,7 +518,11 @@ int main(){
 
 //     -----------------------------------------------------------------
 //     now find the 'folding' vectors j[1:nfold]
-      /* call folding(b1,b2,ba1,ba2) */
+//     IMPORTANT: irecipa is not yet defined
+       /* int irecipa = 1; */
+       int nfold;
+       vector<pair<int,int>> ifold;
+       ifold = folding(b1,b2,ba1,ba2,irecipa,nsub,nfold);
 
 //     =================================================================
 //     CHECK THAT IMAP IS CORRECTLY DEFINED

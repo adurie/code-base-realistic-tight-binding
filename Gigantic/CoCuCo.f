@@ -188,6 +188,13 @@ c       Sublattice
 c       Atom types
         itype(1,ilay)=1   !!!   Co
         itype(2,ilay)=1
+
+c       this section allows computation of odd planes
+        ! if(ilay.eq.3)then
+        !         itype(1,ilay)=2
+        ! endif
+        ! if(ilay.ge.4.and.ilay.le.nins+2)then
+
         if(ilay.ge.3.and.ilay.le.nins+2)then
           itype(1,ilay)=2   !!!   Cu
           itype(2,ilay)=2
