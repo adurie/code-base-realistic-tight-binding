@@ -5,8 +5,10 @@
 #include <fstream>
 #include <eigen3/Eigen/StdVector>
 #include <utility>
-#include <gsl/gsl_math.h>
 #include <cstdlib>
+#include "CoCuCo.h"
+#include "calc.h"
+#include "greens.h"
 
 //     This program calculates the coupling for a general multilayer,
 //     with general supercell configuration, and general growth direction.
@@ -38,10 +40,63 @@ using namespace Eigen;
 typedef complex<double> dcomp;
 typedef vector<Vector3d, aligned_allocator<Vector3d>> vV3d;
 typedef vector<vector<Vector3d, aligned_allocator<Vector3d>>> vvV3d;
+typedef Matrix2d m2d;
+typedef vector<Matrix2d, aligned_allocator<Matrix2d>> vm2d;
 
 bool WayToSort(double i, double j){ return abs(i) < abs(j);}
 
-vector<pair<int,int>> folding(const Vector3d &b1, const Vector3d &b2, const Vector3d &ba1, const Vector3d &ba2, int irecipa, int nsub, int &nfold){
+int recip(const Vector3d &a1, const Vector3d &a2, Vector3d &b1, Vector3d &b2){
+//     construct the third (normalised) lattice vector
+      Vector3d d;
+      d = a1.cross(a2);
+      d.normalize();
+//     -----------------------------------------------------------------
+//     now determine the reciprocal lattice vectors
+      Vector3d an1, an2;
+      an1=a1;
+      an2=a2;
+      b1 = an2.cross(d);
+      b2 = an1.cross(d);
+      double an1b1, an2b2;
+      an1b1 = an1.dot(b1);
+      an2b2 = an2.dot(b2);
+      b1 = 2*M_PI*b1/an1b1;
+      b2 = 2*M_PI*b2/an2b2;
+//     now determine whether b2 or -b2 has the smallest angle with b1
+      double b1b1, b2b2, b1b2;
+      b1b1 = b1.dot(b1);
+      b2b2 = b2.dot(b2);
+      b1b2 = b1.dot(b2);
+      if (b1b2 < 0)
+        b2=-b2;
+      b1b2=-b1b2;
+      double cos12;
+      cos12 = acos(b1b2/sqrt(b1b1*b2b2));
+//     -----------------------------------------------------------------
+//     now classify the reciprocal lattice
+      cout<<endl<<endl;
+      int irecip=0;
+      if ((abs(b1b2) < 1e-8) && (abs(b1b1-b2b2) < 1e-8)){
+        cout<<"reciprocal lattice is cubic"<<endl;
+        irecip=1;
+      }
+      else if ((abs(b1b2) < 1e-8) && (abs(b1b1-b2b2) > 1e-8)){
+        cout<<"recip lattice is primitive-rectangular"<<endl;
+        irecip=2;
+      }
+      else if ((abs(cos12-M_PI/3.) < 1e-8) && (abs(b1b1-b2b2) < 1e-8)){
+        cout<<"reciprocal lattice is hexagonal"<<endl;
+        irecip=3;
+      }
+      else if ((abs(b1b2) > 1e-8) && (abs(b1b1-b2b2) < 1e-8)){
+        cout<<"recip lattice is centred-rectangular"<<endl;
+        irecip=4;
+      }
+      cout<<endl<<endl;
+      return irecip;
+}
+
+vector<pair<int,int>> folding(Matrix3d &baib, const Vector3d &b1, const Vector3d &b2, const Vector3d &ba1, const Vector3d &ba2, int irecipa, int nsub, int &nfold){
 //     check {b1,b2} and {ba1,ba2} in the same plane
       Vector3d b12, ba12;
       b12 = b1.cross(b2);
@@ -52,7 +107,7 @@ vector<pair<int,int>> folding(const Vector3d &b1, const Vector3d &b2, const Vect
       }
 //     -----------------------------------------------------------------
 //     construct the transformation matrix from {ba1,ba2} --> {b1,b2}
-      Matrix3d bbatmp, bb, bba, baib;
+      Matrix3d bbatmp, bb, bba;
       bb.leftCols(1)        =b1;
       bb.block<3,1>(0,1)    =b2;
       bb.rightCols(1)       =b12;
@@ -461,7 +516,7 @@ int main(){
         cout<<"Growth direction"<<endl;
         cout<<xn.transpose()<<endl<<endl;
         cout<<"ef = "<<ef<<endl<<endl;
-        cout<<"No of MgO at. layers = "<<nins<<endl<<endl;
+        cout<<"No of Cu at. layers = "<<nins<<endl<<endl;
 
 //       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 //       this prints out all interplanar distances
@@ -488,20 +543,11 @@ int main(){
 	cout<<string(72, '-')<<endl;
 
 //     -----------------------------------------------------------------
-
-      /* call param */
-
-//     -----------------------------------------------------------------
 //     determine the reciprocal lattice structure
-      /* call recip(a1,a2,b1,b2,irecip) */
-
-	      //these are for testing only
-	      
-	/* Vector3d b1, b2, ba1, ba2; */
-	/* b1 << 6.2832,6.2832,0; */
-	/* b2 << 6.2832, -6.2832, 0; */
-	/* ba1 << 6.2832, 6.2832, 0; */
-	/* ba2 << 6.2832, -6.2832, 0; */
+      Vector3d b1, b2;
+      b1.fill(0);
+      b2.fill(0);
+      int irecip = recip(a1,a2,b1,b2);
 
         cout<<endl<<"perpr reciprocal lattice vectors"<<endl;
         cout<<b1.transpose()<<endl;
@@ -509,7 +555,10 @@ int main(){
 //     -----------------------------------------------------------------
 
 //     determine the atomic reciprocal lattice vectors ba1,ba2
-      /* call recip(aa1,aa2,ba1,ba2,irecipa) */
+	Vector3d ba1, ba2;
+	ba1.fill(0);
+	ba2.fill(0);
+        int irecipa = recip(aa1,aa2,ba1,ba2);
 	cout<<string(52, '-')<<endl<<endl;
         cout<<"perpr atomic reciprocal lattice vectors"<<endl;
         cout<<ba1.transpose()<<endl;
@@ -518,11 +567,10 @@ int main(){
 
 //     -----------------------------------------------------------------
 //     now find the 'folding' vectors j[1:nfold]
-//     IMPORTANT: irecipa is not yet defined
-       /* int irecipa = 1; */
        int nfold;
+       Matrix3d baib;
        vector<pair<int,int>> ifold;
-       ifold = folding(b1,b2,ba1,ba2,irecipa,nsub,nfold);
+       ifold = folding(baib,b1,b2,ba1,ba2,irecipa,nsub,nfold);
 
 //     =================================================================
 //     CHECK THAT IMAP IS CORRECTLY DEFINED
@@ -566,6 +614,11 @@ int main(){
 
 //     =================================================================
 //     DO THE CALCULATION
+      m2d s0, p0, d0t, d0e;
+      vm2d sssint, spsint, ppsint, pppint, sdsint, pdsint, pdpint, ddsint, ddpint, dddint;
+      sssint.reserve(2); spsint.reserve(2); ppsint.reserve(2); pppint.reserve(2); sdsint.reserve(2); 
+      pdsint.reserve(2); pdpint.reserve(2); ddsint.reserve(2); ddpint.reserve(2); dddint.reserve(2);
+      param(numat, numnn, s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint, pdsint, pdpint, ddsint, ddpint, dddint);
 
       VectorXd vcuu(ndiff+1), vcud(ndiff+1), vcdu(ndiff+1), vcdd(ndiff+1);
       VectorXcd zresu(ndiff+1), zresd(ndiff+1), zresud(ndiff+1), zresdu(ndiff+1);
@@ -582,10 +635,13 @@ int main(){
       dcomp ec, i;
       i = -1.;
       i = sqrt(i);
+      int nmat = nspin*nsub;
       for (int iw=1; iw <= iwmax; iw++){
         wm = M_PI*(2*iw-1)*temp;
         ec = ef + i*wm;
-        /* call kcon(irecip,ec,fact,b1,b2,zresu,zresd,zresud,zresdu) */
+        kcon(nsubat,ifold,nfold,baib,nsub,ndiff,fact,zresu,zresd,zresud,zresdu,irecip,b1,b2,ec,nmat,mlay,nins,nlay,
+		nspin,imapl,imapr,vsub,vsubat,numnn,a1,a2,a3,aa1,aa1,aa3,itype,itypeat,ddnn,s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint,
+		pdsint, pdpint, ddsint, ddpint, dddint);
         vcuu = vcuu - fact*zresu.real();
         vcud = vcud - fact*zresud.real();
         vcdu = vcdu - fact*zresdu.real();

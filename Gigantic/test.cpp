@@ -78,12 +78,12 @@ int main()
       /* cout<<gsl_hypot3(3,4,5)<<endl; */
       /* cout<<sqrt(50)<<endl; */
 
-	/* Vector3d test; */
-	/* test << 1, 3, 8; */
-	/* cout<<test.hypotNorm()<<endl; */
-	/* cout<<sqrt(1+9+64)<<endl; */
-	/* test.normalize(); */
-	/* cout<<test<<endl; */
+	Vector3d test;
+	test << 1, 3, 8;
+	cout<<test.hypotNorm()<<endl;
+	cout<<sqrt(1+9+64)<<endl;
+	test.normalize();
+	cout<<test<<endl;
 
 /*       double xnorm = test.dot(test); */
 /*         test = test/sqrt(xnorm); */
@@ -103,16 +103,16 @@ int main()
       /* for (double i:test) */
 	/*       cout<<i<<endl; */
 	
-	Matrix3d test1, test2;
-	test1 << 1,2,3,1,2,3,1,2,3;
-	test2 << 4,5,6,4,5,6,4,5,6;
+	/* Matrix3d test1, test2; */
+	/* test1 << 1,2,3,1,2,3,1,2,3; */
+	/* test2 << 4,5,6,4,5,6,4,5,6; */
 	/* cout<<test(0,1)<<endl; */
 	/* Vector3d tmp, tmp2; */
 	/* tmp << 12,13,14; */
 	/* tmp2 << 32, 34, 35; */
 	/* test.block<3,1>(0,1) = tmp; */
 	/* test.rightCols(1) = tmp2; */
-	cout<<test2*test1<<endl;
+	/* cout<<test2*test1<<endl; */
 
 
 }
