@@ -507,6 +507,7 @@ int main(){
       Vector3d xn;
       xn = a1.cross(a2);
       xn.normalize();
+
 //     =================================================================
 
         cout<<"Supercell GMR"<<endl<<endl;
@@ -581,7 +582,7 @@ int main(){
       double vba1, vba2;
       for (int ilay=1; ilay<=2; ilay++){
         for (int isub=1; isub<=nsub; isub++){
-           tmp=vsub[ilay - 1][isub - 1] - vsubat[ilay - 1][imapl[isub - 1]];
+           vtmp=vsub[ilay - 1][isub - 1] - vsubat[ilay - 1][imapl[isub - 1]-1];
            vba1=(abs(vtmp.dot(ba1))+1e-10)/(2*M_PI);
            vba2=(abs(vtmp.dot(ba2))+1e-10)/(2*M_PI);
            if ((abs(floor(abs(vba1))-abs(vba1)) > 1e-10) || (abs(floor(abs(vba2))-abs(vba2)) > 1e-10)){
@@ -598,7 +599,7 @@ int main(){
 //     RH lead
       for (int ilay=nlay-1; ilay<=nlay; ilay++){
         for (int isub=1; isub<=nsub; isub++){
-           tmp=vsub[ilay - 1][isub - 1] - vsubat[ilay - nlay + 3][imapr[isub - 1]];
+           vtmp=vsub[ilay - 1][isub - 1] - vsubat[ilay - nlay + 3][imapr[isub - 1]-1];
            vba1=(abs(vtmp.dot(ba1))+1e-10)/(2*M_PI);
            vba2=(abs(vtmp.dot(ba2))+1e-10)/(2*M_PI);
            if ((abs(floor(abs(vba1))-abs(vba1)) > 1e-10) || (abs(floor(abs(vba2))-abs(vba2)) > 1e-10)){
@@ -626,10 +627,6 @@ int main(){
       vcud.fill(0);
       vcdu.fill(0);
       vcdd.fill(0);
-      zresu.fill(0);
-      zresd.fill(0);
-      zresud.fill(0);
-      zresdu.fill(0);
 
       double fact = (M_PI + M_PI)*temp;
       dcomp ec, i;
@@ -637,10 +634,14 @@ int main(){
       i = sqrt(i);
       int nmat = nspin*nsub;
       for (int iw=1; iw <= iwmax; iw++){
+        zresu.fill(0);
+        zresd.fill(0);
+        zresud.fill(0);
+        zresdu.fill(0);
         wm = M_PI*(2*iw-1)*temp;
         ec = ef + i*wm;
         kcon(nsubat,ifold,nfold,baib,nsub,ndiff,fact,zresu,zresd,zresud,zresdu,irecip,b1,b2,ec,nmat,mlay,nins,nlay,
-		nspin,imapl,imapr,vsub,vsubat,numnn,a1,a2,a3,aa1,aa1,aa3,itype,itypeat,ddnn,s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint,
+		nspin,imapl,imapr,vsub,vsubat,numnn,a1,a2,a3,aa1,aa2,aa3,itype,itypeat,ddnn,s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint,
 		pdsint, pdpint, ddsint, ddpint, dddint);
         vcuu = vcuu - fact*zresu.real();
         vcud = vcud - fact*zresud.real();

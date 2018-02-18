@@ -209,9 +209,9 @@ void sumk(int nsub, int nsubat, const vector<pair<int,int>> &ifold, int nfold, c
 	    }
 
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-            nktot=nktot+iwght;
+            nktot+=iwght;
             ifail=0;
-            /* call cond(zener,xk,zconu,zcond,zconud,zcondu,ifail); */
+            ifail = cond(zener,xk,zconu,zcond,zconud,zcondu,nsub,nsubat,nxfold,xfold,xshift,forward<Args>(params)...);
             if (ifail != 0)
               cout<<i<<" "<<j<<endl;
 //
@@ -258,9 +258,9 @@ void sumk(int nsub, int nsubat, const vector<pair<int,int>> &ifold, int nfold, c
 	    }
 
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-            nktot=nktot+iwght;
+            nktot+=iwght;
             ifail=0;
-          /* call cond(zener,xk,zconu,zcond,zconud,zcondu,ifail); */
+            ifail = cond(zener,xk,zconu,zcond,zconud,zcondu,nsub,nsubat,nxfold,xfold,xshift,forward<Args>(params)...);
             if (ifail != 0)
               cout<<i<<" "<<j;
 // 
@@ -301,7 +301,7 @@ void kcon(int nsubat, const vector<pair<int,int>> &ifold, int nfold,const Matrix
 	/* vm2d &pdsint, vm2d &pdpint, vm2d &ddsint, vm2d &ddpint, vm2d &dddint){ */
 
       VectorXd xc(ndiff + 1), xcold(ndiff + 1);
-      double xcon=5e-6;
+      double xcon=5e-5;
 
       int nk;
       double diff, diffc;

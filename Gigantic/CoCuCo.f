@@ -1878,8 +1878,14 @@ c       define atomic hamiltonian elements in lead   -  u1, t1
 
         ifail=0
         call surfacenew(zuat,ztat,zener,zglat,zgrat,ifail)
+      do i=1,18
+          write(*,*)(real(zglat(i,j)),j=1,18)
+      enddo
+      stop
+
         if(ifail.ne.0)then   !!! zt has a near zero eigenvalue
           ifail=0
+          write(*,*)'calling higher precision'
           call surfacenew16(zuat,ztat,zener,zglat,zgrat,ifail)
           if(ifail.ne.0)write(*,*)'fail',xk(1),xk(2)
           if(ifail.ne.0)return
@@ -1953,6 +1959,10 @@ c     adlayer ontop of gl
 c     find inverse to zginv
       call invers(zgl,n,nx)
 c     -----------------------------------------------------------------
+      do ir=1,n
+        write(*,*)(zgl(ir,is),is=1,n)
+      enddo
+      write(*,*)
 
       return
       end
@@ -2115,7 +2125,6 @@ C         First construct d_{//}
           enddo
           dd=sqrt(d(1)**2 + d(2)**2 + d(3)**2)
 
-
           if(dd.gt.(ddmax+1.d-8))goto 999   !! this is not a NN
           if(abs(dd).lt.1.d-8)then
             nn=0
@@ -2138,6 +2147,8 @@ C         calculate the cosine angles :
               c(k)=d(k)/dd
             enddo
           endif
+          
+
 
           do ir=1,9
             do is=1,9
@@ -2202,6 +2213,13 @@ CCCC        enddo
               zh(ir,is)=zh(ir,is)+zt(ir,is)*zexdk
             enddo
           enddo
+
+      ! if((n1.eq.2).and.(n2.eq.2))then
+      !         do ir = 1,nspin
+      !         write(*,*)(real(rt(ir,ij)),ij=1,nspin)
+      !         enddo
+      !         write(*,*)
+      ! endif
 
 999       continue
         enddo
@@ -3539,6 +3557,10 @@ c     -----------------------------------------------------------------
       enddo
       call adlayer1(ztmp1,zu,zt,ztmp3,zener,n,nx)
       call adlayer1(ztmp2,zu,zs,ztmp3,zener,n,nx)
+      do ir=1,n
+        write(*,*)(real(ztmp1(ir,is)),is=1,n)
+        enddo
+        write(*,*)
       xminl=0.d0
       xminr=0.d0
       do ir=1,n

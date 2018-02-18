@@ -16,6 +16,111 @@ typedef vector<vector<Vector3d, aligned_allocator<Vector3d>>> vvV3d;
 typedef	vector<VectorXd, aligned_allocator<VectorXd>> vVXd;
 typedef vector<MatrixXd, aligned_allocator<MatrixXd>> vMXd;
 
+//THERE IS A VERY HIGH CHANCE THIS FUNCTION DOESN'T WORK AS IT SHOULD
+void adlayer1(MatrixXcd &zgl, MatrixXcd &zu, MatrixXcd &zt, dcomp zener, int n){
+//     adlayer ontop of gl
+      MatrixXcd zwrk(n, n), zgldag(n, n);
+      zwrk = zgl*zt;
+      zgl = zt.adjoint()*zwrk;
+
+      for (int ir=0; ir<n; ir++){
+        for (int is=0; is<ir-1; is++){
+          zgl(ir,is)=-zu(ir,is)-zgl(ir,is);
+          zgl(is,ir)=-zu(is,ir)-zgl(is,ir);
+	}
+        zgl(ir,ir)=zener-zu(ir,ir)-zgl(ir,ir);
+      }
+      //the above seems to be correct but there are differences in the inverse below. Unknown if this is important. Check above with more detail
+//     find inverse to zginv
+      zwrk = zgl.inverse();
+      zgl = zwrk;
+      cout<<zgl<<endl<<endl;
+      return;
+}
+
+int surfacenew(MatrixXcd &zu, MatrixXcd &zt, dcomp zener, MatrixXcd &zsurfl, MatrixXcd &zsurfr, int natom){
+//     this routine is written for the atomic cell SGF
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+      int n=natom;                       
+      int n2=2*n;
+
+      dcomp zi=-1;
+      zi = sqrt(zi);
+
+      MatrixXcd zunit = MatrixXcd::Identity(n,n);
+
+//     -----------------------------------------------------------------
+//     -----------------------------------------------------------------
+//     now calculate GF's from closed form
+//     -----------------------------------------------------------------
+//     -----------------------------------------------------------------
+//     define zp
+//     redefine gamma and delta
+      MatrixXcd ztmp1(n,n), ztinv(n,n), zs(n,n), zsinv(n,n), zgamma(n,n);
+      MatrixXcd zero = MatrixXcd::Zero(n,n);
+      ztmp1 = zener*zunit - zu;
+      ztinv = zt.inverse();
+      zs = zt.adjoint();
+      zsinv = zs.inverse();
+      zgamma = ztmp1*ztinv;
+      MatrixXcd zp(n2,n2), O(n2,n2);
+      zp.topLeftCorner(n,n) = zero;
+      zp.topRightCorner(n,n) = ztinv;
+      zp.bottomLeftCorner(n,n) = -zs;
+      zp.bottomRightCorner(n,n) = zgamma; 
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//     diagonalise zp
+      ComplexEigenSolver<MatrixXcd> ces;
+      ces.compute(zp);
+      O = ces.eigenvectors();
+      int ifail = ces.info();
+      if (ifail != 0){
+        cout<<"SURFACENEW : ifail = "<<ifail<<endl;
+        ifail=1;
+        return ifail;
+      }
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//     calculate L.H. zsurf
+      MatrixXcd b = O.topRightCorner(n, n);
+      MatrixXcd d = O.bottomRightCorner(n, n);
+      zsurfl = b*d.inverse();
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//     calculate R.H. zsurf
+      MatrixXcd zevl, ztmp2, ztmp3;
+      zevl = ces.eigenvalues().asDiagonal();
+      ztmp1 = O.topLeftCorner(n,n);
+      ztmp2 = ztmp1.inverse();
+      ztmp1 = ztmp1*zevl.topLeftCorner(n,n);
+      ztmp3 = ztmp1*ztmp2;
+      zsurfr = ztmp3*zsinv;
+//     -----------------------------------------------------------------
+      ztmp1 = zsurfl;
+      ztmp2 = zsurfr;
+      adlayer1(ztmp1,zu,zt,zener,n);
+      adlayer1(ztmp2,zu,zs,zener,n);
+      cout<<ztmp1.real()<<endl<<endl;
+      double xminl=0.;
+      double xminr=0.;
+      double xmin1, xmin2;
+      for (int ir=0; ir<n; ir++){
+        for (int is=0; is<n; is++){
+          xmin1=abs(zsurfl(ir,is)-ztmp1(ir,is));
+          xmin2=abs(zsurfr(ir,is)-ztmp2(ir,is));
+          if (xmin1 > xminl)
+	    xminl=xmin1;
+          if (xmin2 > xminr)
+            xminr=xmin2;
+	}
+      }
+      zsurfl = ztmp1;
+      zsurfr = ztmp2;
+      double xmin = max(xminl,xminr);
+      /* if(xmin > 5e-5) */
+        /* ifail=1; */
+
+      return ifail;
+}
+
 Matrix<complex<double>, 9, 9> eint1(double sss, double sps, double pps, double ppp,
 		     double ss, double ps, double pp, double ds, double dp,
 		     double dd, double x, double y, double z)
@@ -136,6 +241,7 @@ MatrixXcd sk(int ind1, int ind2, int nn, Vector3d &d, double dd, const Vector3d 
 		const vm2d &pdsint, const vm2d &pdpint, const vm2d &ddsint, const vm2d &ddpint, const vm2d &dddint){
 //         calculate the cosine angles :
       MatrixXcd rt(nspin,nspin);
+      rt.fill(0.);
       Vector3d c;
       if (dd > 1e-8)
         c=d/dd;
@@ -168,6 +274,7 @@ MatrixXcd sk(int ind1, int ind2, int nn, Vector3d &d, double dd, const Vector3d 
         rt(8,8)=d0e(ind1,elem);
       }
       else{
+	nn--;
         g1=sssint[ind1](ind2,nn);
         g2=spsint[ind1](ind2,nn);
         g3=ppsint[ind1](ind2,nn);
@@ -200,8 +307,8 @@ MatrixXcd helement(int n1, int n2, int isub, int jsub, const Vector3d &xk, int i
         ind2=itype[n2][jsub]-1;
       }
 
-      int ijsub=jsub-isub;
       MatrixXcd zh(nspin,nspin);
+      zh.fill(0.);
       
 //     Calculate 
 //     H_{n1,n2}(isub,jsub) =
@@ -229,18 +336,24 @@ MatrixXcd helement(int n1, int n2, int isub, int jsub, const Vector3d &xk, int i
             dpar=i1*a1+i2*a2+a3[n2]-a3[n1];
             d=vsub[n2][jsub]-vsub[n1][isub]+dpar;
 	  }
-          dd=d.hypotNorm();
+          dd=sqrt(d(0)*d(0) + d(1)*d(1) + d(2)*d(2));
+
+      /* if ((n1 == 1) && (n2 == 1)){ */
+	      /* cout<<dd<<endl; */
+      /* } */
 
           if (dd > (ddmax+1e-8))
 		  continue;   // this is not a NN
           if (abs(dd) < 1e-8){
             nn=0;
 	    zh = zh + sk(ind1, ind2, nn, d, dd, xk, dpar, nspin, ispin, forward<Args>(params)...);
+
 	  }
           for (int inn=0; inn<numnn; inn++){
             if (abs(dd-ddnn[inn](ind1,ind2)) < 1e-8){
-              nn=inn;
+              nn=inn+1;
 	      zh = zh + sk(ind1, ind2, nn, d, dd, xk, dpar, nspin, ispin, forward<Args>(params)...);
+	      /* break; */
 	    }
 	  }
 	}
@@ -275,6 +388,8 @@ MatrixXcd hamil(const Vector3d &xk, int n1, int n2, int ispin, int n, int ncell,
 	  }
 	}
       }
+      /* cout<<zt.real()<<endl; */
+      /* exit(EXIT_FAILURE); */
 
       return zt;
 }
@@ -344,7 +459,9 @@ int green(dcomp zener, const Vector3d &xk, int ispin, string &side, MatrixXcd &z
         zuat = hamil(xkat,ilay+1,ilay+1,ispin,1,nsubat,nsubat,nmat,nspin,imapl,imapr,vsub,vsubat,forward<Args>(params)...);
 
         ifail=0;
-        /* call surfacenew(zuat,ztat,zener,zglat,zgrat,ifail) */
+        ifail = surfacenew(zuat,ztat,zener,zglat,zgrat,natom);
+	cout<<zglat.real()<<endl;
+	exit(EXIT_FAILURE);
         if (ifail != 0)// zt has a near zero eigenvalue
 	  cout<<"eigenvalues ill-conditioned. Consider coding to higher precision"<<endl;
 
@@ -376,27 +493,6 @@ int green(dcomp zener, const Vector3d &xk, int ispin, string &side, MatrixXcd &z
       zgr=zgrtmp;
 
       return ifail;
-}
-
-//THERE IS A VERY HIGH CHANCE THIS FUNCTION DOESN'T WORK AS IT SHOULD
-void adlayer1(MatrixXcd &zgl, MatrixXcd &zu, MatrixXcd &zt, dcomp zener, int n){
-//     adlayer ontop of gl
-      MatrixXcd zwrk(n, n), zgldag(n, n);
-      zwrk = zgl*zt;
-      zgl = zt.adjoint()*zwrk;
-      zgl.adjointInPlace();
-
-      for (int ir=0; ir<n; ir++){
-        for (int is=0; is<ir-1; is++){
-          zgl(ir,is)=-zu(ir,is)-zgl(ir,is);
-          zgl(is,ir)=-zu(is,ir)-zgl(is,ir);
-	}
-        zgl(ir,ir)=zener-zu(ir,ir)-zgl(ir,ir);
-      }
-//     find inverse to zginv
-      zwrk = zgl.inverse();
-      zgl = zwrk;
-      return;
 }
 
 template <typename... Args>
