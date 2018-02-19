@@ -24,17 +24,15 @@ void adlayer1(MatrixXcd &zgl, MatrixXcd &zu, MatrixXcd &zt, dcomp zener, int n){
       zgl = zt.adjoint()*zwrk;
 
       for (int ir=0; ir<n; ir++){
-        for (int is=0; is<ir-1; is++){
+        for (int is=0; is<=ir-1; is++){
           zgl(ir,is)=-zu(ir,is)-zgl(ir,is);
           zgl(is,ir)=-zu(is,ir)-zgl(is,ir);
 	}
         zgl(ir,ir)=zener-zu(ir,ir)-zgl(ir,ir);
       }
-      //the above seems to be correct but there are differences in the inverse below. Unknown if this is important. Check above with more detail
 //     find inverse to zginv
       zwrk = zgl.inverse();
       zgl = zwrk;
-      cout<<zgl<<endl<<endl;
       return;
 }
 
@@ -98,7 +96,6 @@ int surfacenew(MatrixXcd &zu, MatrixXcd &zt, dcomp zener, MatrixXcd &zsurfl, Mat
       ztmp2 = zsurfr;
       adlayer1(ztmp1,zu,zt,zener,n);
       adlayer1(ztmp2,zu,zs,zener,n);
-      cout<<ztmp1.real()<<endl<<endl;
       double xminl=0.;
       double xminr=0.;
       double xmin1, xmin2;
@@ -460,8 +457,8 @@ int green(dcomp zener, const Vector3d &xk, int ispin, string &side, MatrixXcd &z
 
         ifail=0;
         ifail = surfacenew(zuat,ztat,zener,zglat,zgrat,natom);
-	cout<<zglat.real()<<endl;
-	exit(EXIT_FAILURE);
+	/* cout<<zgrat.real()<<endl; */
+	/* exit(EXIT_FAILURE); */
         if (ifail != 0)// zt has a near zero eigenvalue
 	  cout<<"eigenvalues ill-conditioned. Consider coding to higher precision"<<endl;
 
@@ -513,6 +510,8 @@ int cond(dcomp zener, const Vector3d &xk, VectorXcd &zconu, VectorXcd &zcond, Ve
       if (ifail != 0)
 	return ifail;
       ifail = green(zener,xk,-1,st,zgld,zgrd,nsub,nsubat,nlay,nmat,nxfold,xfold,xshift,forward<Args>(params)...);   // LH DOWN
+      cout<<zgrd.imag()<<endl;
+      exit(EXIT_FAILURE);
       if (ifail != 0)
 	return ifail;
 //     -----------------------------------------------------------------

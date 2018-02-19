@@ -655,7 +655,7 @@ int main(){
       cout<<"****************************************************"<<endl;
       cout<<"UP SPIN"<<endl;
       for (int in = 0; in <= ndiff; in++)
-        cout<<2*in<<" "<<vcuu(in)/nsub<<endl;
+        cout<<scientific<<2*in<<" "<<vcuu(in)/nsub<<endl;
       cout<<endl;
       cout<<"****************************************************"<<endl;
       cout<<"****************************************************"<<endl;

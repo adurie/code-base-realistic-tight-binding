@@ -1569,8 +1569,15 @@ C     CALCULATE SGFs IN ATOMIC BASIS
 c     =================================================================
 C     DO THIS IF LH AND RH LEADS ARE THE SAME
       call green(zener,xk,+1,"LH",zglu,zgru,ifail)   !! LH UP
+
       if(ifail.ne.0)return
       call green(zener,xk,-1,"LH",zgld,zgrd,ifail)   !! LH DOWN
+      do ir=1,18
+        write(*,'(F12.6,F12.6,f12.6,f12.6,f12.6,F12.6,F12.6,f12.6,f12.6,
+     $f12.6,f12.6,f12.6,f12.6)')(imag(zgrd(ir,is)),is=1,18)
+      enddo
+      stop
+
       if(ifail.ne.0)return
 
 c     -----------------------------------------------------------------
@@ -1878,11 +1885,11 @@ c       define atomic hamiltonian elements in lead   -  u1, t1
 
         ifail=0
         call surfacenew(zuat,ztat,zener,zglat,zgrat,ifail)
-      do i=1,18
-          write(*,*)(real(zglat(i,j)),j=1,18)
-      enddo
-      stop
-
+c      ! do ir=1,18
+c      !   write(*,'(F9.6,F9.6,f9.6,f9.6,f9.6,F9.6,F9.6,f9.6,f9.6,f9.6,f9.6
+c     ! $,f9.6,f9.6)')(real(zgrat(ir,is)),is=1,18)
+c      ! enddo
+c      ! stop
         if(ifail.ne.0)then   !!! zt has a near zero eigenvalue
           ifail=0
           write(*,*)'calling higher precision'
@@ -1959,10 +1966,6 @@ c     adlayer ontop of gl
 c     find inverse to zginv
       call invers(zgl,n,nx)
 c     -----------------------------------------------------------------
-      do ir=1,n
-        write(*,*)(zgl(ir,is),is=1,n)
-      enddo
-      write(*,*)
 
       return
       end
@@ -3557,10 +3560,6 @@ c     -----------------------------------------------------------------
       enddo
       call adlayer1(ztmp1,zu,zt,ztmp3,zener,n,nx)
       call adlayer1(ztmp2,zu,zs,ztmp3,zener,n,nx)
-      do ir=1,n
-        write(*,*)(real(ztmp1(ir,is)),is=1,n)
-        enddo
-        write(*,*)
       xminl=0.d0
       xminr=0.d0
       do ir=1,n
