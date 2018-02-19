@@ -300,29 +300,28 @@ int main(){
 //     =================================================================
 //     LH LEAD BASIS VECTORS
 //     =================================================================
-	vector<Vector3d, aligned_allocator<Vector3d>> aa3, a3;
-	aa3.reserve(4);
-	a3.reserve(nlay);
-	vector<Vector3d, aligned_allocator<Vector3d>> vsubtmp, vsubattmp;
-	vsubattmp.reserve(nsubat);
-	vector<vector<Vector3d, aligned_allocator<Vector3d>>> vsubat, vsub;
-	vsubat.reserve(4);
-	vsub.reserve(nlay);
-	Vector3d tmp;
-	VectorXd attype(nsubat);
-	vector<VectorXd, aligned_allocator<VectorXd>> itypeat;
+      vector<Vector3d, aligned_allocator<Vector3d>> aa3, a3;
+      aa3.reserve(4);
+      a3.reserve(nlay);
+      vector<Vector3d, aligned_allocator<Vector3d>> vsubtmp, vsubattmp;
+      vsubattmp.reserve(nsubat);
+      vector<vector<Vector3d, aligned_allocator<Vector3d>>> vsubat, vsub;
+      vsubat.reserve(4);
+      vsub.reserve(nlay);
+      Vector3d tmp;
+      VectorXd attype(nsubat);
+      vector<VectorXd, aligned_allocator<VectorXd>> itypeat;
 
+//       Sublattice
+      tmp << 0, 0, 0;
+      vsubattmp.emplace_back(tmp);
+      tmp << 0.5, 0, -0.5;
+      vsubattmp.emplace_back(tmp);
       for (int ilay=1; ilay<=2; ilay++){
 //       Out of plane lattice vector
 	tmp << 0, 0, ilay - 1;
 	aa3.emplace_back(tmp);
 
-//       Sublattice
-//       size nsubat, here fixed to 2
-	tmp << 0, 0, 0;
-	vsubattmp.emplace_back(tmp);
-	tmp << 0.5, 0, -0.5;
-	vsubattmp.emplace_back(tmp);
 	vsubat.emplace_back(vsubattmp);
 
 //       Atom types
@@ -350,17 +349,16 @@ int main(){
       itype.reserve(nlay);
       vector<int> itmp;
       itmp.reserve(nsub);
+//       Sublattice
+      tmp << 0, 0, 0;
+      vsubtmp.emplace_back(tmp);
+      tmp << 0.5, 0, -0.5;
+      vsubtmp.emplace_back(tmp);
       for (int ilay=1; ilay <= nlay; ilay++){
 //       Out of plane lattice vector
 	tmp << 0, 0, ilay - 1;
 	a3.emplace_back(tmp);
 
-//       Sublattice
-      // Presently only set up for nsub = 2  
-	tmp << 0, 0, 0;
-	vsubtmp.emplace_back(tmp);
-	tmp << 0.5, 0, -0.5;
-	vsubtmp.emplace_back(tmp);
 	vsub.emplace_back(vsubtmp);
 
 //       Atom types
@@ -370,6 +368,12 @@ int main(){
 	  itype.emplace_back(itmp);
 	  itmp.clear();
 	}
+	/* else if(ilay == 3){ */               //this for odd layers, but with ilay >= 4 above
+	/*   itmp.emplace_back(2); // Cu */
+	/*   itmp.emplace_back(1); // Co */
+	/*   itype.emplace_back(itmp); */
+	/*   itmp.clear(); */
+	/* } */
 	else{
 	  for (int isub = 0; isub < nsub; isub++)
 	    itmp.emplace_back(1); //  Co
@@ -387,11 +391,6 @@ int main(){
 	tmp << 0, 0, ilay - 1;
 	aa3.emplace_back(tmp);
 
-//       Sublattice
-	tmp << 0, 0, 0;
-	vsubattmp.emplace_back(tmp);
-	tmp << 0.5, 0, -0.5;
-	vsubattmp.emplace_back(tmp);
 	vsubat.emplace_back(vsubattmp);
 
 //       Atom types
@@ -510,38 +509,38 @@ int main(){
 
 //     =================================================================
 
-        cout<<"Supercell GMR"<<endl<<endl;
-        cout<<"Substrate lattice vectors"<<endl;
-        cout<<fixed<<a1.transpose()<<endl;
-        cout<<a2.transpose()<<endl<<endl<<endl;
-        cout<<"Growth direction"<<endl;
-        cout<<xn.transpose()<<endl<<endl;
-        cout<<"ef = "<<ef<<endl<<endl;
-        cout<<"No of Cu at. layers = "<<nins<<endl<<endl;
+      cout<<"Supercell GMR"<<endl<<endl;
+      cout<<"Substrate lattice vectors"<<endl;
+      cout<<fixed<<a1.transpose()<<endl;
+      cout<<a2.transpose()<<endl<<endl<<endl;
+      cout<<"Growth direction"<<endl;
+      cout<<xn.transpose()<<endl<<endl;
+      cout<<"ef = "<<ef<<endl<<endl;
+      cout<<"No of Cu at. layers = "<<nins<<endl<<endl;
 
 //       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 //       this prints out all interplanar distances
-	for (int ii = 0; ii < nlay; ii++){
-	  cout<<string(72, '-')<<endl;
-          cout<<"The "<<ii+1<<"'th Layer"<<endl<<endl;
-          cout<<a3[ii].transpose()<<endl<<endl;
-          cout<<"Sub-lattice vectors"<<endl;
-	  for (int iii = 0; iii < nsub; iii++)
-	    cout<<"vsub("<<iii+1<<")= "<<(vsub[ii][iii]).transpose()<<endl;
-          if (ii >= 1){
-            cout<<endl<<"In-Plane NN distances"<<endl;
-            for (int i=0; i < numnn; i++)
-              cout<<ii+1<<" "<<dnn[i](ii-1,ii-1)<<endl;
-            cout<<endl<<"Out of Plane NN distances"<<endl;
-            for (int i=0; i < numnn; i++){
-	      if (ii == 1)
-                cout<<ii+1<<" "<<dnn[i](ii-1,ii)<<endl;
-	      else
-                cout<<ii+1<<" "<<dnn[i](ii-1,ii-2)<<endl;
-	    }
+      for (int ii = 0; ii < nlay; ii++){
+	cout<<string(72, '-')<<endl;
+        cout<<"The "<<ii+1<<"'th Layer"<<endl<<endl;
+        cout<<a3[ii].transpose()<<endl<<endl;
+        cout<<"Sub-lattice vectors"<<endl;
+	for (int iii = 0; iii < nsub; iii++)
+	  cout<<"vsub("<<iii+1<<")= "<<(vsub[ii][iii]).transpose()<<endl;
+        if (ii >= 1){
+          cout<<endl<<"In-Plane NN distances"<<endl;
+          for (int i=0; i < numnn; i++)
+            cout<<ii+1<<" "<<dnn[i](ii-1,ii-1)<<endl;
+          cout<<endl<<"Out of Plane NN distances"<<endl;
+          for (int i=0; i < numnn; i++){
+	    if (ii == 1)
+              cout<<ii+1<<" "<<dnn[i](ii-1,ii)<<endl;
+	    else
+              cout<<ii+1<<" "<<dnn[i](ii-1,ii-2)<<endl;
 	  }
 	}
-	cout<<string(72, '-')<<endl;
+      }
+      cout<<string(72, '-')<<endl;
 
 //     -----------------------------------------------------------------
 //     determine the reciprocal lattice structure
@@ -550,28 +549,28 @@ int main(){
       b2.fill(0);
       int irecip = recip(a1,a2,b1,b2);
 
-        cout<<endl<<"perpr reciprocal lattice vectors"<<endl;
-        cout<<b1.transpose()<<endl;
-        cout<<b2.transpose()<<endl<<endl;
+      cout<<endl<<"perpr reciprocal lattice vectors"<<endl;
+      cout<<b1.transpose()<<endl;
+      cout<<b2.transpose()<<endl<<endl;
 //     -----------------------------------------------------------------
 
 //     determine the atomic reciprocal lattice vectors ba1,ba2
-	Vector3d ba1, ba2;
-	ba1.fill(0);
-	ba2.fill(0);
-        int irecipa = recip(aa1,aa2,ba1,ba2);
-	cout<<string(52, '-')<<endl<<endl;
-        cout<<"perpr atomic reciprocal lattice vectors"<<endl;
-        cout<<ba1.transpose()<<endl;
-        cout<<ba2.transpose()<<endl;
-	cout<<endl<<string(52, '-')<<endl<<endl;
+      Vector3d ba1, ba2;
+      ba1.fill(0);
+      ba2.fill(0);
+      int irecipa = recip(aa1,aa2,ba1,ba2);
+      cout<<string(52, '-')<<endl<<endl;
+      cout<<"perpr atomic reciprocal lattice vectors"<<endl;
+      cout<<ba1.transpose()<<endl;
+      cout<<ba2.transpose()<<endl;
+      cout<<endl<<string(52, '-')<<endl<<endl;
 
 //     -----------------------------------------------------------------
 //     now find the 'folding' vectors j[1:nfold]
-       int nfold;
-       Matrix3d baib;
-       vector<pair<int,int>> ifold;
-       ifold = folding(baib,b1,b2,ba1,ba2,irecipa,nsub,nfold);
+      int nfold;
+      Matrix3d baib;
+      vector<pair<int,int>> ifold;
+      ifold = folding(baib,b1,b2,ba1,ba2,irecipa,nsub,nfold);
 
 //     =================================================================
 //     CHECK THAT IMAP IS CORRECTLY DEFINED
@@ -582,34 +581,34 @@ int main(){
       double vba1, vba2;
       for (int ilay=1; ilay<=2; ilay++){
         for (int isub=1; isub<=nsub; isub++){
-           vtmp=vsub[ilay - 1][isub - 1] - vsubat[ilay - 1][imapl[isub - 1]-1];
-           vba1=(abs(vtmp.dot(ba1))+1e-10)/(2*M_PI);
-           vba2=(abs(vtmp.dot(ba2))+1e-10)/(2*M_PI);
-           if ((abs(floor(abs(vba1))-abs(vba1)) > 1e-10) || (abs(floor(abs(vba2))-abs(vba2)) > 1e-10)){
-             cout<<"imapl is wrong "<<vba1<<" "<<vba2<<endl;
-	     exit(EXIT_FAILURE);
-	   }
-           if (itype[ilay - 1][isub - 1] != (itypeat[ilay - 1])(imapl[isub - 1] - 1)){
-             cout<<"imapl is wrong "<<itype[ilay - 1][isub - 1]<<" "<<(itypeat[ilay - 1])(imapl[isub - 1] - 1)<<endl;
- 	     exit(EXIT_FAILURE);
-	   }
+          vtmp=vsub[ilay - 1][isub - 1] - vsubat[ilay - 1][imapl[isub - 1]-1];
+          vba1=(abs(vtmp.dot(ba1))+1e-10)/(2*M_PI);
+          vba2=(abs(vtmp.dot(ba2))+1e-10)/(2*M_PI);
+          if ((abs(floor(abs(vba1))-abs(vba1)) > 1e-10) || (abs(floor(abs(vba2))-abs(vba2)) > 1e-10)){
+            cout<<"imapl is wrong "<<vba1<<" "<<vba2<<endl;
+	    exit(EXIT_FAILURE);
+	  }
+          if (itype[ilay - 1][isub - 1] != (itypeat[ilay - 1])(imapl[isub - 1] - 1)){
+            cout<<"imapl is wrong "<<itype[ilay - 1][isub - 1]<<" "<<(itypeat[ilay - 1])(imapl[isub - 1] - 1)<<endl;
+ 	    exit(EXIT_FAILURE);
+	  }
 	}
       }
 
 //     RH lead
       for (int ilay=nlay-1; ilay<=nlay; ilay++){
         for (int isub=1; isub<=nsub; isub++){
-           vtmp=vsub[ilay - 1][isub - 1] - vsubat[ilay - nlay + 3][imapr[isub - 1]-1];
-           vba1=(abs(vtmp.dot(ba1))+1e-10)/(2*M_PI);
-           vba2=(abs(vtmp.dot(ba2))+1e-10)/(2*M_PI);
-           if ((abs(floor(abs(vba1))-abs(vba1)) > 1e-10) || (abs(floor(abs(vba2))-abs(vba2)) > 1e-10)){
-             cout<<"imapl is wrong "<<vba1<<" "<<vba2<<endl;
-	     exit(EXIT_FAILURE);
-	   }
-           if (itype[ilay - 1][isub - 1] != (itypeat[ilay - nlay + 3])(imapr[isub - 1] - 1)){
-             cout<<"imapr is wrong "<<itype[ilay - 1][isub - 1]<<" "<<(itypeat[ilay - nlay + 3])(imapr[isub - 1] - 1)<<endl;
- 	     exit(EXIT_FAILURE);
-	   }
+          vtmp=vsub[ilay - 1][isub - 1] - vsubat[ilay - nlay + 3][imapr[isub - 1]-1];
+          vba1=(abs(vtmp.dot(ba1))+1e-10)/(2*M_PI);
+          vba2=(abs(vtmp.dot(ba2))+1e-10)/(2*M_PI);
+          if ((abs(floor(abs(vba1))-abs(vba1)) > 1e-10) || (abs(floor(abs(vba2))-abs(vba2)) > 1e-10)){
+            cout<<"imapl is wrong "<<vba1<<" "<<vba2<<endl;
+	    exit(EXIT_FAILURE);
+	  }
+          if (itype[ilay - 1][isub - 1] != (itypeat[ilay - nlay + 3])(imapr[isub - 1] - 1)){
+            cout<<"imapr is wrong "<<itype[ilay - 1][isub - 1]<<" "<<(itypeat[ilay - nlay + 3])(imapr[isub - 1] - 1)<<endl;
+ 	    exit(EXIT_FAILURE);
+	  }
 	}
       }
 

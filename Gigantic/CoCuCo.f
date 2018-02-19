@@ -1052,7 +1052,6 @@ c     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
           nktot=nktot+iwght
           ifail=0
-          if(i.lt.2)then
           call cond(zener,xk,zconu,zcond,zconud,zcondu,ifail)
           if(ifail.ne.0)then
             write(*,*)i,j
@@ -1064,11 +1063,9 @@ c
             zresud(in) = zresud(in) + zconud(in)*iwght
             zresdu(in) = zresdu(in) + zcondu(in)*iwght
           enddo
-          endif
 c     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
         enddo
       enddo
-          stop
       goto 5000
 c     -----------------------------------------------------------------
 c     PRIMITIVE-RECTANGULAR
@@ -1575,6 +1572,11 @@ C     DO THIS IF LH AND RH LEADS ARE THE SAME
 
       if(ifail.ne.0)return
       call green(zener,xk,-1,"LH",zgld,zgrd,ifail)   !! LH DOWN
+c      do ir=1,18
+c        write(*,'(F12.6,F12.6,f12.6,f12.6,f12.6,F12.6,F12.6,f12.6,f12.6,
+c     $f12.6,f12.6,f12.6,f12.6)')(imag(zgrd(ir,is)),is=1,18)
+c      enddo
+c      stop
 
       if(ifail.ne.0)return
 
@@ -1650,17 +1652,11 @@ c       adlayer LH  ----   zgl
         call hamil(zu,xk,ill+mlay+2,ill+mlay+2,-1,nmat,nmatx)
         call adlayer1(zgld,zu,zt,zfoo,zener,nmat,nmatx)
 
+
 c       SPIN UP
         call hamil(zt,xk,2+nins+mlay,3+nins+mlay,+1,nmat,nmatx)
         call coupl(zglu,zgru,zt,zkon)
         zconu(ill)=zkon
-
-c      do ir=1,18
-c        write(*,'(F12.6,F12.6,f12.6,f12.6,f12.6,F12.6,F12.6,f12.6,f12.6,
-c     $f12.6,f12.6,f12.6,f12.6)')(real(zt(ir,is)),is=1,18)
-c      enddo
-
-
 c
 c       SPIN DOWN
         call hamil(zt,xk,2+nins+mlay,3+nins+mlay,-1,nmat,nmatx)
@@ -1679,8 +1675,6 @@ c       SPIN DOWN-UP
 
       enddo
 
-      ! write(*,*)zcondu
-      ! stop
       return
       end
 c
@@ -1888,11 +1882,6 @@ C     supercell basis.
 c       define atomic hamiltonian elements in lead   -  u1, t1
         call hamil(ztat,xkat,ilay,ilay+1,ispin,natom,natomx)
         call hamil(zuat,xkat,ilay+1,ilay+1,ispin,natom,natomx)
-      do ir=1,18
-        write(*,'(F12.6,F12.6,f12.6,f12.6,f12.6,F12.6,F12.6,f12.6,f12.6,
-     $f12.6,f12.6,f12.6,f12.6)')(real(ztat(ir,is)),is=1,18)
-      enddo
-      write(*,*)
 
         ifail=0
         call surfacenew(zuat,ztat,zener,zglat,zgrat,ifail)

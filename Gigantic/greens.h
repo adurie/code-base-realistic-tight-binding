@@ -16,7 +16,6 @@ typedef vector<vector<Vector3d, aligned_allocator<Vector3d>>> vvV3d;
 typedef	vector<VectorXd, aligned_allocator<VectorXd>> vVXd;
 typedef vector<MatrixXd, aligned_allocator<MatrixXd>> vMXd;
 
-//THERE IS A VERY HIGH CHANCE THIS FUNCTION DOESN'T WORK AS IT SHOULD
 void adlayer1(MatrixXcd &zgl, MatrixXcd &zu, MatrixXcd &zt, dcomp zener, int n){
 //     adlayer ontop of gl
       MatrixXcd zwrk(n, n), zgldag(n, n);
@@ -96,23 +95,23 @@ int surfacenew(MatrixXcd &zu, MatrixXcd &zt, dcomp zener, MatrixXcd &zsurfl, Mat
       ztmp2 = zsurfr;
       adlayer1(ztmp1,zu,zt,zener,n);
       adlayer1(ztmp2,zu,zs,zener,n);
-      double xminl=0.;
-      double xminr=0.;
-      double xmin1, xmin2;
-      for (int ir=0; ir<n; ir++){
-        for (int is=0; is<n; is++){
-          xmin1=abs(zsurfl(ir,is)-ztmp1(ir,is));
-          xmin2=abs(zsurfr(ir,is)-ztmp2(ir,is));
-          if (xmin1 > xminl)
-	    xminl=xmin1;
-          if (xmin2 > xminr)
-            xminr=xmin2;
-	}
-      }
+      /* double xminl=0.; */
+      /* double xminr=0.; */
+      /* double xmin1, xmin2; */
+      /* for (int ir=0; ir<n; ir++){ */
+      /*   for (int is=0; is<n; is++){ */
+      /*     xmin1=abs(zsurfl(ir,is)-ztmp1(ir,is)); */
+      /*     xmin2=abs(zsurfr(ir,is)-ztmp2(ir,is)); */
+      /*     if (xmin1 > xminl) */
+	    /* xminl=xmin1; */
+      /*     if (xmin2 > xminr) */
+      /*       xminr=xmin2; */
+	/* } */
+      /* } */
       zsurfl = ztmp1;
       zsurfr = ztmp2;
-      double xmin = max(xminl,xminr);
-      /* if(xmin > 5e-5) */
+      /* double xmin = max(xminl,xminr); */
+      /* if (xmin > 5e-5) */
         /* ifail=1; */
 
       return ifail;
@@ -335,10 +334,6 @@ MatrixXcd helement(int n1, int n2, int isub, int jsub, const Vector3d &xk, int i
 	  }
           dd=sqrt(d(0)*d(0) + d(1)*d(1) + d(2)*d(2));
 
-      /* if ((n1 == 1) && (n2 == 1)){ */
-	      /* cout<<dd<<endl; */
-      /* } */
-
           if (dd > (ddmax+1e-8))
 		  continue;   // this is not a NN
           if (abs(dd) < 1e-8){
@@ -350,7 +345,6 @@ MatrixXcd helement(int n1, int n2, int isub, int jsub, const Vector3d &xk, int i
             if (abs(dd-ddnn[inn](ind1,ind2)) < 1e-8){
               nn=inn+1;
 	      zh = zh + sk(ind1, ind2, nn, d, dd, xk, dpar, nspin, ispin, forward<Args>(params)...);
-	      /* break; */
 	    }
 	  }
 	}
@@ -385,8 +379,6 @@ MatrixXcd hamil(const Vector3d &xk, int n1, int n2, int ispin, int n, int ncell,
 	  }
 	}
       }
-      /* cout<<zt.real()<<endl; */
-      /* exit(EXIT_FAILURE); */
 
       return zt;
 }
@@ -407,7 +399,7 @@ dcomp coupl(MatrixXcd &zgsl, MatrixXcd &zgsr, MatrixXcd &zt){
 }
 
 template <typename... Args>
-int green(dcomp zener, const Vector3d &xk, int ispin, string &side, MatrixXcd &zgl, MatrixXcd &zgr, 
+int green(dcomp zener, int ispin, string &side, MatrixXcd &zgl, MatrixXcd &zgr, 
 	int nsub, int nsubat, int nlay, int nmat, int nxfold, vV3d &xfold, vV3d &xshift, int nspin, vector<int> &imapl, 
 	vector<int> &imapr, const vvV3d &vsub, const vvV3d &vsubat, Args&&... params){
 
@@ -468,7 +460,6 @@ int green(dcomp zener, const Vector3d &xk, int ispin, string &side, MatrixXcd &z
             zarg1=i*xkat.dot(ds);
             vtmp=xshift[iff];
 
-	    //HIGH RISK BLOCK, THIS MAY NOT BE CORRECT
             for (int isp=0; isp<nspin; isp++){       // orbital elements
               for (int jsp=0; jsp<nspin; jsp++){
                 iii=isub*nspin+isp;
@@ -504,10 +495,10 @@ int cond(dcomp zener, const Vector3d &xk, VectorXcd &zconu, VectorXcd &zcond, Ve
       string st = "LH";
       MatrixXcd zglu(nmat, nmat), zgru(nmat, nmat), zgld(nmat, nmat), zgrd(nmat, nmat);
       MatrixXcd zt(nmat, nmat), zu(nmat, nmat), ztdag(nmat, nmat), zudag(nmat, nmat);
-      ifail = green(zener,xk,+1,st,zglu,zgru,nsub,nsubat,nlay,nmat,nxfold,xfold,xshift,forward<Args>(params)...);   // LH UP
+      ifail = green(zener,+1,st,zglu,zgru,nsub,nsubat,nlay,nmat,nxfold,xfold,xshift,forward<Args>(params)...);   // LH UP
       if (ifail != 0)
 	return ifail;
-      ifail = green(zener,xk,-1,st,zgld,zgrd,nsub,nsubat,nlay,nmat,nxfold,xfold,xshift,forward<Args>(params)...);   // LH DOWN
+      ifail = green(zener,-1,st,zgld,zgrd,nsub,nsubat,nlay,nmat,nxfold,xfold,xshift,forward<Args>(params)...);   // LH DOWN
       if (ifail != 0)
 	return ifail;
 //     -----------------------------------------------------------------
@@ -574,7 +565,6 @@ int cond(dcomp zener, const Vector3d &xk, VectorXcd &zconu, VectorXcd &zcond, Ve
         zu = hamil(xk,ill+mlay+2,ill+mlay+2,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
         adlayer1(zgld,zu,zt,zener,nmat);
 
-
 //       SPIN UP
         zt = hamil(xk,1+nins+mlay,2+nins+mlay,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
         zconu(ill) = coupl(zglu,zgru,zt);
@@ -591,8 +581,6 @@ int cond(dcomp zener, const Vector3d &xk, VectorXcd &zconu, VectorXcd &zcond, Ve
         zt = hamil(xk,1+nins+mlay,2+nins+mlay,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
         zcondu(ill) = coupl(zgld,zgru,zt);
       }
-      /* cout<<zcondu<<endl; */
-      /* exit(EXIT_FAILURE); */
       return ifail;
 }
 #endif

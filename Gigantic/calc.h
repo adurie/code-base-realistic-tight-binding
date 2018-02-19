@@ -25,6 +25,7 @@ int testk(double x, double y, const Vector3d &b1, const Vector3d &b2, const vect
       int condition = 0;
       Vector3d xtmp;
       xfold.clear();
+      xshift.clear();
 //     -----------------------------------------------------------------
       if (irecip >= 3){
         cout<<"reciprocal superlattice not cubic or rectangular"<<endl;
@@ -131,7 +132,6 @@ void sumk(int nsub, int nsubat, const vector<pair<int,int>> &ifold, int nfold, c
             y=dq*j;
   
             xk=x*d1+y*d2;
-
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 //         determine weights
             iwght=8;
