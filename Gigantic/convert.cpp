@@ -621,8 +621,8 @@ int main(){
       pdsint.reserve(2); pdpint.reserve(2); ddsint.reserve(2); ddpint.reserve(2); dddint.reserve(2);
       param(numat, numnn, s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint, pdsint, pdpint, ddsint, ddpint, dddint);
 
-      VectorXd vcuu(ndiff+1), vcud(ndiff+1), vcdu(ndiff+1), vcdd(ndiff+1);
-      VectorXcd zresu(ndiff+1), zresd(ndiff+1), zresud(ndiff+1), zresdu(ndiff+1);
+      VectorXd vcuu(ndiff), vcud(ndiff), vcdu(ndiff), vcdd(ndiff);
+      VectorXcd zresu(ndiff), zresd(ndiff), zresud(ndiff), zresdu(ndiff);
       vcuu.fill(0);
       vcud.fill(0);
       vcdu.fill(0);
@@ -654,31 +654,31 @@ int main(){
       cout<<"****************************************************"<<endl;
       cout<<"****************************************************"<<endl;
       cout<<"UP SPIN"<<endl;
-      for (int in = 0; in <= ndiff; in++)
-        cout<<scientific<<2*in<<" "<<vcuu(in)/nsub<<endl;
+      for (int in = 0; in < ndiff; in++)
+        cout<<scientific<<2*(in+1)<<" "<<vcuu(in)/nsub<<endl;
       cout<<endl;
       cout<<"****************************************************"<<endl;
       cout<<"****************************************************"<<endl;
       cout<<"DOWN SPIN"<<endl;
-      for (int in = 0; in <= ndiff; in++)
-        cout<<2*in<<" "<<vcdd(in)/nsub<<endl;
+      for (int in = 0; in < ndiff; in++)
+        cout<<2*(in+1)<<" "<<vcdd(in)/nsub<<endl;
       cout<<endl;
       cout<<"****************************************************"<<endl;
       cout<<"****************************************************"<<endl;
       cout<<"UP-DOWN SPIN"<<endl;
-      for (int in = 0; in <= ndiff; in++)
-        cout<<2*in<<" "<<vcud(in)/nsub<<endl;
+      for (int in = 0; in < ndiff; in++)
+        cout<<2*(in+1)<<" "<<vcud(in)/nsub<<endl;
       cout<<endl;
       cout<<"****************************************************"<<endl;
       cout<<"****************************************************"<<endl;
       cout<<"DOWN-UP SPIN"<<endl;
-      for (int in = 0; in <= ndiff; in++)
-        cout<<2*in<<" "<<vcdu(in)/nsub<<endl;
+      for (int in = 0; in < ndiff; in++)
+        cout<<2*(in+1)<<" "<<vcdu(in)/nsub<<endl;
       cout<<endl;
       cout<<"****************************************************"<<endl;
       cout<<"****************************************************"<<endl;
       cout<<"(UP + DOWN - 2*AF)"<<endl;
-      for (int in = 0; in <= ndiff; in++)
-        cout<<2*in<<" "<<-(vcuu(in)+vcdd(in)-vcdu(in)-vcud(in))/nsub<<endl;
+      for (int in = 0; in < ndiff; in++)
+        cout<<2*(in+1)<<" "<<-(vcuu(in)+vcdd(in)-vcdu(in)-vcud(in))/nsub<<endl;
       return 0;
 }

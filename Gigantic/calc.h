@@ -24,6 +24,7 @@ int testk(double x, double y, const Vector3d &b1, const Vector3d &b2, const vect
       double xk, yk, x1, x2, dx, dy, ddx, ddy;
       int condition = 0;
       Vector3d xtmp;
+      xfold.clear();
 //     -----------------------------------------------------------------
       if (irecip >= 3){
         cout<<"reciprocal superlattice not cubic or rectangular"<<endl;
@@ -107,7 +108,7 @@ void sumk(int nsub, int nsubat, const vector<pair<int,int>> &ifold, int nfold, c
       int iwght;
       int ifail;
       int nxfold;
-      VectorXcd zconu(ndiff + 1), zcond(ndiff + 1), zconud(ndiff + 1), zcondu(ndiff + 1);
+      VectorXcd zconu(ndiff), zcond(ndiff), zconud(ndiff), zcondu(ndiff);
       zconu.fill(0);
       zcond.fill(0);
       zconud.fill(0);
@@ -293,15 +294,8 @@ void kcon(int nsubat, const vector<pair<int,int>> &ifold, int nfold,const Matrix
 	VectorXcd &zresu, VectorXcd &zresd, VectorXcd &zresud, VectorXcd &zresdu,
 	Args&&... params){
 
-	/* Vector3d &b1, Vector3d &b2, */ 
-	/* m2d &s0, m2d &p0, m2d &d0t, m2d &d0e, */
-   	/* m2d &sss, m2d &sps, m2d &pps, m2d &ppp, m2d &sds, */
-	/* m2d &pds, m2d &pdp, m2d &dds, m2d &ddp, m2d &ddd, */
-       	/* vm2d &sssint, vm2d &spsint, vm2d &ppsint, vm2d &pppint, vm2d &sdsint, */
-	/* vm2d &pdsint, vm2d &pdpint, vm2d &ddsint, vm2d &ddpint, vm2d &dddint){ */
-
-      VectorXd xc(ndiff + 1), xcold(ndiff + 1);
-      double xcon=5e-5;
+      VectorXd xc(ndiff), xcold(ndiff);
+      double xcon=5e-6;
 
       int nk;
       double diff, diffc;
@@ -318,7 +312,7 @@ void kcon(int nsubat, const vector<pair<int,int>> &ifold, int nfold,const Matrix
         iamcon=1;
         if (kk == 1)
 	  iamcon=0;
-        for (int in=0; in<=ndiff; in++){
+        for (int in=0; in<ndiff; in++){
           diffc=abs(xc(in)-xcold(in));
           diff=max(diff,diffc);
           if ((diff > xcon) || (kk < 1))

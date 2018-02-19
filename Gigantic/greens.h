@@ -457,8 +457,6 @@ int green(dcomp zener, const Vector3d &xk, int ispin, string &side, MatrixXcd &z
 
         ifail=0;
         ifail = surfacenew(zuat,ztat,zener,zglat,zgrat,natom);
-	/* cout<<zgrat.real()<<endl; */
-	/* exit(EXIT_FAILURE); */
         if (ifail != 0)// zt has a near zero eigenvalue
 	  cout<<"eigenvalues ill-conditioned. Consider coding to higher precision"<<endl;
 
@@ -510,8 +508,6 @@ int cond(dcomp zener, const Vector3d &xk, VectorXcd &zconu, VectorXcd &zcond, Ve
       if (ifail != 0)
 	return ifail;
       ifail = green(zener,xk,-1,st,zgld,zgrd,nsub,nsubat,nlay,nmat,nxfold,xfold,xshift,forward<Args>(params)...);   // LH DOWN
-      cout<<zgrd.imag()<<endl;
-      exit(EXIT_FAILURE);
       if (ifail != 0)
 	return ifail;
 //     -----------------------------------------------------------------
@@ -543,7 +539,7 @@ int cond(dcomp zener, const Vector3d &xk, VectorXcd &zconu, VectorXcd &zcond, Ve
 //
 //     adlayer the LH & RH mlay substrate layers (ie interface layers)
 //     '0' after '+1' indicates this is required for the spacer
-      for (int ill=3; ill<=2+mlay; ill++){
+      for (int ill=2; ill<2+mlay; ill++){
         zt = hamil(xk,ill-1,ill,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
         zu = hamil(xk,ill,ill,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
         adlayer1(zglu,zu,zt,zener,nmat);
@@ -553,7 +549,7 @@ int cond(dcomp zener, const Vector3d &xk, VectorXcd &zconu, VectorXcd &zcond, Ve
         adlayer1(zgld,zu,zt,zener,nmat);
       }
 
-      for (int ill=nlay-2; ill>=nlay-mlay-1; ill--){
+      for (int ill=nlay-3; ill>nlay-mlay-1; ill--){
         zt = hamil(xk,ill,ill+1,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
         zu = hamil(xk,ill,ill,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
         ztdag=zt.adjoint();
@@ -571,30 +567,32 @@ int cond(dcomp zener, const Vector3d &xk, VectorXcd &zconu, VectorXcd &zcond, Ve
       for (int ill=0; ill<nins; ill++){
 
 //       adlayer LH  ----   zgl
-        zt = hamil(xk,ill+mlay,ill+mlay+1,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        zu = hamil(xk,ill+mlay+1,ill+mlay+1,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
+        zt = hamil(xk,ill+mlay+1,ill+mlay+2,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
+        zu = hamil(xk,ill+mlay+2,ill+mlay+2,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
         adlayer1(zglu,zu,zt,zener,nmat);
-        zt = hamil(xk,ill+mlay,ill+mlay+1,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        zu = hamil(xk,ill+mlay+1,ill+mlay+1,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
+        zt = hamil(xk,ill+mlay+1,ill+mlay+2,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
+        zu = hamil(xk,ill+mlay+2,ill+mlay+2,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
         adlayer1(zgld,zu,zt,zener,nmat);
 
 
 //       SPIN UP
-        zt = hamil(xk,2+nins+mlay,3+nins+mlay,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
+        zt = hamil(xk,1+nins+mlay,2+nins+mlay,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
         zconu(ill) = coupl(zglu,zgru,zt);
 	
 //       SPIN DOWN
-        zt = hamil(xk,2+nins+mlay,3+nins+mlay,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
+        zt = hamil(xk,1+nins+mlay,2+nins+mlay,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
         zcond(ill) = coupl(zgld,zgrd,zt);
 
 //       SPIN UP-DOWN
-        zt = hamil(xk,2+nins+mlay,3+nins+mlay,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
+        zt = hamil(xk,1+nins+mlay,2+nins+mlay,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
         zconud(ill) = coupl(zglu,zgrd,zt);
 
 //       SPIN DOWN-UP
-        zt = hamil(xk,2+nins+mlay,3+nins+mlay,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
+        zt = hamil(xk,1+nins+mlay,2+nins+mlay,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
         zcondu(ill) = coupl(zgld,zgru,zt);
       }
+      /* cout<<zcondu<<endl; */
+      /* exit(EXIT_FAILURE); */
       return ifail;
 }
 #endif
