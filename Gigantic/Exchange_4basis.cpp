@@ -7,9 +7,7 @@
 #include <utility>
 #include <cstdlib>
 #include "CoCuCo.h"
-#include "calc_par.h"
-/* #include "calc.h" */
-/* #include "calc_cunningham.h" */
+#include "calc.h"
 #include "greens.h"
 
 //     This program calculates the coupling for a general multilayer,
@@ -292,7 +290,7 @@ int main(){
 //     in this code we assume that the LH and RH leads have the same 
 //     lattice vectors and No of basis vectors
 
-      const int nsubat=2; // No. of sublayer atoms in leads
+      const int nsubat=4; // No. of sublayer atoms in leads
       const int natom=nspin*nsubat;
       Vector3d aa1, aa2;
 
@@ -317,7 +315,11 @@ int main(){
 //       Sublattice
       tmp << 0, 0, 0;
       vsubattmp.emplace_back(tmp);
+      tmp << 0.25, 0, -0.25;
+      vsubattmp.emplace_back(tmp);
       tmp << 0.5, 0, -0.5;
+      vsubattmp.emplace_back(tmp);
+      tmp << 0.75, 0, -0.75;
       vsubattmp.emplace_back(tmp);
       for (int ilay=1; ilay<=2; ilay++){
 //       Out of plane lattice vector
@@ -336,8 +338,8 @@ int main(){
 //     SUPERCELL STRUCTURE
 //     =================================================================
 
-      const int nsub=2; //No. of sublayer atoms in spacer
-      vsubtmp.reserve(nsub);
+      const int nsub=4; //No. of sublayer atoms in spacer
+      vsubtmp.reserve(nsubat);
 
 //     2 in-plane lattice vectors
 //     CUBIC
@@ -354,7 +356,11 @@ int main(){
 //       Sublattice
       tmp << 0, 0, 0;
       vsubtmp.emplace_back(tmp);
+      tmp << 0.25, 0, -0.25;
+      vsubtmp.emplace_back(tmp);
       tmp << 0.5, 0, -0.5;
+      vsubtmp.emplace_back(tmp);
+      tmp << 0.75, 0, -0.75;
       vsubtmp.emplace_back(tmp);
       for (int ilay=1; ilay <= nlay; ilay++){
 //       Out of plane lattice vector
@@ -362,7 +368,6 @@ int main(){
 	a3.emplace_back(tmp);
 
 	vsub.emplace_back(vsubtmp);
-
 //       Atom types
         if((ilay >= 3) && (ilay <= nins+2)){
 	  for (int isub = 0; isub < nsub; isub++)
@@ -415,6 +420,14 @@ int main(){
 	if (isub == 1){
           imapl.emplace_back(2);
           imapr.emplace_back(2);
+	}
+	if (isub == 2){
+          imapl.emplace_back(3);
+          imapr.emplace_back(3);
+	}
+	if (isub == 3){
+          imapl.emplace_back(4);
+          imapr.emplace_back(4);
 	}
       }
 
@@ -635,6 +648,10 @@ int main(){
       i = sqrt(i);
       int nmat = nspin*nsub;
       for (int iw=1; iw <= iwmax; iw++){
+        zresu.fill(0);
+        zresd.fill(0);
+        zresud.fill(0);
+        zresdu.fill(0);
         wm = M_PI*(2*iw-1)*temp;
         ec = ef + i*wm;
         kcon(nsubat,ifold,nfold,baib,nsub,ndiff,fact,zresu,zresd,zresud,zresdu,irecip,b1,b2,ec,nmat,mlay,nins,nlay,

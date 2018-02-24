@@ -21,16 +21,9 @@ void adlayer1(MatrixXcd &zgl, MatrixXcd &zu, MatrixXcd &zt, dcomp zener, int n){
       MatrixXcd zwrk(n, n), zgldag(n, n);
       zwrk = zgl*zt;
       zgl = zt.adjoint()*zwrk;
+      MatrixXcd I = MatrixXcd::Identity(n, n);
 
-      for (int ir=0; ir<n; ir++){
-        for (int is=0; is<=ir-1; is++){
-          zgl(ir,is)=-zu(ir,is)-zgl(ir,is);
-          zgl(is,ir)=-zu(is,ir)-zgl(is,ir);
-	}
-        zgl(ir,ir)=zener-zu(ir,ir)-zgl(ir,ir);
-      }
-//     find inverse to zginv
-      zwrk = zgl.inverse();
+      zwrk = (zener*I-zu-zgl).inverse();
       zgl = zwrk;
       return;
 }
@@ -400,7 +393,7 @@ dcomp coupl(MatrixXcd &zgsl, MatrixXcd &zgsr, MatrixXcd &zt){
 
 template <typename... Args>
 int green(dcomp zener, int ispin, string &side, MatrixXcd &zgl, MatrixXcd &zgr, 
-	int nsub, int nsubat, int nlay, int nmat, int nxfold, vV3d &xfold, vV3d &xshift, int nspin, vector<int> &imapl, 
+	int nsub, int nsubat, int nlay, int nmat, int nxfold, vV3d &xfold, int nspin, vector<int> &imapl, 
 	vector<int> &imapr, const vvV3d &vsub, const vvV3d &vsubat, Args&&... params){
 
 //     Calculate the SGF at a given k// ,
@@ -426,7 +419,6 @@ int green(dcomp zener, int ispin, string &side, MatrixXcd &zgl, MatrixXcd &zgr,
       dcomp i, zarg1;
       i = -1.;
       i = sqrt(i);
-      Vector3d vtmp;
       if (side == "LH"){
         ilay=0;
         imap=imapl;
@@ -458,7 +450,6 @@ int green(dcomp zener, int ispin, string &side, MatrixXcd &zgl, MatrixXcd &zgr,
           for (int jsub=0; jsub<nsub; jsub++){
             ds=vsub[ilay][isub]-vsub[ilay][jsub] - (vsubat[ilay][imap[isub]-1]-vsubat[ilay][imap[jsub]-1]);
             zarg1=i*xkat.dot(ds);
-            vtmp=xshift[iff];
 
             for (int isp=0; isp<nspin; isp++){       // orbital elements
               for (int jsp=0; jsp<nspin; jsp++){
@@ -483,7 +474,7 @@ int green(dcomp zener, int ispin, string &side, MatrixXcd &zgl, MatrixXcd &zgr,
 
 template <typename... Args>
 int cond(dcomp zener, const Vector3d &xk, VectorXcd &zconu, VectorXcd &zcond, VectorXcd &zconud, VectorXcd &zcondu,
-	int nsub, int nsubat, int nxfold, vV3d &xfold, vV3d &xshift, int nmat, int mlay, int nins, int nlay, Args&&... params){
+	int nsub, int nsubat, int nxfold, vV3d &xfold, int nmat, int mlay, int nins, int nlay, Args&&... params){
 
 //     Calculate the coupling at a given k// , via the det formula,
 //     in the supercell representation -- so that the SGF's are nmatx x nmatx
@@ -495,10 +486,10 @@ int cond(dcomp zener, const Vector3d &xk, VectorXcd &zconu, VectorXcd &zcond, Ve
       string st = "LH";
       MatrixXcd zglu(nmat, nmat), zgru(nmat, nmat), zgld(nmat, nmat), zgrd(nmat, nmat);
       MatrixXcd zt(nmat, nmat), zu(nmat, nmat), ztdag(nmat, nmat), zudag(nmat, nmat);
-      ifail = green(zener,+1,st,zglu,zgru,nsub,nsubat,nlay,nmat,nxfold,xfold,xshift,forward<Args>(params)...);   // LH UP
+      ifail = green(zener,+1,st,zglu,zgru,nsub,nsubat,nlay,nmat,nxfold,xfold,forward<Args>(params)...);   // LH UP
       if (ifail != 0)
 	return ifail;
-      ifail = green(zener,-1,st,zgld,zgrd,nsub,nsubat,nlay,nmat,nxfold,xfold,xshift,forward<Args>(params)...);   // LH DOWN
+      ifail = green(zener,-1,st,zgld,zgrd,nsub,nsubat,nlay,nmat,nxfold,xfold,forward<Args>(params)...);   // LH DOWN
       if (ifail != 0)
 	return ifail;
 //     -----------------------------------------------------------------

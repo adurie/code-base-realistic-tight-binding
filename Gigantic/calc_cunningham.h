@@ -90,16 +90,12 @@ int testk(double x, double y, const Vector3d &b1, const Vector3d &b2, const vect
 }
 
 template <typename... Args>
-void sumk(int nsub, int nsubat, const vector<pair<int,int>> &ifold, int nfold, const Matrix3d &baib, int ndiff,
+int sumk(int start, int nsub, int nsubat, const vector<pair<int,int>> &ifold, int nfold, const Matrix3d &baib, int ndiff,
 	int nk, VectorXcd &zresu, VectorXcd &zresd, VectorXcd &zresud, VectorXcd &zresdu,
 	int irecip, Vector3d &b1, Vector3d &b2, dcomp zener, Args&&... params){
 
       double dq;
-      if (nk != 1)
-        dq=1./(nk-1.);
-      if (nk == 1)
-	dq=1.;
-      int max=nk-1;
+      dq=1./(nk*1.);
       int nktot=0;
       Vector3d d1, d2, xk;
       double x, y;
@@ -113,8 +109,8 @@ void sumk(int nsub, int nsubat, const vector<pair<int,int>> &ifold, int nfold, c
       zcondu.fill(0);
       vector<Vector3d, aligned_allocator<Vector3d>> xfold;
 //     -----------------------------------------------------------------
-      if (irecip == 0){
-        cout<<"SUMK : irecip = 0 ---- NOT CODED"<<endl;
+      if (irecip != 1){
+        cout<<"SUMK : irecip ---- NOT CODED"<<endl;
 	exit(EXIT_FAILURE);
       }
 //     -----------------------------------------------------------------
@@ -123,167 +119,59 @@ void sumk(int nsub, int nsubat, const vector<pair<int,int>> &ifold, int nfold, c
         d1=b1/2.;
         d2=b2/2.;
 
-        for (int i=0; i<=max; i++){
-          x=dq*i;
-          for (int j=0; j<=i; j++){
-            y=dq*j;
-  
-            xk=x*d1+y*d2;
+        for (int i=0; i!=nk+1; i++){
+          if (i%2 != 0){
+            x=dq*i;
+            for (int j=0; j!=i+1; j++){
+	      if ((j%2!=0) && (start != nk) && (i%3==0) && (j%3==0)){
+	        iwght=8;
+		if (i == j)
+	          iwght=4;
+                nktot+=iwght;
+	      }
+	      if ((j%2!=0) && ((start == nk) || (i%3!=0) || (j%3!=0))){
+
+                y=dq*j;
+    
+                xk=x*d1+y*d2;
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 //         determine weights
-            iwght=8;
-            if (i == j)
-	      iwght=4;
-            if (j == 0)
-	      iwght=4;
-            if (i == max)
-	      iwght=4;
-            if (i == 0)
-	      iwght=1;
-            if (j == max)
-	      iwght=1;
-            if ((i == max) && (j == 0))
-	      iwght=2;
+                iwght=8;
+                if (i == j)
+      	          iwght=4;
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 //         find the folding points
 
-            nxfold = testk(x,y,b1,b2,ifold,xfold,nfold,baib,irecip);
-            if (nxfold != nsub/nsubat){
-              cout<<"ERROR SUMK : nxfold is not equal to nsub/nsubat "<<nxfold<<" "<<nsub<<" "<<nsubat<<endl;
-	      exit(EXIT_FAILURE);
-	    }
+                nxfold = testk(x,y,b1,b2,ifold,xfold,nfold,baib,irecip);
+                if (nxfold != nsub/nsubat){
+                  cout<<"ERROR SUMK : nxfold is not equal to nsub/nsubat "<<nxfold<<" "<<nsub<<" "<<nsubat<<endl;
+	          exit(EXIT_FAILURE);
+	        }
 
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-            nktot+=iwght;
-            ifail = cond(zener,xk,zconu,zcond,zconud,zcondu,nsub,nsubat,nxfold,xfold,forward<Args>(params)...);
-            if (ifail != 0)
-              cout<<i<<" "<<j<<endl;
+                nktot+=iwght;
+                ifail = cond(zener,xk,zconu,zcond,zconud,zcondu,nsub,nsubat,nxfold,xfold,forward<Args>(params)...);
+                if (ifail != 0)
+	          cout<<i<<" "<<j<<endl;
 
-            zresu = zresu + zconu*iwght;
-            zresd = zresd + zcond*iwght;
-            zresud = zresud + zconud*iwght;
-            zresdu = zresdu + zcondu*iwght;
+                zresu = zresu + zconu*iwght;
+                zresd = zresd + zcond*iwght;
+                zresud = zresud + zconud*iwght;
+                zresdu = zresdu + zcondu*iwght;
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+	      }
+	    }
 	  }
 	}
       }
 //     -----------------------------------------------------------------
-//     PRIMITIVE-RECTANGULAR
-      if (irecip == 2){
-        d1=b1/2.;
-        d2=b2/2.;
-        for (int i=0; i<=max; i++){
-          x=dq*i;
-          for (int j=0; j<=max; j++){
-            y=dq*j;
-            xk=x*d1+y*d2;
-//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-//         determine weights
-            iwght=4;
-            if (i == 0)
-	      iwght=2;
-            if (j == 0)
-	      iwght=2;
-            if (i == max)
-	      iwght=2;
-            if (j == max)
-	      iwght=2;
-            if ((i == 0) && (j == 0))
-	      iwght=1;
-            if ((i == 0) && (j == max))
-  	      iwght=1;
-            if ((i == max) && (j == 0)) 
-	      iwght=1;
-            if ((i == max) && (j == max))
-	      iwght=1;
-//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-//         find the folding points
-
-            nxfold = testk(x,y,b1,b2,ifold,xfold,nfold,baib,irecip);
-            if (nxfold != nsub/nsubat){
-              cout<<"ERROR SUMK : nxfold is not equal to nsub/nsubat "<<nxfold<<" "<<nsub<<" "<<nsubat<<endl;
-	      exit(EXIT_FAILURE);
-	    }
-
-//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-            nktot+=iwght;
-            ifail=0;
-            ifail = cond(zener,xk,zconu,zcond,zconud,zcondu,nsub,nsubat,nxfold,xfold,forward<Args>(params)...);
-            if (ifail != 0)
-              cout<<i<<" "<<j<<endl;
-//
-            zresu = zresu + zconu*iwght;
-            zresd = zresd + zcond*iwght;
-            zresud = zresud + zconud*iwght;
-            zresdu = zresdu + zcondu*iwght;
-//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-	  }
-	}
-      }
-//     -----------------------------------------------------------------
-//     HEXAGONAL
-      if (irecip == 3){
-        d1=b1/2.;
-        d2=(b1+b2)/3.;
-        for (int i=0; i<=max; i++){
-          x=dq*i;
-          for (int j=0; j<=i; j++){
-            y=dq*j;
-            xk=x*d1+y*d2;
-//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-//         determine weights
-            iwght=12;
-            if (i == j)
-	      iwght=6;
-            if (j == 0)
-	      iwght=6;
-            if (i == max)
-	      iwght=4;
-            if (i == 0)
-	      iwght=1;
-            if (j == max)
-	      iwght=2;
-            if ((i == max) && (j == 0))
-	      iwght=3;
-//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-//         find the folding points
-
-            nxfold = testk(x,y,b1,b2,ifold,xfold,nfold,baib,irecip);
-            if (nxfold != nsub/nsubat){
-              cout<<"ERROR SUMK : nxfold is not equal to nsub/nsubat "<<nxfold<<" "<<nsub<<" "<<nsubat<<endl;
-	      exit(EXIT_FAILURE);
-	    }
-
-//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-            nktot+=iwght;
-            ifail=0;
-            ifail = cond(zener,xk,zconu,zcond,zconud,zcondu,nsub,nsubat,nxfold,xfold,forward<Args>(params)...);
-            if (ifail != 0)
-              cout<<i<<" "<<j;
-// 
-            zresu = zresu + zconu*iwght;
-            zresd = zresd + zcond*iwght;
-            zresud = zresud + zconud*iwght;
-            zresdu = zresdu + zcondu*iwght;
-//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-	  }
-	}
-      }
-//     -----------------------------------------------------------------
-//     CENTRED-RECTANGULAR
-     if (irecip == 4){
-//     ?????????????????????????????????????????????????????????????????
-      cout<<"CENTRED-RECTANGULAR NOT CODED YET"<<endl;
-      exit(EXIT_FAILURE);
-     }
-//     ?????????????????????????????????????????????????????????????????
       zresu = zresu/(1.*nktot);
       zresd = zresd/(1.*nktot);
       zresud = zresud/(1.*nktot);
       zresdu = zresdu/(1.*nktot);
 
-      return;
+      return nktot;
 }
 
 template <typename... Args>
@@ -292,21 +180,36 @@ void kcon(int nsubat, const vector<pair<int,int>> &ifold, int nfold,const Matrix
 	Args&&... params){
 
       VectorXd xc(ndiff), xcold(ndiff);
+      xcold.fill(0.);
       double xcon=5e-6;
 
       int nk;
+      VectorXcd tzresu(ndiff), tzresd(ndiff), tzresud(ndiff), tzresdu(ndiff);
+      tzresu.fill(0);
+      tzresd.fill(0);
+      tzresud.fill(0);
+      tzresdu.fill(0);
+      int nktot,nktotold;
+      nktotold = 0;
       double diff, diffc;
       int iamcon;
-      for (int kk=1; kk<=10; kk++){
-        nk=1+pow(2,(kk+2));
+      int start = 3; // the starting number of points
+      start *= 2;
+      for (int kk=1; kk<=15; kk++){
+        nk=start*pow(3,kk-1);
         zresu.fill(0);
         zresd.fill(0);
         zresud.fill(0);
         zresdu.fill(0);
 
 //       calculate the function
-        sumk(nsub,nsubat,ifold,nfold,baib,ndiff,nk,zresu,zresd,zresud,zresdu,forward<Args>(params)...);
+        nktot = sumk(start,nsub,nsubat,ifold,nfold,baib,ndiff,nk,zresu,zresd,zresud,zresdu,forward<Args>(params)...);
         xc=fact*(zresu+zresd-zresud-zresdu).real()/nsub;
+	xc = xc + (nktotold/(nktot*1.))*xcold;
+	tzresu = zresu + (nktotold/(nktot*1.))*tzresu;
+	tzresd = zresd + (nktotold/(nktot*1.))*tzresd;
+	tzresud = zresud + (nktotold/(nktot*1.))*tzresud;
+	tzresdu = zresdu + (nktotold/(nktot*1.))*tzresdu;
 
 //       check for convergence
         diff=0.;
@@ -322,7 +225,7 @@ void kcon(int nsubat, const vector<pair<int,int>> &ifold, int nfold,const Matrix
 	  }
 	}
         if (iamcon == 0){
-          cout<<"NOT converged for nk = "<<nk<<"; xcon = "<<xcon<<"; error = "<<diff<<endl;
+          cout<<"NOT converged for nk = "<<nk/2<<"; xcon = "<<xcon<<"; error = "<<diff<<endl;
           if (nk > 150){
             cout<<"FORGETTING THIS ENERGY POINT !!!"<<endl;
             cout<<"K-POINT CONVERGENCE FAILED !! "<<diff<<endl;
@@ -330,12 +233,17 @@ void kcon(int nsubat, const vector<pair<int,int>> &ifold, int nfold,const Matrix
 	  }
 
           xcold=xc;
+	  nktotold=nktot;
 	}
         if (iamcon == 1){
-	  cout<<"converged for nk = "<<nk<<"; xcon = "<<xcon<<"; error = "<<diff<<endl;
+	  cout<<"converged for nk = "<<nk/2<<"; xcon = "<<xcon<<"; error = "<<diff<<endl;
 	  break;
 	}
       }
+      zresu = tzresu;
+      zresd = tzresd;
+      zresud = tzresud;
+      zresdu = tzresdu;
       return;
 }
 #endif
