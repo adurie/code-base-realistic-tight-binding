@@ -7,7 +7,9 @@
 #include <utility>
 #include <cstdlib>
 #include "CoCuCo.h"
-#include "calc_par.h"
+#include "cunningham_spawn.h"
+#include "calc_spawn.h"
+/* #include "calc_par.h" */
 /* #include "calc.h" */
 /* #include "calc_cunningham.h" */
 #include "greens.h"

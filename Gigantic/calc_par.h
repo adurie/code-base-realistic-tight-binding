@@ -120,6 +120,7 @@ void sumk(int nsub, int nsubat, const vector<pair<int,int>> &ifold, int nfold, c
       vector<int> vnktot;
       vnktot.reserve(maxt);
       vector<Vector3d, aligned_allocator<Vector3d>> xfold;
+      int tid;
 //     -----------------------------------------------------------------
       if (irecip == 0){
         cout<<"SUMK : irecip = 0 ---- NOT CODED"<<endl;
@@ -142,10 +143,11 @@ void sumk(int nsub, int nsubat, const vector<pair<int,int>> &ifold, int nfold, c
             vresdu.emplace_back(conu);
 	    vnktot.emplace_back(0);
           }
-#pragma omp parallel private(y,xk,iwght,ifail,nxfold,xfold,index)
+#pragma omp parallel private(tid,y,xk,iwght,ifail,nxfold,xfold,index)
 	  {
+          tid = omp_get_thread_num();
           for (int j=0; j<=i; j++){
-            if (j%maxt == omp_get_thread_num()){
+            if (j%maxt == tid){
               VectorXcd zconu(ndiff), zcond(ndiff), zconud(ndiff), zcondu(ndiff);
               index = j%maxt;
               y=dq*j;
