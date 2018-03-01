@@ -7,7 +7,8 @@
 #include <utility>
 #include <cstdlib>
 #include "CoCuCo.h"
-#include "cunningham_spawn.h"
+/* #include "cunningham_spawn.h" */
+#include "cutest.h"
 #include "calc_spawn.h"
 /* #include "calc_par.h" */
 /* #include "calc.h" */
@@ -283,7 +284,7 @@ int main(){
       const double ef=0.57553;  // fermi energy
       double wm = 1e-14;  // infinitesimal imaginary contribution to energy
 
-      const int iwmax = 15;  // No of Matsubara frequencies
+      const int iwmax = 1;  // No of Matsubara frequencies
       const double tfac     = 8.617e-5/13.6058;
       const double temp  = 315.79*tfac;
 
