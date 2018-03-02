@@ -183,6 +183,7 @@ double aux_square(int depth, double error, double n, double v, double w, VectorX
         f9ud = zconud*(2/n);
         f9du = zcondu*(2/n);
 	ver += 2/n;
+	cout<<ver<<endl;
 
 	zresu = f1u + f2u + f3u + f4u + f5u + f6u + f7u + f8u + f9u;
 	zresd = f1d + f2d + f3d + f4d + f5d + f6d + f7d + f8d + f9d;
@@ -359,7 +360,7 @@ double aux_tri(int depth, double error, double n, double v, double w, VectorXcd 
         f6d = zcond*(1/n);
         f6ud = zconud*(1/n);
         f6du = zcondu*(1/n);
-	ver += 2/n;
+	ver += 1/n;
 	cout<<ver<<endl;
 
 	zresu = f1u + f2u + f3u + f4u + f5u + f6u;
@@ -403,10 +404,10 @@ double aux_tri(int depth, double error, double n, double v, double w, VectorXcd 
 	ver += aux_tri(depth-1, error/9., n*9, v - 2*A, w - 2*A, f6u, f6d, f6ud, f6du, g6u, g6d, g6ud, g6du, A/3., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
 
-	zresu = g1u + g6u + g3u + g4u + g5u + g1u;
-	zresd = g1d + g6d + g3d + g4d + g5d + g1d;
-	zresud = g1ud + g6ud + g3ud + g4ud + g5ud + g1ud;
-	zresdu = g1du + g6du + g3du + g4du + g5du + g1du;
+	zresu = g1u + g6u + g3u + g4u + g5u + g2u;
+	zresd = g1d + g6d + g3d + g4d + g5d + g2d;
+	zresud = g1ud + g6ud + g3ud + g4ud + g5ud + g2ud;
+	zresdu = g1du + g6du + g3du + g4du + g5du + g2du;
 
 	return ver;
 	}
@@ -419,7 +420,7 @@ void kcon(int nsubat, const vector<pair<int,int>> &ifold, int nfold,const Matrix
 
         int ifail;
         int nxfold;
-	int depth = 1;
+	int depth = 3;
         VectorXcd zconu(ndiff), zcond(ndiff), zconud(ndiff), zcondu(ndiff);
         zconu.fill(0);
         zcond.fill(0);

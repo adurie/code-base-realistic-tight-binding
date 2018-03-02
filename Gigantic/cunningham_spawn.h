@@ -185,7 +185,7 @@ void aux_square(int depth, double error, double n, double v, double w, VectorXcd
 	/* cout<<scientific<<rel_error<<endl; */
 
 	if ((depth <= 0) && (rel_error >= error)){
-	  /* cout<<scientific<<"Error, maximum depth exceeded, error: "<<rel_error<<endl; */
+	  cout<<scientific<<"Error, maximum depth exceeded, error: "<<rel_error<<endl;
 	  return;
 	}
         if (rel_error < error){
@@ -204,23 +204,23 @@ void aux_square(int depth, double error, double n, double v, double w, VectorXcd
 	VectorXcd g8u(ndiff), g8d(ndiff), g8du(ndiff), g8ud(ndiff);
 	VectorXcd g9u(ndiff), g9d(ndiff), g9du(ndiff), g9ud(ndiff);
 
-	aux_square(depth-1, error/9., n*9, v, w, f1u, f1d, f1ud, f1du, g1u, g1d, g1ud, g1du, A/3., 
+	aux_square(depth-1, error/(0.8*depth), n*9, v, w, f1u, f1d, f1ud, f1du, g1u, g1d, g1ud, g1du, A/3., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_square(depth-1, error/9., n*9, v, w + 2*A, f2u, f2d, f2ud, f2du, g2u, g2d, g2ud, g2du, A/3., 
+	aux_square(depth-1, error/(0.8*depth), n*9, v, w + 2*A, f2u, f2d, f2ud, f2du, g2u, g2d, g2ud, g2du, A/3., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_square(depth-1, error/9., n*9, v, w - 2*A, f3u, f3d, f3ud, f3du, g3u, g3d, g3ud, g3du, A/3., 
+	aux_square(depth-1, error/(0.8*depth), n*9, v, w - 2*A, f3u, f3d, f3ud, f3du, g3u, g3d, g3ud, g3du, A/3., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_square(depth-1, error/9., n*9, v + 2*A, w, f4u, f4d, f4ud, f4du, g4u, g4d, g4ud, g4du, A/3., 
+	aux_square(depth-1, error/(0.8*depth), n*9, v + 2*A, w, f4u, f4d, f4ud, f4du, g4u, g4d, g4ud, g4du, A/3., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_square(depth-1, error/9., n*9, v + 2*A, w + 2*A, f5u, f5d, f5ud, f5du, g5u, g5d, g5ud, g5du, A/3., 
+	aux_square(depth-1, error/(0.8*depth), n*9, v + 2*A, w + 2*A, f5u, f5d, f5ud, f5du, g5u, g5d, g5ud, g5du, A/3., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_square(depth-1, error/9., n*9, v + 2*A, w - 2*A, f6u, f6d, f6ud, f6du, g6u, g6d, g6ud, g6du, A/3., 
+	aux_square(depth-1, error/(0.8*depth), n*9, v + 2*A, w - 2*A, f6u, f6d, f6ud, f6du, g6u, g6d, g6ud, g6du, A/3., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_square(depth-1, error/9., n*9, v - 2*A, w, f7u, f7d, f7ud, f7du, g7u, g7d, g7ud, g7du, A/3., 
+	aux_square(depth-1, error/(0.8*depth), n*9, v - 2*A, w, f7u, f7d, f7ud, f7du, g7u, g7d, g7ud, g7du, A/3., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_square(depth-1, error/9., n*9, v - 2*A, w + 2*A, f8u, f8d, f8ud, f8du, g8u, g8d, g8ud, g8du, A/3., 
+	aux_square(depth-1, error/(0.8*depth), n*9, v - 2*A, w + 2*A, f8u, f8d, f8ud, f8du, g8u, g8d, g8ud, g8du, A/3., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_square(depth-1, error/9., n*9, v - 2*A, w - 2*A, f9u, f9d, f9ud, f9du, g9u, g9d, g9ud, g9du, A/3., 
+	aux_square(depth-1, error/(0.8*depth), n*9, v - 2*A, w - 2*A, f9u, f9d, f9ud, f9du, g9u, g9d, g9ud, g9du, A/3., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
 
 	zresu = g1u + g2u + g3u + g4u + g5u + g6u + g7u + g8u + g9u;
@@ -354,7 +354,7 @@ void aux_tri(int depth, double error, double n, double v, double w, VectorXcd &f
 	/* cout<<scientific<<xc.transpose()<<endl<<xcold.transpose()<<endl<<endl; */
 
 	if ((depth <= 0) && (rel_error >= error)){
-	  /* cout<<scientific<<"Error, maximum depth exceeded, error: "<<rel_error<<endl; */
+	  cout<<scientific<<"Error, maximum depth exceeded, error: "<<rel_error<<endl;
 	  return;
 	}
         if (rel_error < error){
@@ -371,23 +371,23 @@ void aux_tri(int depth, double error, double n, double v, double w, VectorXcd &f
 	VectorXcd g5u(ndiff), g5d(ndiff), g5du(ndiff), g5ud(ndiff);
 	VectorXcd g6u(ndiff), g6d(ndiff), g6du(ndiff), g6ud(ndiff);
 
-	aux_tri(depth-1, error/9., n*9, v, w, f1u, f1d, f1ud, f1du, g1u, g1d, g1ud, g1du, A/3., 
+	aux_tri(depth-1, error/(0.8*depth), n*9, v, w, f1u, f1d, f1ud, f1du, g1u, g1d, g1ud, g1du, A/3., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_square(depth-1, error/9., n*9, v + 2*A, w, f2u, f2d, f2ud, f2du, g2u, g2d, g2ud, g2du, A/3., 
+	aux_square(depth-1, error/(0.8*depth), n*9, v + 2*A, w, f2u, f2d, f2ud, f2du, g2u, g2d, g2ud, g2du, A/3., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_tri(depth-1, error/9., n*9, v + 2*A, w + 2*A, f3u, f3d, f3ud, f3du, g3u, g3d, g3ud, g3du, A/3., 
+	aux_tri(depth-1, error/(0.8*depth), n*9, v + 2*A, w + 2*A, f3u, f3d, f3ud, f3du, g3u, g3d, g3ud, g3du, A/3., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_square(depth-1, error/9., n*9, v, w - 2*A, f4u, f4d, f4ud, f4du, g4u, g4d, g4ud, g4du, A/3., 
+	aux_square(depth-1, error/(0.8*depth), n*9, v, w - 2*A, f4u, f4d, f4ud, f4du, g4u, g4d, g4ud, g4du, A/3., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_square(depth-1, error/9., n*9, v + 2*A, w - 2*A, f5u, f5d, f5ud, f5du, g5u, g5d, g5ud, g5du, A/3., 
+	aux_square(depth-1, error/(0.8*depth), n*9, v + 2*A, w - 2*A, f5u, f5d, f5ud, f5du, g5u, g5d, g5ud, g5du, A/3., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_tri(depth-1, error/9., n*9, v - 2*A, w - 2*A, f6u, f6d, f6ud, f6du, g6u, g6d, g6ud, g6du, A/3., 
+	aux_tri(depth-1, error/(0.8*depth), n*9, v - 2*A, w - 2*A, f6u, f6d, f6ud, f6du, g6u, g6d, g6ud, g6du, A/3., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
 
-	zresu = g1u + g6u + g3u + g4u + g5u + g1u;
-	zresd = g1d + g6d + g3d + g4d + g5d + g1d;
-	zresud = g1ud + g6ud + g3ud + g4ud + g5ud + g1ud;
-	zresdu = g1du + g6du + g3du + g4du + g5du + g1du;
+	zresu = g1u + g6u + g3u + g4u + g5u + g2u;
+	zresd = g1d + g6d + g3d + g4d + g5d + g2d;
+	zresud = g1ud + g6ud + g3ud + g4ud + g5ud + g2ud;
+	zresdu = g1du + g6du + g3du + g4du + g5du + g2du;
 
 	return;
 	}
@@ -400,7 +400,7 @@ void kcon(int nsubat, const vector<pair<int,int>> &ifold, int nfold,const Matrix
 
         int ifail;
         int nxfold;
-	int depth = 2;
+	int depth = 3;
         VectorXcd zconu(ndiff), zcond(ndiff), zconud(ndiff), zcondu(ndiff);
         zconu.fill(0);
         zcond.fill(0);
@@ -540,16 +540,16 @@ void kcon(int nsubat, const vector<pair<int,int>> &ifold, int nfold,const Matrix
 	zresud = f1ud + f2ud + f3ud + f4ud + f5ud + f6ud;
 	zresdu = f1du + f2du + f3du + f4du + f5du + f6du;
         xc=fact*(zresu+zresd-zresud-zresdu).real()/nsub;
-	double rel_error;
-	rel_error = conv(xcold, xc, ndiff);
+	/* double rel_error; */
+	/* rel_error = conv(xcold, xc, ndiff); */
 
         double error=5e-6;
-        if (rel_error < error){
+        /* if (rel_error < error){ */
 	  /* cout<<"converged xcon = "<<error<<"; error = "<<rel_error<<endl; */
-	  return;
-	}
+	  /* return; */
+	/* } */
 
-	if (rel_error >= error){
+	/* if (rel_error >= error){ */
 	//begin spawning points around points already integrated over
 	VectorXcd g1u(ndiff), g1d(ndiff), g1du(ndiff), g1ud(ndiff);
 	VectorXcd g2u(ndiff), g2d(ndiff), g2du(ndiff), g2ud(ndiff);
@@ -558,17 +558,17 @@ void kcon(int nsubat, const vector<pair<int,int>> &ifold, int nfold,const Matrix
 	VectorXcd g5u(ndiff), g5d(ndiff), g5du(ndiff), g5ud(ndiff);
 	VectorXcd g6u(ndiff), g6d(ndiff), g6du(ndiff), g6ud(ndiff);
 
-	aux_tri(depth, error/9., 9*n, A, A, f1u, f1d, f1ud, f1du, g1u, g1d, g1ud, g1du, A/3., 
+	aux_tri(depth, error/(0.8*depth), 9*n, A, A, f1u, f1d, f1ud, f1du, g1u, g1d, g1ud, g1du, A/3., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_square(depth, error/9., 9*n, 3*A, A, f2u, f2d, f2ud, f2du, g2u, g2d, g2ud, g2du, A/3.,
+	aux_square(depth, error/(0.8*depth), 9*n, 3*A, A, f2u, f2d, f2ud, f2du, g2u, g2d, g2ud, g2du, A/3.,
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_square(depth, error/9., 9*n, 5*A, A, f3u, f3d, f3ud, f3du, g3u, g3d, g3ud, g3du, A/3.,
+	aux_square(depth, error/(0.8*depth), 9*n, 5*A, A, f3u, f3d, f3ud, f3du, g3u, g3d, g3ud, g3du, A/3.,
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_square(depth, error/9., 9*n, 5*A, 3*A, f4u, f4d, f4ud, f4du, g4u, g4d, g4ud, g4du, A/3.,
+	aux_square(depth, error/(0.8*depth), 9*n, 5*A, 3*A, f4u, f4d, f4ud, f4du, g4u, g4d, g4ud, g4du, A/3.,
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_tri(depth, error/9., 9*n, 3*A, 3*A, f5u, f5d, f5ud, f5du, g5u, g5d, g5ud, g5du, A/3.,
+	aux_tri(depth, error/(0.8*depth), 9*n, 3*A, 3*A, f5u, f5d, f5ud, f5du, g5u, g5d, g5ud, g5du, A/3.,
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_tri(depth, error/9., 9*n, 5*A, 5*A, f6u, f6d, f6ud, f6du, g6u, g6d, g6ud, g6du, A/3.,
+	aux_tri(depth, error/(0.8*depth), 9*n, 5*A, 5*A, f6u, f6d, f6ud, f6du, g6u, g6d, g6ud, g6du, A/3.,
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
 
 	zresu = g1u + g5u + g6u + g2u + g3u + g4u;
@@ -577,6 +577,6 @@ void kcon(int nsubat, const vector<pair<int,int>> &ifold, int nfold,const Matrix
 	zresdu = g1du + g5du + g6du + g2du + g3du + g4du;
 
 	return;
-	}
+	/* } */
 }
 #endif
