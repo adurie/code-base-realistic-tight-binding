@@ -5,8 +5,9 @@
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/StdVector>
 #include "greens.h"
-#include "cunningham_quad.h"
+/* #include "cunningham_quad.h" */
 /* #include "cunningham_spawn.h" */
+#include "cunningham_multipoint.h"
 
 using namespace std;
 using namespace Eigen;

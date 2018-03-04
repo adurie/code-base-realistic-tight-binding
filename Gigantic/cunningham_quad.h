@@ -17,6 +17,12 @@ void aux_square(int depth, double error, double n, double v, double w, VectorXcd
 	       int ndiff, Vector3d &b1, Vector3d &b2, const vector<pair<int,int>> &ifold, int nfold, 
 	       const Matrix3d &baib, double fact, int irecip, dcomp zener, Args&&... params)
 {
+
+	string Mydata;
+	ofstream Myfile;	
+	Mydata = "output2.txt";
+	Myfile.open( Mydata.c_str(),ios::app );
+
         VectorXcd zconu(ndiff), zcond(ndiff), zconud(ndiff), zcondu(ndiff);
 	Vector3d xk;
         vector<Vector3d, aligned_allocator<Vector3d>> xfold;
@@ -29,23 +35,25 @@ void aux_square(int depth, double error, double n, double v, double w, VectorXcd
 	double x, z;
 	x = v - A;		z = w - A;	
         xk=x*d1+z*d2;
+	/* Myfile<<x<<" "<<z<<endl; */
         int nxfold = testk(x,z,b1,b2,ifold,xfold,nfold,baib,irecip);
         if (nxfold != nsub/nsubat){
           cout<<"ERROR SUMK : nxfold is not equal to nsub/nsubat "<<nxfold<<" "<<nsub<<" "<<nsubat<<endl;
 	  exit(EXIT_FAILURE);
 	}
 
+        int ifail = cond(zener,xk,zconu,zcond,zconud,zcondu,nsub,nsubat,nxfold,xfold,forward<Args>(params)...);
+        if (ifail != 0)
+          cout<<x<<" "<<z<<endl;
+
         f1u = zconu*(2/n);
         f1d = zcond*(2/n);
         f1ud = zconud*(2/n);
         f1du = zcondu*(2/n);
 
-        int ifail = cond(zener,xk,zconu,zcond,zconud,zcondu,nsub,nsubat,nxfold,xfold,forward<Args>(params)...);
-        if (ifail != 0)
-          cout<<x<<" "<<z<<endl;
-
 	x = v - A;	z = w + A;	
         xk=x*d1+z*d2;
+	/* Myfile<<x<<" "<<z<<endl; */
         nxfold = testk(x,z,b1,b2,ifold,xfold,nfold,baib,irecip);
         if (nxfold != nsub/nsubat){
           cout<<"ERROR SUMK : nxfold is not equal to nsub/nsubat "<<nxfold<<" "<<nsub<<" "<<nsubat<<endl;
@@ -63,6 +71,7 @@ void aux_square(int depth, double error, double n, double v, double w, VectorXcd
 
 	x = v + A;	z = w - A;	
         xk=x*d1+z*d2;
+	/* Myfile<<x<<" "<<z<<endl; */
         nxfold = testk(x,z,b1,b2,ifold,xfold,nfold,baib,irecip);
         if (nxfold != nsub/nsubat){
           cout<<"ERROR SUMK : nxfold is not equal to nsub/nsubat "<<nxfold<<" "<<nsub<<" "<<nsubat<<endl;
@@ -80,6 +89,7 @@ void aux_square(int depth, double error, double n, double v, double w, VectorXcd
 
 	x = v + A;	z = w + A;	
         xk=x*d1+z*d2;
+	/* Myfile<<x<<" "<<z<<endl; */
         nxfold = testk(x,z,b1,b2,ifold,xfold,nfold,baib,irecip);
         if (nxfold != nsub/nsubat){
           cout<<"ERROR SUMK : nxfold is not equal to nsub/nsubat "<<nxfold<<" "<<nsub<<" "<<nsubat<<endl;
@@ -120,13 +130,13 @@ void aux_square(int depth, double error, double n, double v, double w, VectorXcd
 	VectorXcd g3u(ndiff), g3d(ndiff), g3du(ndiff), g3ud(ndiff);
 	VectorXcd g4u(ndiff), g4d(ndiff), g4du(ndiff), g4ud(ndiff);
 
-	aux_square(depth-1, error/(0.8*depth), n*4, v - A, w - A, f1u, f1d, f1ud, f1du, g1u, g1d, g1ud, g1du, A/2., 
+	aux_square(depth-1, error/n, n*4, v - A, w - A, f1u, f1d, f1ud, f1du, g1u, g1d, g1ud, g1du, A/2., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_square(depth-1, error/(0.8*depth), n*4, v - A, w + A, f2u, f2d, f2ud, f2du, g2u, g2d, g2ud, g2du, A/2., 
+	aux_square(depth-1, error/n, n*4, v - A, w + A, f2u, f2d, f2ud, f2du, g2u, g2d, g2ud, g2du, A/2., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_square(depth-1, error/(0.8*depth), n*4, v + A, w - A, f3u, f3d, f3ud, f3du, g3u, g3d, g3ud, g3du, A/2., 
+	aux_square(depth-1, error/n, n*4, v + A, w - A, f3u, f3d, f3ud, f3du, g3u, g3d, g3ud, g3du, A/2., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_square(depth-1, error/(0.8*depth), n*4, v + A, w + A, f4u, f4d, f4ud, f4du, g4u, g4d, g4ud, g4du, A/2., 
+	aux_square(depth-1, error/n, n*4, v + A, w + A, f4u, f4d, f4ud, f4du, g4u, g4d, g4ud, g4du, A/2., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
 
 	zresu = g1u + g2u + g3u + g4u;
@@ -145,6 +155,11 @@ void aux_tri(int depth, double error, double n, double v, double w, VectorXcd &f
 	       int ndiff, Vector3d &b1, Vector3d &b2, const vector<pair<int,int>> &ifold, int nfold, 
 	       const Matrix3d &baib, double fact, int irecip, dcomp zener, Args&&... params)
 {
+	string Mydata;
+	ofstream Myfile;	
+	Mydata = "output2.txt";
+	Myfile.open( Mydata.c_str(),ios::app );
+
         VectorXcd zconu(ndiff), zcond(ndiff), zconud(ndiff), zcondu(ndiff);
 	Vector3d xk;
         vector<Vector3d, aligned_allocator<Vector3d>> xfold;
@@ -156,6 +171,7 @@ void aux_tri(int depth, double error, double n, double v, double w, VectorXcd &f
 	double x, z;
 	x = v - A;	z = w - A;	
         xk=x*d1+z*d2;
+	/* Myfile<<x<<" "<<z<<endl; */
 	int nxfold;
         nxfold = testk(x,z,b1,b2,ifold,xfold,nfold,baib,irecip);
         if (nxfold != nsub/nsubat){
@@ -175,6 +191,7 @@ void aux_tri(int depth, double error, double n, double v, double w, VectorXcd &f
 
 	x = v + A;	z = w - A;	
         xk=x*d1+z*d2;
+	/* Myfile<<x<<" "<<z<<endl; */
         nxfold = testk(x,z,b1,b2,ifold,xfold,nfold,baib,irecip);
         if (nxfold != nsub/nsubat){
           cout<<"ERROR SUMK : nxfold is not equal to nsub/nsubat "<<nxfold<<" "<<nsub<<" "<<nsubat<<endl;
@@ -192,6 +209,7 @@ void aux_tri(int depth, double error, double n, double v, double w, VectorXcd &f
 
 	x = v + A;	z = w + A;	
         xk=x*d1+z*d2;
+	/* Myfile<<x<<" "<<z<<endl; */
         nxfold = testk(x,z,b1,b2,ifold,xfold,nfold,baib,irecip);
         if (nxfold != nsub/nsubat){
           cout<<"ERROR SUMK : nxfold is not equal to nsub/nsubat "<<nxfold<<" "<<nsub<<" "<<nsubat<<endl;
@@ -231,11 +249,11 @@ void aux_tri(int depth, double error, double n, double v, double w, VectorXcd &f
 	VectorXcd g2u(ndiff), g2d(ndiff), g2du(ndiff), g2ud(ndiff);
 	VectorXcd g3u(ndiff), g3d(ndiff), g3du(ndiff), g3ud(ndiff);
 
-	aux_tri(depth-1, error/(0.8*depth), n*4, v - A, w - A, f1u, f1d, f1ud, f1du, g1u, g1d, g1ud, g1du, A/2., 
+	aux_tri(depth-1, error/n, n*4, v - A, w - A, f1u, f1d, f1ud, f1du, g1u, g1d, g1ud, g1du, A/2., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_square(depth-1, error/(0.8*depth), n*4, v + A, w - A, f2u, f2d, f2ud, f2du, g2u, g2d, g2ud, g2du, A/2., 
+	aux_square(depth-1, error/n, n*4, v + A, w - A, f2u, f2d, f2ud, f2du, g2u, g2d, g2ud, g2du, A/2., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_tri(depth-1, error/(0.8*depth), n*4, v + A, w + A, f3u, f3d, f3ud, f3du, g3u, g3d, g3ud, g3du, A/2., 
+	aux_tri(depth-1, error/n, n*4, v + A, w + A, f3u, f3d, f3ud, f3du, g3u, g3d, g3ud, g3du, A/2., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
 
 	zresu = g1u + g2u + g3u;
@@ -252,9 +270,14 @@ void kcon(int nsubat, const vector<pair<int,int>> &ifold, int nfold,const Matrix
 	VectorXcd &zresu, VectorXcd &zresd, VectorXcd &zresud, VectorXcd &zresdu, int irecip, Vector3d &b1, Vector3d &b2,
 	dcomp zener, Args&&... params){
 
+	/* string Mydata; */
+	/* ofstream Myfile; */	
+	/* Mydata = "output2.txt"; */
+	/* Myfile.open( Mydata.c_str(),ios::app ); */
+
         int ifail;
         int nxfold;
-	int depth = 5;
+	int depth = 4;
         VectorXcd zconu(ndiff), zcond(ndiff), zconud(ndiff), zcondu(ndiff);
         zconu.fill(0);
         zcond.fill(0);
@@ -298,6 +321,7 @@ void kcon(int nsubat, const vector<pair<int,int>> &ifold, int nfold,const Matrix
 	A /= 4.;
 	x = A;		z = A;	
         xk=x*d1+z*d2;
+	/* Myfile<<x<<" "<<z<<endl; */
         nxfold = testk(x,z,b1,b2,ifold,xfold,nfold,baib,irecip);
         if (nxfold != nsub/nsubat){
           cout<<"ERROR SUMK : nxfold is not equal to nsub/nsubat "<<nxfold<<" "<<nsub<<" "<<nsubat<<endl;
@@ -315,6 +339,7 @@ void kcon(int nsubat, const vector<pair<int,int>> &ifold, int nfold,const Matrix
 
 	x = 3*A;	z = A;	
         xk=x*d1+z*d2;
+	/* Myfile<<x<<" "<<z<<endl; */
         nxfold = testk(x,z,b1,b2,ifold,xfold,nfold,baib,irecip);
         if (nxfold != nsub/nsubat){
           cout<<"ERROR SUMK : nxfold is not equal to nsub/nsubat "<<nxfold<<" "<<nsub<<" "<<nsubat<<endl;
@@ -332,6 +357,7 @@ void kcon(int nsubat, const vector<pair<int,int>> &ifold, int nfold,const Matrix
 
 	x = 3*A;	z = 3*A;	
         xk=x*d1+z*d2;
+	/* Myfile<<x<<" "<<z<<endl; */
         nxfold = testk(x,z,b1,b2,ifold,xfold,nfold,baib,irecip);
         if (nxfold != nsub/nsubat){
           cout<<"ERROR SUMK : nxfold is not equal to nsub/nsubat "<<nxfold<<" "<<nsub<<" "<<nsubat<<endl;
@@ -367,11 +393,11 @@ void kcon(int nsubat, const vector<pair<int,int>> &ifold, int nfold,const Matrix
 	VectorXcd g2u(ndiff), g2d(ndiff), g2du(ndiff), g2ud(ndiff);
 	VectorXcd g3u(ndiff), g3d(ndiff), g3du(ndiff), g3ud(ndiff);
 
-	aux_tri(depth, error/(0.8*depth), 4*n, A, A, f1u, f1d, f1ud, f1du, g1u, g1d, g1ud, g1du, A/2., 
+	aux_tri(depth, error/n, 4*n, A, A, f1u, f1d, f1ud, f1du, g1u, g1d, g1ud, g1du, A/2., 
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_square(depth, error/(0.8*depth), 4*n, 3*A, A, f2u, f2d, f2ud, f2du, g2u, g2d, g2ud, g2du, A/2.,
+	aux_square(depth, error/n, 4*n, 3*A, A, f2u, f2d, f2ud, f2du, g2u, g2d, g2ud, g2du, A/2.,
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
-	aux_tri(depth, error/(0.8*depth), 4*n, 3*A, 3*A, f3u, f3d, f3ud, f3du, g3u, g3d, g3ud, g3du, A/2.,
+	aux_tri(depth, error/n, 4*n, 3*A, 3*A, f3u, f3d, f3ud, f3du, g3u, g3d, g3ud, g3du, A/2.,
 		d1, d2, nsub, nsubat, ndiff, b1, b2, ifold, nfold, baib, fact, irecip, zener, params...);
 
 	zresu = g1u + g2u + g3u;

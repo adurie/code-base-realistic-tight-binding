@@ -8,7 +8,8 @@
 #include <cstdlib>
 #include "CoCuCo.h"
 /* #include "cunningham_spawn.h" */
-#include "cunningham_quad.h"
+/* #include "cunningham_quad.h" */
+#include "cunningham_multipoint.h"
 /* #include "cutest.h" */
 #include "calc_spawn.h"
 /* #include "calc_par.h" */
