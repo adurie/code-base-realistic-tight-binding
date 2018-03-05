@@ -9,7 +9,9 @@
 #include "CoCuCo.h"
 /* #include "cunningham_spawn.h" */
 /* #include "cunningham_quad.h" */
-#include "cunningham_multipoint.h"
+/* #include "cunningham_multipoint.h" */
+/* #include "cunningham_multipoint_par2.h" */
+#include "cunningham_multipoint_par1.h"
 /* #include "cutest.h" */
 #include "calc_spawn.h"
 /* #include "calc_par.h" */
