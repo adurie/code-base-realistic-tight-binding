@@ -8,9 +8,7 @@
 
 using namespace std;
 using namespace Eigen;
-typedef Matrix2d m2d;
 typedef complex<double> dcomp;
-typedef vector<Matrix2d, aligned_allocator<Matrix2d>> vm2d;
 typedef vector<Vector3d, aligned_allocator<Vector3d>> vV3d;
 typedef vector<vector<Vector3d, aligned_allocator<Vector3d>>> vvV3d;
 typedef	vector<VectorXd, aligned_allocator<VectorXd>> vVXd;
@@ -122,15 +120,18 @@ int surfacenew(MatrixXcd &zu, MatrixXcd &zt, dcomp zener, MatrixXcd &zsurfl, Mat
       adlayer1(ztmp1,zu,zt,zener,n);
       adlayer1(ztmp2,zu,zs,zener,n);
       ztmp3 = ztmp1 - zsurfl;
-      if (ztmp3.cwiseAbs().maxCoeff() > 5e-5)
-        ifail=1;
-      zsurfl = ztmp1;
+      if (ztmp3.cwiseAbs().maxCoeff() > 5e-5){
+        zsurfl = ztmp1;
+        adlayer1(ztmp1,zu,zs,zener,n);
+        ztmp3 = ztmp1 - zsurfl;
+      }
       ztmp3 = ztmp2 - zsurfr;
       while (ztmp3.cwiseAbs().maxCoeff() > 5e-5){
 	zsurfr = ztmp2;
         adlayer1(ztmp2,zu,zs,zener,n);
         ztmp3 = ztmp2 - zsurfr;
       }
+      zsurfl = ztmp1;
       zsurfr = ztmp2;
 
       //This line shifts the bandstructure of Co at the surface if required
@@ -254,7 +255,7 @@ Matrix<complex<double>, 9, 9> eint1(double sss, double sps, double pps, double p
 }
 
 MatrixXcd sk(int ind1, int ind2, int nn, Vector3d &d, double dd, const Vector3d &xk, Vector3d &dpar, int nspin, int ispin,
-		const m2d &s0, const m2d &p0, const m2d &d0t, const m2d &d0e, const vm2d &sssint, 
+		const Matrix2d &s0, const Matrix2d &p0, const Matrix2d &d0t, const Matrix2d &d0e, const vm2d &sssint, 
 		const vm2d &spsint, const vm2d &ppsint, const vm2d &pppint, const vm2d &sdsint, 
 		const vm2d &pdsint, const vm2d &pdpint, const vm2d &ddsint, const vm2d &ddpint, const vm2d &dddint){
 //         calculate the cosine angles :
@@ -293,16 +294,16 @@ MatrixXcd sk(int ind1, int ind2, int nn, Vector3d &d, double dd, const Vector3d 
       }
       else{
 	nn--;
-        g1=sssint[ind1](ind2,nn);
-        g2=spsint[ind1](ind2,nn);
-        g3=ppsint[ind1](ind2,nn);
-        g4=pppint[ind1](ind2,nn);
-        g5=sdsint[ind1](ind2,nn);
-        g6=pdsint[ind1](ind2,nn);
-        g7=pdpint[ind1](ind2,nn);
-        g8=ddsint[ind1](ind2,nn);
-        g9=ddpint[ind1](ind2,nn);
-        g10=dddint[ind1](ind2,nn);
+        g1=sssint[elem][ind1](ind2,nn);
+        g2=spsint[elem][ind1](ind2,nn);
+        g3=ppsint[elem][ind1](ind2,nn);
+        g4=pppint[elem][ind1](ind2,nn);
+        g5=sdsint[elem][ind1](ind2,nn);
+        g6=pdsint[elem][ind1](ind2,nn);
+        g7=pdpint[elem][ind1](ind2,nn);
+        g8=ddsint[elem][ind1](ind2,nn);
+        g9=ddpint[elem][ind1](ind2,nn);
+        g10=dddint[elem][ind1](ind2,nn);
         rt = eint1(g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,c(0),c(1),c(2));
       }
       return rt*zexdk;
@@ -502,105 +503,36 @@ int green(dcomp zener, int ispin, string &side, MatrixXcd &zgl, MatrixXcd &zgr,
 }
 
 template <typename... Args>
-int cond(dcomp zener, const Vector3d &xk, VectorXcd &zconu, VectorXcd &zcond, VectorXcd &zconud, VectorXcd &zcondu,
+int cond(dcomp zener, const Vector3d &xk, double &zconu, double &zcond, 
 	int nsub, int nsubat, int nxfold, vV3d &xfold, int nmat, int mlay, int nins, int nlay, Args&&... params){
 
-//     Calculate the coupling at a given k// , via the det formula,
-//     in the supercell representation -- so that the SGF's are nmatx x nmatx
-//     =================================================================
-//     CALCULATE SGFs IN ATOMIC BASIS
-//     =================================================================
-//     DO THIS IF LH AND RH LEADS ARE THE SAME
       int ifail = 0;
       string st = "LH";
       MatrixXcd zglu(nmat, nmat), zgru(nmat, nmat), zgld(nmat, nmat), zgrd(nmat, nmat);
+      MatrixXcd GNuinv(nmat, nmat), zgruinv(nmat, nmat), GNdinv(nmat, nmat), zgrdinv(nmat, nmat);
       MatrixXcd zt(nmat, nmat), zu(nmat, nmat), ztdag(nmat, nmat), zudag(nmat, nmat);
+
+      double result;
       ifail = green(zener,+1,st,zglu,zgru,nsub,nsubat,nlay,nmat,nxfold,xfold,forward<Args>(params)...);   // LH UP
       if (ifail != 0)
-	return ifail;
+        return ifail;
+      zgruinv = zgru.inverse();
+      zt = hamil(xk,mlay+1,mlay+2,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
+      ztdag = zt.adjoint();
+      GNuinv = zgruinv - ztdag*zglu*zt;
+      result = imag((GNuinv.inverse()).trace());
+      zconu = result;
+
       ifail = green(zener,-1,st,zgld,zgrd,nsub,nsubat,nlay,nmat,nxfold,xfold,forward<Args>(params)...);   // LH DOWN
       if (ifail != 0)
-	return ifail;
-//     -----------------------------------------------------------------
-//     DO THIS IF LH AND RH LEADS DIFFER
-//     call green(zener,xk,+1,"LH",zglu,zfoo,ifail)   // LH UP
-//     if(ifail.ne.0)return
-//     call green(zener,xk,-1,"LH",zgld,zfoo,ifail)   // LH DOWN
-//     if(ifail.ne.0)return
+        return ifail;
+      zgrdinv = zgrd.inverse();
+      zt = hamil(xk,mlay+1,mlay+2,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
+      ztdag = zt.adjoint();
+      GNdinv = zgrdinv - ztdag*zgld*zt;
+      result = imag((GNdinv.inverse()).trace());
+      zcond = result;
 
-//     call green(zener,xk,+1,"RH",zfoo,zgru,ifail)   // RH UP
-//     if(ifail.ne.0)return
-//     call green(zener,xk,-1,"RH",zfoo,zgrd,ifail)   // RH DOWN
-//     if(ifail.ne.0)return
-//     -----------------------------------------------------------------
-
-//     =================================================================
-//     ALTERNATIVELY DO EVERYTHING IN SUPERCELL
-//     note we do not normally keep surfacenewcell as a subroutine as 
-//     it adds to the size of the code
-//     To create surfacenewcell make changes to surfacenew as indicated
-//     ifail=0
-//     call hamil(zt,xk,1,2,+1,nmat,nmatx)
-//     call hamil(zu,xk,2,2,+1,nmat,nmatx)
-//     call surfacenewcell(zu,zt,zener,zglu,zgru,ifail)
-//     call hamil(zt,xk,1,2,-1,nmat,nmatx)
-//     call hamil(zu,xk,2,2,-1,nmat,nmatx)
-//     call surfacenewcell(zu,zt,zener,zgld,zgrd,ifail)
-//     =================================================================
-//
-//     adlayer the LH & RH mlay substrate layers (ie interface layers)
-//     '0' after '+1' indicates this is required for the spacer
-      for (int ill=2; ill<2+mlay; ill++){
-        zt = hamil(xk,ill-1,ill,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        zu = hamil(xk,ill,ill,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        adlayer1(zglu,zu,zt,zener,nmat);
-
-        zt = hamil(xk,ill-1,ill,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        zu = hamil(xk,ill,ill,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        adlayer1(zgld,zu,zt,zener,nmat);
-      }
-
-      for (int ill=nlay-3; ill>nlay-mlay-1; ill--){
-        zt = hamil(xk,ill,ill+1,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        zu = hamil(xk,ill,ill,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        ztdag=zt.adjoint();
-        adlayer1(zgru,zu,ztdag,zener,nmat);
-
-        zt = hamil(xk,ill,ill+1,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        zu = hamil(xk,ill,ill,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        ztdag=zt.adjoint();
-        adlayer1(zgrd,zu,ztdag,zener,nmat);
-      }
-
-//     =================================================================
-//     CALCULATE GFs IN SPACER AND THE CONDUCTANCE
-//     =================================================================
-      for (int ill=0; ill<nins; ill++){
-
-//       adlayer LH  ----   zgl
-        zt = hamil(xk,ill+mlay+1,ill+mlay+2,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        zu = hamil(xk,ill+mlay+2,ill+mlay+2,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        adlayer1(zglu,zu,zt,zener,nmat);
-        zt = hamil(xk,ill+mlay+1,ill+mlay+2,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        zu = hamil(xk,ill+mlay+2,ill+mlay+2,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        adlayer1(zgld,zu,zt,zener,nmat);
-
-//       SPIN UP
-        zt = hamil(xk,1+nins+mlay,2+nins+mlay,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        zconu(ill) = coupl(zglu,zgru,zt);
-	
-//       SPIN DOWN
-        zt = hamil(xk,1+nins+mlay,2+nins+mlay,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        zcond(ill) = coupl(zgld,zgrd,zt);
-
-//       SPIN UP-DOWN
-        zt = hamil(xk,1+nins+mlay,2+nins+mlay,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        zconud(ill) = coupl(zglu,zgrd,zt);
-
-//       SPIN DOWN-UP
-        zt = hamil(xk,1+nins+mlay,2+nins+mlay,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        zcondu(ill) = coupl(zgld,zgru,zt);
-      }
       return ifail;
 }
 #endif

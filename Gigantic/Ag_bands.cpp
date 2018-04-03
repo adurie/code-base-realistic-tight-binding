@@ -8,18 +8,19 @@
 #include <eigen3/Eigen/StdVector>
 #include <utility>
 #include <cstdlib>
-#include "CoCuCo.h"
+#include "FeAgFe.h"
 /* #include "cunningham_spawn.h" */
 /* #include "cunningham_quad.h" */
-#include "cunningham_multipoint.h"
+/* #include "cunningham_multipoint.h" */
 /* #include "cunningham_multipoint_par2.h" */
 /* #include "cunningham_multipoint_par1.h" */
 /* #include "cutest.h" */
-#include "calc_spawn.h"
+/* #include "calc_spawn.h" */
 /* #include "calc_par.h" */
-/* #include "calc.h" */
+#include "calc_bands.h"
 /* #include "calc_cunningham.h" */
-#include "greens.h"
+#include "bands.h"
+
 
 //     This program calculates the coupling for a general multilayer,
 //     with general supercell configuration, and general growth direction.
@@ -51,8 +52,9 @@ using namespace Eigen;
 typedef complex<double> dcomp;
 typedef vector<Vector3d, aligned_allocator<Vector3d>> vV3d;
 typedef vector<vector<Vector3d, aligned_allocator<Vector3d>>> vvV3d;
-typedef Matrix2d m2d;
-typedef vector<Matrix2d, aligned_allocator<Matrix2d>> vm2d;
+typedef Matrix<double, 2, 3> m23;
+typedef vector<m23, aligned_allocator<m23>> m2d;
+typedef vector<vector<m23, aligned_allocator<m23>>> vm2d;
 
 bool WayToSort(double i, double j){ return abs(i) < abs(j);}
 
@@ -278,21 +280,21 @@ int main(){
 
 //     DATA
       const int nspin=9;    // Number of energy bands
-      const int numnn=2;    // No of nearest neighbours 
+      const int numnn=3;    // No of nearest neighbours 
 
-      const int nins=10;    // No of spacer principal layers
+      const int nins=0;    // No of spacer principal layers
       const int mlay=0;     // No of substrate layers on each side of SGF
       const int numat=2;    // No of atom types: one for each element
 
       const int nlay=nins+2*mlay+4;  // total No of layers inc 4 lead layers
-      const int ndiff=nins;
 
-      const double ef=0.57553;  // fermi energy
-      double wm = 1e-14;  // infinitesimal imaginary contribution to energy
+      const double ef=0.4635;  // fermi energy
+      double wm = 1e-4;  // infinitesimal imaginary contribution to energy
 
-      const int iwmax = 15;  // No of Matsubara frequencies
+      /* const int iwmax = 15;  // No of Matsubara frequencies */
       const double tfac     = 8.617e-5/13.6058;
-      const double temp  = 315.79*tfac;
+      const double temp  = 300*tfac;
+      /* const double temp  = 315.79*tfac; */
 
 //     =================================================================
 //     ATOMIC DATA FOR LEADS
@@ -305,8 +307,8 @@ int main(){
       const int natom=nspin*nsubat;
       Vector3d aa1, aa2;
 
-      aa1 << 0.5, 0.5, 0;
-      aa2 << 0.5, -0.5, 0;
+      aa1 << 1, 0, 0;
+      aa2 << 0, 1, 0;
 
 //     =================================================================
 //     LH LEAD BASIS VECTORS
@@ -314,7 +316,7 @@ int main(){
       vector<Vector3d, aligned_allocator<Vector3d>> aa3, a3;
       aa3.reserve(4);
       a3.reserve(nlay);
-      vector<Vector3d, aligned_allocator<Vector3d>> vsubtmp, vsubattmp;
+      vector<Vector3d, aligned_allocator<Vector3d>> vsubtmpFe, vsubtmpAg, vsubattmp;
       vsubattmp.reserve(nsubat);
       vector<vector<Vector3d, aligned_allocator<Vector3d>>> vsubat, vsub;
       vsubat.reserve(4);
@@ -326,18 +328,20 @@ int main(){
 //       Sublattice
       tmp << 0, 0, 0;
       vsubattmp.emplace_back(tmp);
-      tmp << 0.5, 0, -0.5;
+      /* tmp << 0.5, 0.5, 0.5; */
+      tmp << 0.5, 0.5, 1./M_SQRT2;
       vsubattmp.emplace_back(tmp);
       for (int ilay=1; ilay<=2; ilay++){
 //       Out of plane lattice vector
-	tmp << 0, 0, ilay - 1;
+	/* tmp << 0, 0, ilay - 1; */
+	tmp << 0, 0, M_SQRT2*(ilay - 1);
 	aa3.emplace_back(tmp);
 
 	vsubat.emplace_back(vsubattmp);
 
 //       Atom types
         for (int kk=1; kk <= nsubat; kk++)
-	  attype(kk-1) = 1;
+	  attype(kk-1) = 2;
 	itypeat.emplace_back(attype);
       }
 
@@ -346,14 +350,15 @@ int main(){
 //     =================================================================
 
       const int nsub=2; //No. of sublayer atoms in spacer
-      vsubtmp.reserve(nsub);
+      vsubtmpAg.reserve(nsub);
+      vsubtmpFe.reserve(nsub);
 
 //     2 in-plane lattice vectors
 //     CUBIC
       Vector3d a1, a2;
 
-      a1 << 0.5, 0.5, 0;
-      a2 << 0.5, -0.5, 0;
+      a1 << 1, 0, 0;
+      a2 << 0, 1, 0;
 
 //    ----------  Crystal structure ----------------------
       vector<vector<int>> itype;
@@ -362,33 +367,67 @@ int main(){
       itmp.reserve(nsub);
 //       Sublattice
       tmp << 0, 0, 0;
-      vsubtmp.emplace_back(tmp);
-      tmp << 0.5, 0, -0.5;
-      vsubtmp.emplace_back(tmp);
+      vsubtmpAg.emplace_back(tmp);
+      vsubtmpFe.emplace_back(tmp);
+      tmp << 0.5, 0.5, 0.5;
+      vsubtmpFe.emplace_back(tmp);
+      tmp << 0.5, 0.5, 1./M_SQRT2;
+      vsubtmpAg.emplace_back(tmp);
       for (int ilay=1; ilay <= nlay; ilay++){
 //       Out of plane lattice vector
-	tmp << 0, 0, ilay - 1;
-	a3.emplace_back(tmp);
-
-	vsub.emplace_back(vsubtmp);
 
 //       Atom types
-        if((ilay >= 3) && (ilay <= nins+2)){
+        if((ilay == 3) && (nins > 0)){
+	  vsub.emplace_back(vsubtmpAg);
+	  tmp << 0, 0, (ilay - 1);
+	  a3.emplace_back(tmp);
 	  for (int isub = 0; isub < nsub; isub++)
-	    itmp.emplace_back(2); // Cu
+	    itmp.emplace_back(2); // Ag 
 	  itype.emplace_back(itmp);
 	  itmp.clear();
 	}
-//this for odd layers, but with ilay >= 4 above
-	/* else if(ilay == 3){ */               
-	/*   itmp.emplace_back(2); // Cu */
-	/*   itmp.emplace_back(1); // Co */
+//this for odd layers
+	/* if(ilay == 3){ */               
+	/*   vsub.emplace_back(vsubtmpFe); */
+	/*   tmp << 0, 0, (ilay - 1); */
+	/*   a3.emplace_back(tmp); */
+	/*   itmp.emplace_back(1); // Fe */
+	/*   itmp.emplace_back(2); // Ag */
 	/*   itype.emplace_back(itmp); */
 	/*   itmp.clear(); */
 	/* } */
-	else{
+	else if((ilay > 3) && (ilay <= nins+2)){
+	  vsub.emplace_back(vsubtmpAg);
+	  /* tmp << 0, 0, M_SQRT2*(ilay - 4) + 2 + (M_SQRT2 + 1)/2.; //This for odd layers */
+	  /* tmp << 0, 0, M_SQRT2*(ilay - 3) + 2; //This for even layers */
+	  tmp << 0, 0, ilay - 1;
+	  a3.emplace_back(tmp);
 	  for (int isub = 0; isub < nsub; isub++)
-	    itmp.emplace_back(1); //  Co
+	    itmp.emplace_back(2); // Ag 
+	  itype.emplace_back(itmp);
+	  itmp.clear();
+	}
+	else if (ilay < 3){
+	  vsub.emplace_back(vsubtmpAg);
+	  tmp << 0, 0, M_SQRT2*(ilay - 1);
+	  /* vsub.emplace_back(vsubtmpFe); */
+	  /* tmp << 0, 0, ilay - 1; */
+	  a3.emplace_back(tmp);
+	  for (int isub = 0; isub < nsub; isub++)
+	    itmp.emplace_back(2); //  Fe
+	  itype.emplace_back(itmp);
+	  itmp.clear();
+	}
+	else {
+	  vsub.emplace_back(vsubtmpAg);
+	  tmp << 0, 0, M_SQRT2*(ilay - 1);
+	  /* vsub.emplace_back(vsubtmpFe); */
+	  /* tmp << 0, 0, (nins - 1)*M_SQRT2 - nins - 1 + (M_SQRT2 + 1)/2. + ilay; //This for even layers */
+	  /* tmp << 0, 0, (nins - 1)*M_SQRT2 - nins + ilay; //This for odd layers */
+	  /* tmp << 0, 0, ilay - 1; */
+	  a3.emplace_back(tmp);
+	  for (int isub = 0; isub < nsub; isub++)
+	    itmp.emplace_back(2); //  Fe
 	  itype.emplace_back(itmp);
 	  itmp.clear();
 	}
@@ -400,14 +439,17 @@ int main(){
 
       for (int ilay=nlay-1; ilay <= nlay; ilay++){
 //       Out of plane lattice vector
-	tmp << 0, 0, ilay - 1;
+	/* tmp << 0, 0, (nins - 1)*M_SQRT2 - nins - 1 + (M_SQRT2 + 1)/2. + ilay; //This for even layers */
+	/* tmp << 0, 0, ilay - 1; */
+	/* tmp << 0, 0, (nins - 1)*M_SQRT2 - nins + ilay; //This for odd layers */
+	  tmp << 0, 0, M_SQRT2*(ilay - 1);
 	aa3.emplace_back(tmp);
 
 	vsubat.emplace_back(vsubattmp);
 
 //       Atom types
         for (int kk=1; kk <= nsubat; kk++)
-	  attype(kk-1) = 1;
+	  attype(kk-1) = 2;
 	itypeat.emplace_back(attype);
       }
 
@@ -450,6 +492,7 @@ int main(){
 	  }
 	}
 
+	/* cout<<mdist<<endl<<endl; */
 	dnn.emplace_back(mdist);
       }
 
@@ -464,9 +507,18 @@ int main(){
       vector<MatrixXd, aligned_allocator<MatrixXd>> ddnn;
       ddnn.reserve(numnn);
       MatrixXd ddnntmp(numat, numat);
-      ddnntmp.fill(1./M_SQRT2);// be aware, this appears to be for fcc only
+      double M_SQRT3o2 = sqrt(3.)/2.;
+      ddnntmp << M_SQRT3o2, M_SQRT3o2, M_SQRT3o2, 1.;
+      /* ddnntmp << M_SQRT3o2, 1., 1., 1.; //this for odd layers? */
       ddnn.emplace_back(ddnntmp);
-      ddnntmp.fill(1.);
+      ddnntmp << 1., 1., M_SQRT2/2. + 0.5, M_SQRT2; //original
+      /* ddnntmp << 1., 1., 1., M_SQRT2; // this for even layers? */
+      /* ddnntmp << 1., 1.20711, 1.20711, M_SQRT2; // this for odd layers? */
+      ddnn.emplace_back(ddnntmp);
+      double sq3nn = sqrt(7/4.+1./M_SQRT2);
+      ddnntmp << M_SQRT2, sq3nn, M_SQRT2, sqrt(3.); //original
+      /* ddnntmp << M_SQRT2, 1.20711, 1.20711, sqrt(3.);  // this for even layers? */
+      /* ddnntmp << M_SQRT2, M_SQRT2, M_SQRT2, sqrt(3.);  // this for odd layers? */
       ddnn.emplace_back(ddnntmp);
 
 //     =================================================================
@@ -490,7 +542,7 @@ int main(){
           for (int i1=-nlay; i1 <= nlay; i1++){
             for (int i2=-nlay; i2 <= nlay; i2++){
               rr=a3[ilay]+vsub[ilay][iii]+i1*a1+i2*a2;
-              if ((abs(rr(0)) < 0.5001) && (abs(rr(1)) < 0.5001))
+              if ((abs(rr(0)) < 1.3001) && (abs(rr(1)) < 1.3001))
                 idum0++;
 	    }
       	  }
@@ -504,9 +556,8 @@ int main(){
           for (int i1=-nlay; i1 <= nlay; i1++){
             for (int i2=-nlay; i2 <= nlay; i2++){
               rr=a3[ilay]+vsub[ilay][iii]+i1*a1+i2*a2;
-              if ((abs(rr(0)) < 0.5001) && (abs(rr(1)) < 0.5001)){
+              if ((abs(rr(0)) < 1.3001) && (abs(rr(1)) < 1.3001))
                 Myfile<<atname[(itype[ilay][iii]) - 1]<<" "<<4*rr.transpose()<<endl;
-	      }
 	    }
 	  }
 	}
@@ -626,66 +677,41 @@ int main(){
 
 //     =================================================================
 //     DO THE CALCULATION
-      m2d s0, p0, d0t, d0e;
+      Matrix2d s0, p0, d0t, d0e;
       vm2d sssint, spsint, ppsint, pppint, sdsint, pdsint, pdpint, ddsint, ddpint, dddint;
       sssint.reserve(2); spsint.reserve(2); ppsint.reserve(2); pppint.reserve(2); sdsint.reserve(2); 
       pdsint.reserve(2); pdpint.reserve(2); ddsint.reserve(2); ddpint.reserve(2); dddint.reserve(2);
       param(numat, numnn, s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint, pdsint, pdpint, ddsint, ddpint, dddint);
 
-      VectorXd vcuu(ndiff), vcud(ndiff), vcdu(ndiff), vcdd(ndiff);
-      VectorXcd zresu(ndiff), zresd(ndiff), zresud(ndiff), zresdu(ndiff);
-      vcuu.fill(0);
-      vcud.fill(0);
-      vcdu.fill(0);
-      vcdd.fill(0);
+      int ndiff = 0;
+
+      string Mydata_up = "Ag_spin_up_bands.txt";
+      string Mydata_down = "Ag_spin_down_bands.txt";
+      ofstream Myfile_up, Myfile_down;	
+      Myfile_up.open( Mydata_up.c_str(),ios::trunc );
+      Myfile_down.open( Mydata_down.c_str(),ios::trunc );
+
+      vVXd zresu, zresd;
 
       double fact = (M_PI + M_PI)*temp;
       dcomp ec, i;
       i = -1.;
       i = sqrt(i);
+      double j = 0;
       int nmat = nspin*nsub;
-      for (int iw=1; iw <= iwmax; iw++){
-        wm = M_PI*(2*iw-1)*temp;
-        ec = ef + i*wm;
-        kcon(nsubat,ifold,nfold,baib,nsub,ndiff,fact,zresu,zresd,zresud,zresdu,irecip,b1,b2,ec,nmat,mlay,nins,nlay,
-		nspin,imapl,imapr,vsub,vsubat,numnn,a1,a2,a3,aa1,aa2,aa3,itype,itypeat,ddnn,s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint,
-		pdsint, pdpint, ddsint, ddpint, dddint);
-        vcuu = vcuu - fact*zresu.real();
-        vcud = vcud - fact*zresud.real();
-        vcdu = vcdu - fact*zresdu.real();
-        vcdd = vcdd - fact*zresd.real();
-	cout<<"iw = "<<iw<<" complete"<<endl;
-      }
+        ec = j + i*wm;
+        kcon(nsubat,ifold,nfold,baib,nsub,ndiff,fact,zresu,zresd,irecip,b1,b2,ec,nmat,mlay,nins,nlay,
+  	  nspin,imapl,imapr,vsub,vsubat,numnn,a1,a2,a3,aa1,aa2,aa3,itype,itypeat,ddnn,s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint,
+	  pdsint, pdpint, ddsint, ddpint, dddint);
 
-      cout<<endl;
-      cout<<"****************************************************"<<endl;
-      cout<<"****************************************************"<<endl;
-      cout<<"UP SPIN"<<endl;
-      for (int in = 0; in < ndiff; in++)
-        cout<<scientific<<2*(in+1)<<" "<<vcuu(in)/nsub<<endl;
-      cout<<endl;
-      cout<<"****************************************************"<<endl;
-      cout<<"****************************************************"<<endl;
-      cout<<"DOWN SPIN"<<endl;
-      for (int in = 0; in < ndiff; in++)
-        cout<<2*(in+1)<<" "<<vcdd(in)/nsub<<endl;
-      cout<<endl;
-      cout<<"****************************************************"<<endl;
-      cout<<"****************************************************"<<endl;
-      cout<<"UP-DOWN SPIN"<<endl;
-      for (int in = 0; in < ndiff; in++)
-        cout<<2*(in+1)<<" "<<vcud(in)/nsub<<endl;
-      cout<<endl;
-      cout<<"****************************************************"<<endl;
-      cout<<"****************************************************"<<endl;
-      cout<<"DOWN-UP SPIN"<<endl;
-      for (int in = 0; in < ndiff; in++)
-        cout<<2*(in+1)<<" "<<vcdu(in)/nsub<<endl;
-      cout<<endl;
-      cout<<"****************************************************"<<endl;
-      cout<<"****************************************************"<<endl;
-      cout<<"(UP + DOWN - 2*AF)"<<endl;
-      for (int in = 0; in < ndiff; in++)
-        cout<<2*(in+1)<<" "<<-(vcuu(in)+vcdd(in)-vcdu(in)-vcud(in))/nsub<<endl;
+	int kk = 0;
+	for (auto const& value: zresu){
+  	  for (int jj = 0; jj<18; jj++)
+	    Myfile_up<<kk<<" "<<value(jj)<<endl;
+	  kk++;
+	}
+      Myfile_up.close();
+      Myfile_down.close();
+
       return 0;
 }

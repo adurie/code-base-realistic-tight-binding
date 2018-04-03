@@ -7,7 +7,16 @@
 #include <utility>
 #include <cstdlib>
 #include "CoCuCo.h"
-#include "calc.h"
+/* #include "cunningham_spawn.h" */
+/* #include "cunningham_quad.h" */
+#include "cunningham_multipoint.h"
+/* #include "cunningham_multipoint_par2.h" */
+/* #include "cunningham_multipoint_par1.h" */
+/* #include "cutest.h" */
+#include "calc_spawn.h"
+/* #include "calc_par.h" */
+/* #include "calc.h" */
+/* #include "calc_cunningham.h" */
 #include "greens.h"
 
 //     This program calculates the coupling for a general multilayer,
@@ -294,8 +303,11 @@ int main(){
       const int natom=nspin*nsubat;
       Vector3d aa1, aa2;
 
-      aa1 << 0.5, 0.5, 0;
-      aa2 << 0.5, -0.5, 0;
+      /* aa1 << 0.5, 0.5, 0; */
+      /* aa2 << 0.5, -0.5, 0; */
+
+      aa1 << 1, 0, 0;
+      aa2 << 0, -1, 0;
 
 //     =================================================================
 //     LH LEAD BASIS VECTORS
@@ -315,11 +327,11 @@ int main(){
 //       Sublattice
       tmp << 0, 0, 0;
       vsubattmp.emplace_back(tmp);
-      tmp << 0.25, 0, -0.25;
-      vsubattmp.emplace_back(tmp);
       tmp << 0.5, 0, -0.5;
       vsubattmp.emplace_back(tmp);
-      tmp << 0.75, 0, -0.75;
+      tmp << 0.5, -0.5, 0;
+      vsubattmp.emplace_back(tmp);
+      tmp << 0, -0.5, -0.5;
       vsubattmp.emplace_back(tmp);
       for (int ilay=1; ilay<=2; ilay++){
 //       Out of plane lattice vector
@@ -339,14 +351,17 @@ int main(){
 //     =================================================================
 
       const int nsub=4; //No. of sublayer atoms in spacer
-      vsubtmp.reserve(nsubat);
+      vsubtmp.reserve(nsub);
 
 //     2 in-plane lattice vectors
 //     CUBIC
       Vector3d a1, a2;
 
-      a1 << 0.5, 0.5, 0;
-      a2 << 0.5, -0.5, 0;
+      /* a1 << 0.5, 0.5, 0; */
+      /* a2 << 0.5, -0.5, 0; */
+
+      a1 << 1, 0, 0;
+      a2 << 0, -1, 0;
 
 //    ----------  Crystal structure ----------------------
       vector<vector<int>> itype;
@@ -356,11 +371,11 @@ int main(){
 //       Sublattice
       tmp << 0, 0, 0;
       vsubtmp.emplace_back(tmp);
-      tmp << 0.25, 0, -0.25;
-      vsubtmp.emplace_back(tmp);
       tmp << 0.5, 0, -0.5;
       vsubtmp.emplace_back(tmp);
-      tmp << 0.75, 0, -0.75;
+      tmp << 0.5, -0.5, 0;
+      vsubtmp.emplace_back(tmp);
+      tmp << 0, -0.5, -0.5;
       vsubtmp.emplace_back(tmp);
       for (int ilay=1; ilay <= nlay; ilay++){
 //       Out of plane lattice vector
@@ -368,6 +383,7 @@ int main(){
 	a3.emplace_back(tmp);
 
 	vsub.emplace_back(vsubtmp);
+
 //       Atom types
         if((ilay >= 3) && (ilay <= nins+2)){
 	  for (int isub = 0; isub < nsub; isub++)
@@ -430,6 +446,18 @@ int main(){
           imapr.emplace_back(4);
 	}
       }
+
+      /* vector<int> imapl, imapr; */
+      /* for (int isub = 0; isub < nsub; isub++){ */
+	/* if (isub == 0){ */
+      /*     imapl.emplace_back(1); */
+      /*     imapr.emplace_back(1); */
+	/* } */
+	/* if (isub == 1){ */
+      /*     imapl.emplace_back(2); */
+      /*     imapr.emplace_back(2); */
+	/* } */
+      /* } */
 
 //     =================================================================
 //     THIS SECTION TO GET NN DISTANCES ONLY
@@ -648,10 +676,6 @@ int main(){
       i = sqrt(i);
       int nmat = nspin*nsub;
       for (int iw=1; iw <= iwmax; iw++){
-        zresu.fill(0);
-        zresd.fill(0);
-        zresud.fill(0);
-        zresdu.fill(0);
         wm = M_PI*(2*iw-1)*temp;
         ec = ef + i*wm;
         kcon(nsubat,ifold,nfold,baib,nsub,ndiff,fact,zresu,zresd,zresud,zresdu,irecip,b1,b2,ec,nmat,mlay,nins,nlay,

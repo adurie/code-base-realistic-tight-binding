@@ -8,9 +8,7 @@
 
 using namespace std;
 using namespace Eigen;
-typedef Matrix2d m2d;
 typedef complex<double> dcomp;
-typedef vector<Matrix2d, aligned_allocator<Matrix2d>> vm2d;
 typedef vector<Vector3d, aligned_allocator<Vector3d>> vV3d;
 typedef vector<vector<Vector3d, aligned_allocator<Vector3d>>> vvV3d;
 typedef	vector<VectorXd, aligned_allocator<VectorXd>> vVXd;
@@ -122,15 +120,18 @@ int surfacenew(MatrixXcd &zu, MatrixXcd &zt, dcomp zener, MatrixXcd &zsurfl, Mat
       adlayer1(ztmp1,zu,zt,zener,n);
       adlayer1(ztmp2,zu,zs,zener,n);
       ztmp3 = ztmp1 - zsurfl;
-      if (ztmp3.cwiseAbs().maxCoeff() > 5e-5)
-        ifail=1;
-      zsurfl = ztmp1;
+      if (ztmp3.cwiseAbs().maxCoeff() > 5e-5){
+        zsurfl = ztmp1;
+        adlayer1(ztmp1,zu,zs,zener,n);
+        ztmp3 = ztmp1 - zsurfl;
+      }
       ztmp3 = ztmp2 - zsurfr;
       while (ztmp3.cwiseAbs().maxCoeff() > 5e-5){
 	zsurfr = ztmp2;
         adlayer1(ztmp2,zu,zs,zener,n);
         ztmp3 = ztmp2 - zsurfr;
       }
+      zsurfl = ztmp1;
       zsurfr = ztmp2;
 
       //This line shifts the bandstructure of Co at the surface if required
@@ -254,7 +255,7 @@ Matrix<complex<double>, 9, 9> eint1(double sss, double sps, double pps, double p
 }
 
 MatrixXcd sk(int ind1, int ind2, int nn, Vector3d &d, double dd, const Vector3d &xk, Vector3d &dpar, int nspin, int ispin,
-		const m2d &s0, const m2d &p0, const m2d &d0t, const m2d &d0e, const vm2d &sssint, 
+		const Matrix2d &s0, const Matrix2d &p0, const Matrix2d &d0t, const Matrix2d &d0e, const vm2d &sssint, 
 		const vm2d &spsint, const vm2d &ppsint, const vm2d &pppint, const vm2d &sdsint, 
 		const vm2d &pdsint, const vm2d &pdpint, const vm2d &ddsint, const vm2d &ddpint, const vm2d &dddint){
 //         calculate the cosine angles :
@@ -293,16 +294,16 @@ MatrixXcd sk(int ind1, int ind2, int nn, Vector3d &d, double dd, const Vector3d 
       }
       else{
 	nn--;
-        g1=sssint[ind1](ind2,nn);
-        g2=spsint[ind1](ind2,nn);
-        g3=ppsint[ind1](ind2,nn);
-        g4=pppint[ind1](ind2,nn);
-        g5=sdsint[ind1](ind2,nn);
-        g6=pdsint[ind1](ind2,nn);
-        g7=pdpint[ind1](ind2,nn);
-        g8=ddsint[ind1](ind2,nn);
-        g9=ddpint[ind1](ind2,nn);
-        g10=dddint[ind1](ind2,nn);
+        g1=sssint[elem][ind1](ind2,nn);
+        g2=spsint[elem][ind1](ind2,nn);
+        g3=ppsint[elem][ind1](ind2,nn);
+        g4=pppint[elem][ind1](ind2,nn);
+        g5=sdsint[elem][ind1](ind2,nn);
+        g6=pdsint[elem][ind1](ind2,nn);
+        g7=pdpint[elem][ind1](ind2,nn);
+        g8=ddsint[elem][ind1](ind2,nn);
+        g9=ddpint[elem][ind1](ind2,nn);
+        g10=dddint[elem][ind1](ind2,nn);
         rt = eint1(g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,c(0),c(1),c(2));
       }
       return rt*zexdk;

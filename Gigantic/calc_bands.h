@@ -5,10 +5,8 @@
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/StdVector>
 /* #include "greens.h" */
-#include "greens_large_array.h"
-/* #include "cunningham_quad.h" */
-/* #include "cunningham_spawn.h" */
-#include "cunningham_multipoint.h"
+/* #include "greens_large_array.h" */
+#include "bands.h"
 
 using namespace std;
 using namespace Eigen;
@@ -92,27 +90,14 @@ int testk(double x, double y, const Vector3d &b1, const Vector3d &b2, const vect
 }
 
 template <typename... Args>
-void sumk(int nsub, int nsubat, const vector<pair<int,int>> &ifold, int nfold, const Matrix3d &baib, int ndiff,
-	int nk, VectorXcd &zresu, VectorXcd &zresd, VectorXcd &zresud, VectorXcd &zresdu,
+void sumk(int nsub, int nsubat, const vector<pair<int,int>> &ifold, int nfold, const Matrix3d &baib,
+	vVXd &zresu, vVXd &zresd,
 	int irecip, Vector3d &b1, Vector3d &b2, dcomp zener, Args&&... params){
 
-      double dq;
-      if (nk != 1)
-        dq=1./(nk-1.);
-      if (nk == 1)
-	dq=1.;
-      int max=nk-1;
-      int nktot=0;
       Vector3d d1, d2, xk;
       double x, y;
-      int iwght;
       int ifail;
       int nxfold;
-      VectorXcd zconu(ndiff), zcond(ndiff), zconud(ndiff), zcondu(ndiff);
-      zconu.fill(0);
-      zcond.fill(0);
-      zconud.fill(0);
-      zcondu.fill(0);
       vector<Vector3d, aligned_allocator<Vector3d>> xfold;
 //     -----------------------------------------------------------------
       if (irecip == 0){
@@ -121,31 +106,19 @@ void sumk(int nsub, int nsubat, const vector<pair<int,int>> &ifold, int nfold, c
       }
 //     -----------------------------------------------------------------
 //     CUBIC
+      double kz = 0.;
+      VectorXd zconu(36), zcond(36);
       if (irecip == 1){
         d1=b1/2.;
         d2=b2/2.;
-
-        for (int i=0; i<=max; i++){
-          x=dq*i;
-          for (int j=0; j<=i; j++){
-            y=dq*j;
-  
+	      for (int k = 0; k<101; k++){
+	    kz = 0;
+	    y = k/100.;
+	    x = y;
             xk=x*d1+y*d2;
+	    if (k == 100)
+		    cout<<xk(0)<<" "<<xk(1)<<" "<<kz<<endl;
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-//         determine weights
-            iwght=8;
-            if (i == j)
-	      iwght=4;
-            if (j == 0)
-	      iwght=4;
-            if (i == max)
-	      iwght=4;
-            if (i == 0)
-	      iwght=1;
-            if (j == max)
-	      iwght=1;
-            if ((i == max) && (j == 0))
-	      iwght=2;
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 //         find the folding points
 
@@ -157,33 +130,62 @@ void sumk(int nsub, int nsubat, const vector<pair<int,int>> &ifold, int nfold, c
 
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-            nktot+=iwght;
-            ifail = cond(zener,xk,zconu,zcond,zconud,zcondu,nsub,nsubat,nxfold,xfold,forward<Args>(params)...);
-            if (ifail != 0)
-              cout<<i<<" "<<j<<endl;
-
-            zresu = zresu + zconu*iwght;
-            zresd = zresd + zcond*iwght;
-            zresud = zresud + zconud*iwght;
-            zresdu = zresdu + zcondu*iwght;
-//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-	  }
-	}
+            ifail = cond(kz,zener,xk,zconu,zcond,nsub,nsubat,nxfold,xfold,forward<Args>(params)...);
+            /* if (ifail != 0) */
+            /*   cout<<i<<" "<<j<<endl; */
+	    zresu.emplace_back(zconu);
+	    zresd.emplace_back(zcond);
+	      }
       }
+
       return;
 }
 
 template <typename... Args>
-double conv(VectorXd &xcold, VectorXd &xc, int ndiff){
+void kcon(int nsubat, const vector<pair<int,int>> &ifold, int nfold,const Matrix3d &baib, int nsub, int ndiff, double fact, 
+	vVXd &zresu, vVXd &zresd,
+	Args&&... params){
 
-      double diff, diffc;
+      /* double xc, xcold; */
+      /* double xcon=4.; */
+
+      /* int nk; */
+      /* double diff; */
+      /* int iamcon; */
+      /* for (int kk=1; kk<=10; kk++){ */
+        /* nk=1+pow(2,(kk+2)); */
+        /* zresu = 0.; */
+        /* zresd = 0.; */
+
+//       calculate the function
+        sumk(nsub,nsubat,ifold,nfold,baib,zresu,zresd,forward<Args>(params)...);
+        /* xc=(zresu+zresd)/nsub; */
 
 //       check for convergence
-      diff=0.;
-      for (int in=0; in<ndiff; in++){
-        diffc=abs(xc(in)-xcold(in));
-        diff=max(diff,diffc);
-      }
-      return diff;
+        /* diff=0.; */
+        /* iamcon=1; */
+        /* if (kk == 1) */
+	  /* iamcon=0; */
+	/* else{ */
+        /*   diff=abs(xc-xcold); */
+        /*   if (diff > xcon) */
+	    /* iamcon=0; */
+	/* } */
+        /* if (iamcon == 0){ */
+        /*   cout<<"NOT converged for nk = "<<nk<<"; xcon = "<<xcon<<"; error = "<<diff<<endl; */
+        /*   if (nk > 150){ */
+        /*     cout<<"FORGETTING THIS ENERGY POINT !!!"<<endl; */
+        /*     cout<<"K-POINT CONVERGENCE FAILED !! "<<diff<<endl; */
+	    /* break; */
+	  /* } */
+
+        /*   xcold=xc; */
+	/* } */
+        /* if (iamcon == 1){ */
+	  /* cout<<"converged for nk = "<<nk<<"; xcon = "<<xcon<<"; error = "<<diff<<endl; */
+	  /* break; */
+	/* } */
+      /* } */
+      return;
 }
 #endif
