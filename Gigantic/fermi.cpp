@@ -5,13 +5,13 @@
 using namespace std;
 
 int main(){
-	ifstream infile("dos_down2.txt");
+	ifstream infile("Fe_tdos.txt");
 	string line;
 	double DOS = 0;
 	double E = 0;
 	double step = 0.0026;
 	double a, b;
-	while (E < 4) 
+	while (E < 8) 
 	{
 		getline(infile, line);
 		istringstream iss(line);

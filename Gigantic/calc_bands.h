@@ -112,8 +112,8 @@ void sumk(int nsub, int nsubat, const vector<pair<int,int>> &ifold, int nfold, c
         d1=b1/2.;
         d2=b2/2.;
 	      for (int k = 0; k<101; k++){
-	    kz = 0;
-	    y = k/100.;
+	    kz = (2*M_PI)*k/100.;//remember no lattice constant transferred to bands.h
+	    y = 0;
 	    x = y;
             xk=x*d1+y*d2;
 	    if (k == 100)

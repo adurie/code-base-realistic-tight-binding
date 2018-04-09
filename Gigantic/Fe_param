@@ -1,0 +1,92 @@
+c
+c     two centre integrals; slater-koster parameters for spin polarized
+c     bcc Iron was obtained starting from the paramagnetic parametrization 
+c     of R H Victora "Magnetic and Electronic Properties of Transition
+c     Metals and Overlayers". Self consistency is performed shifting
+c     the centre of the d bands only (Udd=1.eV Usp=0) 
+c
+c     -----------------------------------------------------------------
+c     The first index in the tight binding parameter arrays refers to
+c         1: Fe up
+c         2: Fe down
+c     -----------------------------------------------------------------
+c
+C     With these params the Fermi energy is (Alex you need to check this)
+      ef=-0.02490135d0
+
+      delta = 1.545054d-01
+      dels2 = 0.5d0*delta
+c      
+
+c
+c     Fe up:      
+c      
+c     on site
+c      
+      s0(1) =  0.514d0
+      p0(1) =  1.118d0
+      d0t(1) = -0.089d0 - dels2
+      d0e(1) = -0.068d0 - dels2
+c
+c     first n.n.
+c      
+      sss(1,1) = -0.10605d0
+      sps(1,1) = -0.19326d0
+      pps(1,1) =  0.26932d0
+      ppp(1,1) = -0.00672d0
+      sds(1,1) = -0.08018d0
+      pds(1,1) =  0.09915d0
+      pdp(1,1) = -0.02467d0
+      dds(1,1) = -0.05669d0
+      ddp(1,1) =  0.03738d0
+      ddd(1,1) = -0.00669d0
+c      
+c     second n.n.
+c
+      sss(1,2) = -0.05276d0
+      sps(1,2) = -0.06725d0
+      pps(1,2) =  0.17199d0
+      ppp(1,2) =  0.03242d0
+      sds(1,2) = -0.03035d0
+      pds(1,2) =  0.05202d0
+      pdp(1,2) = -0.00092d0
+      dds(1,2) = -0.03367d0
+      ddp(1,2) =  0.01000d0
+      ddd(1,2) = -0.00075d0
+c     -----------------------------------------------------------------
+c
+c     Fe down:
+c      
+c     on site
+c      
+      s0(2) =  0.514d0
+      p0(2) =  1.118d0
+      d0t(2) = -0.089d0 + dels2
+      d0e(2) = -0.068d0 + dels2
+c
+c     first n.n.
+c      
+      sss(2,1) = -0.10605d0
+      sps(2,1) = -0.19326d0
+      pps(2,1) =  0.26932d0
+      ppp(2,1) = -0.00672d0
+      sds(2,1) = -0.08018d0
+      pds(2,1) =  0.09915d0
+      pdp(2,1) = -0.02467d0
+      dds(2,1) = -0.05669d0
+      ddp(2,1) =  0.03738d0
+      ddd(2,1) = -0.00669d0
+c      
+c     second n.n.
+c
+      sss(2,2) = -0.05276d0
+      sps(2,2) = -0.06725d0
+      pps(2,2) =  0.17199d0
+      ppp(2,2) =  0.03242d0
+      sds(2,2) = -0.03035d0
+      pds(2,2) =  0.05202d0
+      pdp(2,2) = -0.00092d0
+      dds(2,2) = -0.03367d0
+      ddp(2,2) =  0.01000d0
+      ddd(2,2) = -0.00075d0
+c     -----------------------------------------------------------------
