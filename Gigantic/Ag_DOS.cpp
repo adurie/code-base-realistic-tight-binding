@@ -8,7 +8,8 @@
 #include <eigen3/Eigen/StdVector>
 #include <utility>
 #include <cstdlib>
-#include "FeAgFe.h"
+/* #include "FeAgFe.h" */
+#include "FeAgFe_new.h"
 /* #include "cunningham_spawn.h" */
 /* #include "cunningham_quad.h" */
 /* #include "cunningham_multipoint.h" */
@@ -19,7 +20,7 @@
 /* #include "calc_par.h" */
 #include "calc_dos.h"
 /* #include "calc_cunningham.h" */
-#include "dos.h"
+#include "dos_new.h"
 
 
 //     This program calculates the coupling for a general multilayer,
@@ -52,9 +53,6 @@ using namespace Eigen;
 typedef complex<double> dcomp;
 typedef vector<Vector3d, aligned_allocator<Vector3d>> vV3d;
 typedef vector<vector<Vector3d, aligned_allocator<Vector3d>>> vvV3d;
-typedef Matrix<double, 2, 3> m23;
-typedef vector<m23, aligned_allocator<m23>> m2d;
-typedef vector<vector<m23, aligned_allocator<m23>>> vm2d;
 
 bool WayToSort(double i, double j){ return abs(i) < abs(j);}
 
@@ -280,7 +278,7 @@ int main(){
 
 //     DATA
       const int nspin=9;    // Number of energy bands
-      const int numnn=3;    // No of nearest neighbours 
+      const int numnn=2;    // No of nearest neighbours 
 
       const int nins=0;    // No of spacer principal layers
       const int mlay=0;     // No of substrate layers on each side of SGF
@@ -515,11 +513,11 @@ int main(){
       /* ddnntmp << 1., 1., 1., M_SQRT2; // this for even layers? */
       /* ddnntmp << 1., 1.20711, 1.20711, M_SQRT2; // this for odd layers? */
       ddnn.emplace_back(ddnntmp);
-      double sq3nn = sqrt(7/4.+1./M_SQRT2);
-      ddnntmp << M_SQRT2, sq3nn, M_SQRT2, sqrt(3.); //original
+      /* double sq3nn = sqrt(7/4.+1./M_SQRT2); */
+      /* ddnntmp << M_SQRT2, sq3nn, M_SQRT2, sqrt(3.); //original */
       /* ddnntmp << M_SQRT2, 1.20711, 1.20711, sqrt(3.);  // this for even layers? */
       /* ddnntmp << M_SQRT2, M_SQRT2, M_SQRT2, sqrt(3.);  // this for odd layers? */
-      ddnn.emplace_back(ddnntmp);
+      /* ddnn.emplace_back(ddnntmp); */
 
 //     =================================================================
 //     !!!!!!! OUTPUT ATOMIC POSITIONS FOR RASMOL VIEWER !!!!!!

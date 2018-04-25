@@ -89,8 +89,8 @@ void param(int numat, int numnn, Matrix2d &s0, Matrix2d &p0, Matrix2d &d0t, Matr
       for (int isp=0; isp<2; isp++){
         s0(1,isp) =  0.68297;
         p0(1,isp) =  1.13432;
-        d0t(1,isp) =  0.5*(0.12249 + 0.12006);
-        d0e(1,isp) =  0.5*(0.12249 + 0.12006);
+        d0t(1,isp) =  0.12249;
+        d0e(1,isp) =  0.12006;
       }
 
 //     first n.n.

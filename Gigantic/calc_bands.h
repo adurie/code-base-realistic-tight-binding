@@ -6,7 +6,7 @@
 #include <eigen3/Eigen/StdVector>
 /* #include "greens.h" */
 /* #include "greens_large_array.h" */
-#include "bands.h"
+#include "bands_new.h"
 
 using namespace std;
 using namespace Eigen;
@@ -112,9 +112,11 @@ void sumk(int nsub, int nsubat, const vector<pair<int,int>> &ifold, int nfold, c
         d1=b1/2.;
         d2=b2/2.;
 	      for (int k = 0; k<101; k++){
-	    kz = (2*M_PI)*k/100.;//remember no lattice constant transferred to bands.h
+	    /* kz = (2*M_PI)*k/100.;//remember no lattice constant transferred to bands.h */
+
+		      kz = 0;
 	    y = 0;
-	    x = y;
+	    x = k/100.;
             xk=x*d1+y*d2;
 	    if (k == 100)
 		    cout<<xk(0)<<" "<<xk(1)<<" "<<kz<<endl;

@@ -28,7 +28,7 @@ void adlayer1(MatrixXcd &zgl, MatrixXcd &zu, MatrixXcd &zt, dcomp zener, int n){
       return;
 }
 
-int surfacenew(MatrixXcd &zu, MatrixXcd &zt, dcomp zener, MatrixXcd &zsurfl, MatrixXcd &zsurfr, int natom){
+int surfacenew(MatrixXcd &zu, MatrixXcd &zt, dcomp zener, double phase, MatrixXcd &zsurfl, MatrixXcd &zsurfr, int natom){
 //     this routine is written for the atomic cell SGF
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
       int n=natom;                       
@@ -134,8 +134,8 @@ int surfacenew(MatrixXcd &zu, MatrixXcd &zt, dcomp zener, MatrixXcd &zsurfl, Mat
       zsurfr = ztmp2;
 
       //This line shifts the bandstructure of Co at the surface if required
-      /* adlayer1(zsurfr,zu,zs,zener-0.05,n); */
-      /* adlayer1(zsurfr,zu,zs,zener-0.05,n); */
+      adlayer1(zsurfr,zu,zs,zener+phase,n);
+      adlayer1(zsurfr,zu,zs,zener+phase,n);
 
       return ifail;
 }
@@ -422,7 +422,7 @@ dcomp coupl(MatrixXcd &zgsl, MatrixXcd &zgsr, MatrixXcd &zt){
 }
 
 template <typename... Args>
-int green(dcomp zener, int ispin, string &side, MatrixXcd &zgl, MatrixXcd &zgr, 
+int green(dcomp zener, double phase, int ispin, string &side, MatrixXcd &zgl, MatrixXcd &zgr, 
 	int nsub, int nsubat, int nlay, int nmat, int nxfold, vV3d &xfold, int nspin, vector<int> &imapl, 
 	vector<int> &imapr, const vvV3d &vsub, const vvV3d &vsubat, Args&&... params){
 
@@ -470,7 +470,7 @@ int green(dcomp zener, int ispin, string &side, MatrixXcd &zgl, MatrixXcd &zgr,
         zuat = hamil(xkat,ilay+1,ilay+1,ispin,1,nsubat,nsubat,nmat,nspin,imapl,imapr,vsub,vsubat,forward<Args>(params)...);
 
         ifail=0;
-        ifail = surfacenew(zuat,ztat,zener,zglat,zgrat,natom);
+        ifail = surfacenew(zuat,ztat,zener,phase,zglat,zgrat,natom);
         if (ifail != 0)// zt has a near zero eigenvalue
 	  cout<<"eigenvalues ill-conditioned. Consider coding to higher precision"<<endl;
 
@@ -503,8 +503,8 @@ int green(dcomp zener, int ispin, string &side, MatrixXcd &zgl, MatrixXcd &zgr,
 }
 
 template <typename... Args>
-int cond(dcomp zener, const Vector3d &xk, VectorXcd &zconu, VectorXcd &zcond, VectorXcd &zconud, VectorXcd &zcondu,
-	int nsub, int nsubat, int nxfold, vV3d &xfold, int nmat, int mlay, int nins, int nlay, Args&&... params){
+int cond(dcomp zener, const Vector3d &xk, dcomp &zconu, dcomp &zcond, dcomp &zconud, dcomp &zcondu,
+	int nsub, int nsubat, int nxfold, vV3d &xfold, double phase, int nmat, int mlay, int nins, int nlay, Args&&... params){
 
 //     Calculate the coupling at a given k// , via the det formula,
 //     in the supercell representation -- so that the SGF's are nmatx x nmatx
@@ -516,10 +516,10 @@ int cond(dcomp zener, const Vector3d &xk, VectorXcd &zconu, VectorXcd &zcond, Ve
       string st = "LH";
       MatrixXcd zglu(nmat, nmat), zgru(nmat, nmat), zgld(nmat, nmat), zgrd(nmat, nmat);
       MatrixXcd zt(nmat, nmat), zu(nmat, nmat), ztdag(nmat, nmat), zudag(nmat, nmat);
-      ifail = green(zener,+1,st,zglu,zgru,nsub,nsubat,nlay,nmat,nxfold,xfold,forward<Args>(params)...);   // LH UP
+      ifail = green(zener,phase,+1,st,zglu,zgru,nsub,nsubat,nlay,nmat,nxfold,xfold,forward<Args>(params)...);   // LH UP
       if (ifail != 0)
 	return ifail;
-      ifail = green(zener,-1,st,zgld,zgrd,nsub,nsubat,nlay,nmat,nxfold,xfold,forward<Args>(params)...);   // LH DOWN
+      ifail = green(zener,phase,-1,st,zgld,zgrd,nsub,nsubat,nlay,nmat,nxfold,xfold,forward<Args>(params)...);   // LH DOWN
       if (ifail != 0)
 	return ifail;
 //     -----------------------------------------------------------------
@@ -585,23 +585,22 @@ int cond(dcomp zener, const Vector3d &xk, VectorXcd &zconu, VectorXcd &zcond, Ve
         zt = hamil(xk,ill+mlay+1,ill+mlay+2,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
         zu = hamil(xk,ill+mlay+2,ill+mlay+2,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
         adlayer1(zgld,zu,zt,zener,nmat);
-
-//       SPIN UP
-        zt = hamil(xk,1+nins+mlay,2+nins+mlay,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        zconu(ill) = coupl(zglu,zgru,zt);
-	
-//       SPIN DOWN
-        zt = hamil(xk,1+nins+mlay,2+nins+mlay,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        zcond(ill) = coupl(zgld,zgrd,zt);
-
-//       SPIN UP-DOWN
-        zt = hamil(xk,1+nins+mlay,2+nins+mlay,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        zconud(ill) = coupl(zglu,zgrd,zt);
-
-//       SPIN DOWN-UP
-        zt = hamil(xk,1+nins+mlay,2+nins+mlay,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
-        zcondu(ill) = coupl(zgld,zgru,zt);
       }
+//     SPIN UP
+      zt = hamil(xk,1+nins+mlay,2+nins+mlay,+1,0,nsub,nsubat,nmat,forward<Args>(params)...);
+      zconu = coupl(zglu,zgru,zt);
+
+//     SPIN DOWN-UP
+      zcondu = coupl(zgld,zgru,zt);
+
+//     SPIN DOWN
+      zt = hamil(xk,1+nins+mlay,2+nins+mlay,-1,0,nsub,nsubat,nmat,forward<Args>(params)...);
+      zcond = coupl(zgld,zgrd,zt);
+
+//     SPIN UP-DOWN
+      zconud = coupl(zglu,zgrd,zt);
+
+
       return ifail;
 }
 #endif
