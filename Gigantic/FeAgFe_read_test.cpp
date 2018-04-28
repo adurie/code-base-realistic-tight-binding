@@ -1,4 +1,5 @@
 #include <iostream>
+#include <map>
 /* #define EIGEN_USE_MKL_ALL */
 /* #include "eigen3/Eigen/src/Core/util/MKL_support.h" */
 #include <string>
@@ -8,8 +9,8 @@
 #include <eigen3/Eigen/StdVector>
 #include <utility>
 #include <cstdlib>
-#include "FeAgFe_new.h"
-/* #include "FeAgFe_read_test.h" */
+/* #include "FeAgFe_new.h" */
+#include "FeAgFe_read_test.h"
 /* #include "cunningham_spawn.h" */
 /* #include "cunningham_quad.h" */
 /* #include "cunningham_multipoint.h" */
@@ -21,8 +22,8 @@
 #include "calc.h"
 /* #include "calc_cunningham.h" */
 /* #include "greens_large_array.h" */
-/* #include "greens_read_test.h" */
-#include "greens.h"
+#include "greens_read_test.h"
+/* #include "greens.h" */
 
 //     This program calculates the coupling for a general multilayer,
 //     with general supercell configuration, and general growth direction.
@@ -55,6 +56,7 @@ typedef complex<double> dcomp;
 typedef vector<Vector3d, aligned_allocator<Vector3d>> vV3d;
 typedef vector<vector<Vector3d, aligned_allocator<Vector3d>>> vvV3d;
 typedef vector<Matrix2d, aligned_allocator<Matrix2d>> vm2d;
+typedef map<vector<double>, MatrixXcd, less<vector<double>>, aligned_allocator<pair<const vector<double>, MatrixXcd>>> maaap;
 
 bool WayToSort(double i, double j){ return abs(i) < abs(j);}
 
@@ -214,6 +216,53 @@ vector<pair<int,int>> folding(Matrix3d &baib, const Vector3d &b1, const Vector3d
         cout<<i+1<<" "<<ifold[i].first<<" "<<ifold[i].second<<endl;
       cout<<endl<<endl;
       return ifold;
+}
+
+MatrixXcd read(int nn, vector<double> &dvec, int nspin, int ispin){
+      string input;
+      if (ispin == +1)
+        input = "iron_up_hr.dat";
+      if (ispin == -1)
+        input = "iron_dn_hr.dat";
+      ifstream infile(input);
+      MatrixXcd rt(nspin,nspin);
+      rt.fill(0.);
+  
+      dcomp i;
+      i = -1;
+      i = sqrt(i);
+      string line;
+      double a, b, c, d, e, f, g;
+      double eV_Ry = 0.073498618;
+      double iron_fermi = 13.4; // obtained from Wannier90 scf.out
+      iron_fermi *= eV_Ry;
+      double silver_fermi = 0.4635; //this is lazy - amend to carry this through
+      double cshift = silver_fermi - iron_fermi;
+      complex<double> im;
+      if (nn == 0){
+        while (!infile.eof()) 
+        {
+		getline(infile, line);
+		istringstream iss(line);
+		iss >> a >> b >> c >> d >> e >> f >> g;
+		if ((a == 0) && (b == 0) && (c == 0))
+		{
+			if (d == e)
+				rt(d-1,e-1) = (f + g*i)*eV_Ry + cshift;
+		}
+        }
+      }
+      else{
+        while (!infile.eof()) 
+        {
+		getline(infile, line);
+		istringstream iss(line);
+		iss >> a >> b >> c >> d >> e >> f >> g;
+		if ((a == 2*dvec[0]) && (b == 2*dvec[1]) && (c == 2*dvec[2]))
+			rt(d-1,e-1) = (f + g*i)*eV_Ry;
+        }
+      }
+      return rt;
 }
 
 vector<double> prestructij(int ilay, int jlay, int nsub, const vvV3d &vsub, 
@@ -670,6 +719,28 @@ int main(){
       pdsint.reserve(2); pdpint.reserve(2); ddsint.reserve(2); ddpint.reserve(2); dddint.reserve(2);
       param(numat, numnn, s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint, pdsint, pdpint, ddsint, ddpint, dddint);
 
+      maaap H_iron_up, H_iron_dn;
+      vector<double> d;
+      d.reserve(3);
+
+      int nn;
+      for (int a = -2; a < 3; a++){
+	for (int b = -2; b < 3; b++){
+          for (int c = -2; c < 3; c++){
+            d.emplace_back(a/2.);
+            d.emplace_back(b/2.);
+            d.emplace_back(c/2.);
+	    if ((a == 0) && (b == 0) && (c == 0))
+	      nn = 0;
+	    else
+	      nn = 1;
+	    H_iron_up[d] = read(nn, d, nspin, +1);
+	    H_iron_dn[d] = read(nn, d, nspin, -1);
+	    d.clear();
+	  }
+	}
+      }
+
       VectorXd vcuu(ndiff), vcud(ndiff), vcdu(ndiff), vcdd(ndiff);
       VectorXcd zresu(ndiff), zresd(ndiff), zresud(ndiff), zresdu(ndiff);
       vcuu.fill(0);
@@ -686,7 +757,8 @@ int main(){
         wm = M_PI*(2*iw-1)*temp;
         ec = ef + i*wm;
         kcon(nsubat,ifold,nfold,baib,nsub,ndiff,fact,zresu,zresd,zresud,zresdu,irecip,b1,b2,ec,nmat,mlay,nins,nlay,
-		nspin,imapl,imapr,vsub,vsubat,numnn,a1,a2,a3,aa1,aa2,aa3,itype,itypeat,ddnn,s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint,
+		nspin,imapl,imapr,vsub,vsubat,numnn,a1,a2,a3,aa1,aa2,aa3,itype,itypeat,ddnn, H_iron_up, H_iron_dn,
+		s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint,
 		pdsint, pdpint, ddsint, ddpint, dddint);
         vcuu = vcuu - fact*zresu.real();
         vcud = vcud - fact*zresud.real();

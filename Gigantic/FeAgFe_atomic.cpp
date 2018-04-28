@@ -8,6 +8,7 @@
 #include <eigen3/Eigen/StdVector>
 #include <utility>
 #include <cstdlib>
+/* #include "FeAgFe_read_test.h" */
 #include "FeAgFe_new.h"
 /* #include "cunningham_spawn.h" */
 /* #include "cunningham_quad.h" */
@@ -821,7 +822,7 @@ int main(){
       /* cout<<"(UP + DOWN - 2*AF)"<<endl; */
 
       ofstream Myfile;	
-      string Mydata = "IEC_FeAgFe_shift.txt";
+      string Mydata = "IEC_FeAgFe_no_gmean.txt";
       Myfile.open( Mydata.c_str(),ios::trunc );
       for (int in = 0; in < ndiff; in++){
         Myfile<<2*(in+1)-1<<" "<<-(vcuu_odd(in)+vcdd_odd(in)-vcdu_odd(in)-vcud_odd(in))/nsub<<endl;
