@@ -227,6 +227,11 @@ MatrixXcd read(int nn, vector<double> &dvec, int nspin, int ispin){
       ifstream infile(input);
       MatrixXcd rt(nspin,nspin);
       rt.fill(0.);
+      Vector3d a_1, a_2, a_3;
+      a_1 << 1, 1, 1;
+      a_2 << -1, 1, 1;
+      a_3 << -1, -1, 1;
+      Vector3d A;
   
       dcomp i;
       i = -1;
@@ -247,7 +252,7 @@ MatrixXcd read(int nn, vector<double> &dvec, int nspin, int ispin){
 		iss >> a >> b >> c >> d >> e >> f >> g;
 		if ((a == 0) && (b == 0) && (c == 0))
 		{
-			if (d == e)
+			/* if (d == e) */
 				rt(d-1,e-1) = (f + g*i)*eV_Ry + cshift;
 		}
         }
@@ -258,7 +263,8 @@ MatrixXcd read(int nn, vector<double> &dvec, int nspin, int ispin){
 		getline(infile, line);
 		istringstream iss(line);
 		iss >> a >> b >> c >> d >> e >> f >> g;
-		if ((a == 2*dvec[0]) && (b == 2*dvec[1]) && (c == 2*dvec[2]))
+		A = a*a_1 + b*a_2 + c*a_3;
+		if ((A(0) == dvec(0)) && (A(1) == dvec(1)) && (A(2) == dvec(2)))
 			rt(d-1,e-1) = (f + g*i)*eV_Ry;
         }
       }
