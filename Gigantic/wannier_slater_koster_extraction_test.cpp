@@ -3,14 +3,14 @@
 #include <fstream>
 #include <eigen3/Eigen/Dense>
 #include <vector>
-#include "TB_sk.h"
+#include "TB.h"
 /* #include "TBdynamic.h" */
 
 using namespace std;
 using namespace Eigen;
 typedef complex<double> dcomp;
 //calculates the bandstructure of fcc Cu
-Matrix<double,10,1> sk_extraction(const Matrix<double,9,9> &t, const Vector3d &pos){
+Matrix<double, 9,9> workinprogress(Vector3d &pos){
 	Matrix<double,81,10> b;
 	b.fill(0);
 
@@ -218,7 +218,7 @@ Matrix<double,10,1> sk_extraction(const Matrix<double,9,9> &t, const Vector3d &p
 	b(80,7) = f3*f3;
 	b(80,8) = 3.*zz*f1;
 	b(80,9) = .75*f1*f1;
-	/* Matrix<double,10,1> test; */
+	Matrix<double,10,1> test;
         /* test(0) = -0.05276; */
         /* test(1) = -0.06725; */
         /* test(2) =  0.17199; */
@@ -229,50 +229,30 @@ Matrix<double,10,1> sk_extraction(const Matrix<double,9,9> &t, const Vector3d &p
         /* test(7) = -0.03367; */
         /* test(8) =  0.01000; */
         /* test(9) = -0.00075; */
-        /* test(0) = -0.10605; */
-        /* test(1) = -0.19326; */
-        /* test(2) =  0.26932; */
-        /* test(3) = -0.00672; */
-        /* test(4) = -0.08018; */
-        /* test(5) =  0.09915; */
-        /* test(6) = -0.02467; */
-        /* test(7) = -0.05669; */
-        /* test(8) =  0.03738; */
-        /* test(9) = -0.00669; */
-	/* Matrix<double,81,1> test2; */
-	/* test2 = b*test; */
-	/* Matrix<double,9,9> test3; */
-	/* test3.row(0) = test2.head(9); */
-	/* test3.row(1) = test2.segment(9,9); */
-	/* test3.row(2) = test2.segment(18,9); */
-	/* test3.row(3) = test2.segment(27,9); */
-	/* test3.row(4) = test2.segment(36,9); */
-	/* test3.row(5) = test2.segment(45,9); */
-	/* test3.row(6) = test2.segment(54,9); */
-	/* test3.row(7) = test2.segment(63,9); */
-	/* test3.row(8) = test2.tail(9); */
-	Matrix<double,10,81> bdagg;
-	bdagg = b.adjoint();
-	Matrix<double,10,10> bbdg, bbdg_inv;
-	bbdg = bdagg*b;
-	bbdg_inv = bbdg.inverse();
-	Matrix<double,81,1> tvec;
-	tvec.head(9) = t.row(0);
-	tvec.segment(9,9) = t.row(1);
-	tvec.segment(18,9) = t.row(2);
-	tvec.segment(27,9) = t.row(3);
-	tvec.segment(36,9) = t.row(4);
-	tvec.segment(45,9) = t.row(5);
-	tvec.segment(54,9) = t.row(6);
-	tvec.segment(63,9) = t.row(7);
-	tvec.tail(9) = t.row(8);
+        test(0) = -0.10605;
+        test(1) = -0.19326;
+        test(2) =  0.26932;
+        test(3) = -0.00672;
+        test(4) = -0.08018;
+        test(5) =  0.09915;
+        test(6) = -0.02467;
+        test(7) = -0.05669;
+        test(8) =  0.03738;
+        test(9) = -0.00669;
+	Matrix<double,81,1> test2;
+	test2 = b*test;
+	Matrix<double,9,9> test3;
+	test3.row(0) = test2.head(9);
+	test3.row(1) = test2.segment(9,9);
+	test3.row(2) = test2.segment(18,9);
+	test3.row(3) = test2.segment(27,9);
+	test3.row(4) = test2.segment(36,9);
+	test3.row(5) = test2.segment(45,9);
+	test3.row(6) = test2.segment(54,9);
+	test3.row(7) = test2.segment(63,9);
+	test3.row(8) = test2.tail(9);
 
-	Matrix<double,10,81> tmp;
-	tmp = bbdg_inv*bdagg;
-	Matrix<double,10,1> V;
-	V = tmp*tvec;
-
-	return V;
+	return test3;
 }
 
 Matrix<dcomp, 9, 9> convert(Matrix<dcomp, 9, 9> &t){
@@ -372,80 +352,34 @@ int main(){
 	d_16 << 0, -2*a, 0;
 	d_17 << 0, 0, 2*a;
 	d_18 << 0, 0, -2*a;
+	Matrix<double,9,9> testmat1;
+	testmat1 = workinprogress(d_8);
+	Matrix<dcomp, 9,9> testmat2;
+	testmat2 = TB(0,1,0,9,d_8);
+	cout<<testmat2.real()-testmat1<<endl<<endl;
+	cout<<testmat2.imag()<<endl<<endl;
 
+	//initialise onsite and hopping matrices for each nn
 	Matrix<dcomp, 9, 9> u;
 	Matrix<dcomp, 9, 9> t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8;
 	Matrix<dcomp, 9, 9> t_13, t_14, t_15, t_16;
 	Matrix<dcomp, 9, 9> t_17, t_18;
 	u = read(d_0, ispin);
 	t_1 = read(d_1, ispin);
+	t_2 = read(d_2, ispin);
 	t_3 = read(d_3, ispin);
+	t_4 = read(d_4, ispin);
 	t_5 = read(d_5, ispin);
+	t_6 = read(d_6, ispin);
+	t_7 = read(d_7, ispin);
+	t_8 = read(d_8, ispin);
+
 	t_13 = read(d_13, ispin);
-
-	ComplexEigenSolver<Matrix<dcomp, 9, 9>> uu;
-	uu.compute(u);
-	Matrix<dcomp, 9, 9> lambda;
-	Matrix<dcomp, 9, 9> Oo, Odagg;
-	lambda = uu.eigenvalues().asDiagonal();
-	/* cout<<lambda.real()<<endl<<endl; */
-	Oo = uu.eigenvectors();
-	/* Oo = convert(Oo); */
-	Odagg = Oo.adjoint();
-	t_1 = convert(t_1);
-	t_1 = Odagg*t_1*Oo;
-	t_3 = convert(t_3);
-	t_3 = Odagg*t_3*Oo;
-	t_5 = convert(t_5);
-	t_5 = Odagg*t_5*Oo;
-	t_13 = convert(t_13);
-	t_13 = Odagg*t_13*Oo;
-	/* cout<<(Odagg*u*O).real()<<endl<<endl; */
-	lambda = convert(lambda);
-	Matrix<double,10,1> nn,nnn;
-	Matrix<double,9,9> test;
-	test = t_1.real();
-	nn = sk_extraction(test, d_1);
-	cout<<nn<<endl<<endl;
-	test = t_3.real();
-	nn = sk_extraction(test, d_3);
-	cout<<nn<<endl<<endl;
-	test = t_5.real();
-	nn = sk_extraction(test, d_5);
-	cout<<nn<<endl<<endl;
-	test = t_13.real();
-	nnn = sk_extraction(test, d_13);
-	cout<<nnn<<endl<<endl;
-
-	//initialise onsite and hopping matrices for each nn
-	t_2 = TB(0,1,0,9,d_2,nn,nnn);
-	t_3 = TB(0,1,0,9,d_3,nn,nnn);
-	t_4 = TB(0,1,0,9,d_4,nn,nnn);
-	t_5 = TB(0,1,0,9,d_5,nn,nnn);
-	t_6 = TB(0,1,0,9,d_6,nn,nnn);
-	t_7 = TB(0,1,0,9,d_7,nn,nnn);
-	t_8 = TB(0,1,0,9,d_8,nn,nnn);
-
-	/* t_2 = read(d_2, ispin); */
-	/* t_3 = read(d_3, ispin); */
-	/* t_4 = read(d_4, ispin); */
-	/* t_5 = read(d_5, ispin); */
-	/* t_6 = read(d_6, ispin); */
-	/* t_7 = read(d_7, ispin); */
-	/* t_8 = read(d_8, ispin); */
-
-	t_14 = TB(0,1,1,9,d_14,nn,nnn);
-	t_15 = TB(0,1,1,9,d_15,nn,nnn);
-	t_16 = TB(0,1,1,9,d_16,nn,nnn);
-	t_17 = TB(0,1,1,9,d_17,nn,nnn);
-	t_18 = TB(0,1,1,9,d_18,nn,nnn);
-
-	/* t_14 = read(d_14, ispin); */
-	/* t_15 = read(d_15, ispin); */
-	/* t_16 = read(d_16, ispin); */
-	/* t_17 = read(d_17, ispin); */
-	/* t_18 = read(d_18, ispin); */
-
+	t_14 = read(d_14, ispin);
+	t_15 = read(d_15, ispin);
+	t_16 = read(d_16, ispin);
+	t_17 = read(d_17, ispin);
+	t_18 = read(d_18, ispin);
 	/* Myfile<<"P X Y"<<endl; */
 	Myfile<<"X Y"<<endl;
 
@@ -461,6 +395,45 @@ int main(){
 	/* Matrix<dcomp, 18, 18> U, T; */
 	/* Matrix<complex<double>, 9, 9> zero = Matrix<complex<double>, 9, 9>::Zero(); */
 
+	ComplexEigenSolver<Matrix<dcomp, 9, 9>> uu;
+	uu.compute(u);
+	Matrix<dcomp, 9, 9> lambda;
+	Matrix<dcomp, 9, 9> Oo, Odagg;
+	lambda = uu.eigenvalues().asDiagonal();
+	/* cout<<lambda.real()<<endl<<endl; */
+	Oo = uu.eigenvectors();
+	/* Oo = convert(Oo); */
+	Odagg = Oo.adjoint();
+	/* cout<<(Odagg*u*O).real()<<endl<<endl; */
+	lambda = convert(lambda);
+	t_1 = Odagg*t_1*Oo;
+	t_1 = convert(t_1);
+	t_2 = Odagg*t_2*Oo;
+	t_2 = convert(t_2);
+	t_3 = Odagg*t_3*Oo;
+	t_3 = convert(t_3);
+	t_4 = Odagg*t_4*Oo;
+	t_4 = convert(t_4);
+	t_5 = Odagg*t_5*Oo;
+	t_5 = convert(t_5);
+	t_6 = Odagg*t_6*Oo;
+	t_6 = convert(t_6);
+	t_7 = Odagg*t_7*Oo;
+	t_7 = convert(t_7);
+	t_8 = Odagg*t_8*Oo;
+	t_8 = convert(t_8);
+	t_13 = Odagg*t_13*Oo;
+	t_13 = convert(t_13);
+	t_14 = Odagg*t_14*Oo;
+	t_14 = convert(t_14);
+	t_15 = Odagg*t_15*Oo;
+	t_15 = convert(t_15);
+	t_16 = Odagg*t_16*Oo;
+	t_16 = convert(t_16);
+	t_17 = Odagg*t_17*Oo;
+	t_17 = convert(t_17);
+	t_18 = Odagg*t_18*Oo;
+	t_18 = convert(t_18);
 
 	double k_x, k_y, k_z, pi;
 	Vector3d K;
