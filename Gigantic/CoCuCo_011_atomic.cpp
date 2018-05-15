@@ -130,74 +130,13 @@ vector<pair<int,int>> folding(Matrix3d &baib, const Vector3d &b1, const Vector3d
       baib = bba*bb;
 //     -----------------------------------------------------------------
       vector<pair<int,int>> ifold;
-      int icnt=0;
-      Vector3d tmp1, tmp2;
-      double xsym, ysym, x1, x2;
-      int cond;
-      pair<int,int> foldtmp;
-
       if (irecipa == 0){
         cout<<"TESTK : irecip = 0 ---- NOT CODED"<<endl;
 	exit(EXIT_FAILURE);
       }
-      if (irecipa == 3){//THIS IS OBVIOUSLY NOT CORRECT
-//     HEXAGONAL ATOMIC RECIPROCAL LATTICE
-//     first construct supercell reciprocal lattice cluster
-//     for the vector J = i*b1 + j*b2 + vsym(k)
-//     then           J = x1*ba1 + x2*ba2
-        for (int isym=1; isym <= 4; isym++){
-          if (isym == 1){
-            xsym=0.;
-            ysym=0.;
-	  }
-          if (isym == 2){
-            xsym=0.5;
-            ysym=0.;
-	  }
-          if (isym == 3){
-            xsym=0.;
-            ysym=0.5;
-  	  }
-          if (isym == 4){
-            xsym=0.5;
-            ysym=0.25;
-	  }
-          for (int i=-nsub; i<=nsub; i++){
-            for (int j=-nsub; j<=nsub; j++){
-	      cond = 0;
-              x1=baib(0,0)*(i+xsym)+baib(0,1)*(j+ysym);
-              x2=baib(1,0)*(i+xsym)+baib(1,1)*(j+ysym);
-
-//           check consistency
-              tmp1=(i+xsym)*b1+(j+ysym)*b2;
-              tmp2=x1*ba1+x2*ba2;
-              for (int l=0; l<3; l++){
-                if (abs(tmp1(l)-tmp2(l)) > 1e-10){
-                  cout<<"ERROR FOLDING "<<tmp1<<" "<<tmp2<<endl;
-		  exit(EXIT_FAILURE);
-		}
-	      }
-
-//           check that this vector lies inside the atomic BZ
-              if((abs(x1) <= 0.50000001) && (abs(x2) <= 0.50000001)){
-//           check if this point the same as any of the others
-                for (int iii=0; iii<icnt; iii++){
-                  if((i == ifold[iii].first) && (j == ifold[iii].second)){
-		    cond = 1;
-		    break;
-	          }
-	        }
-
-	        if (cond == false){
-		  foldtmp = make_pair(i, j);
-		  ifold.emplace_back(foldtmp);
-                  icnt++;
-		}
-	      }
-	    }
-	  }
-	}
-        nfold=icnt;
+      if (irecipa == 3){
+        cout<<"HEXAGONAL ATOMIC RECIPROCAL LATTICE NOT CODED"<<endl;
+        exit(EXIT_FAILURE);
       }
       if (irecipa == 4){
         cout<<"CENTRED-RECTANGULAR ATOMIC RECIPROCAL LATTICE NOT CODED"<<endl;
@@ -209,6 +148,11 @@ vector<pair<int,int>> folding(Matrix3d &baib, const Vector3d &b1, const Vector3d
 //     first construct supercell reciprocal lattice cluster
 //     for the vector J = i*b1 + j*b2 + vsym(k)
 //     then           J = x1*ba1 + x2*ba2
+        int icnt=0;
+        Vector3d tmp1, tmp2;
+	double xsym, ysym, x1, x2;
+	int cond;
+	pair<int,int> foldtmp;
         for (int isym=1; isym <= 4; isym++){
           if (isym == 1){
             xsym=0.;
@@ -332,7 +276,7 @@ vector<double> prestructij(int ilay, int jlay, int nsub, const vvV3d &vsub,
 }
 
 template <typename... Args>
-void split(int layer, int nlay, int numnn, int nspin, int nins, int numat, int mlay, int ndiff,
+void split(bool isodd, int nlay, int numnn, int nspin, int nins, int numat, int mlay, int ndiff,
 	      VectorXd &vcuu, VectorXd &vcud, VectorXd &vcdu, VectorXd &vcdd,
 	      int iwmax, double ef, double tfac, double temp, int nsubat, int nsub, int natom, Vector3d &aa1, 
 	      Vector3d &aa2, vV3d &aa3, Vector3d &a1, Vector3d &a2, vV3d &a3, vvV3d &vsub, vvV3d &vsubat, vVXd &itypeat, 
@@ -391,12 +335,10 @@ void split(int layer, int nlay, int numnn, int nspin, int nins, int numat, int m
 //     whole cluster
       ofstream Myfile;	
       string Mydata;
-      if (layer == 0)
-	Mydata = "atom_0.dat";
-      if (layer == 1)
-	Mydata = "atom_1.dat";
-      if (layer == 2)
-	Mydata = "atom_2.dat";
+      if (isodd == true)
+	Mydata = "odd_atom.dat";
+      if (isodd == false)
+	Mydata = "even_atom.dat";
       Myfile.open( Mydata.c_str(),ios::trunc );
 
       int idum0=0;
@@ -407,7 +349,7 @@ void split(int layer, int nlay, int numnn, int nspin, int nins, int numat, int m
           for (int i1=-nlay; i1 <= nlay; i1++){
             for (int i2=-nlay; i2 <= nlay; i2++){
               rr=a3[ilay]+vsub[ilay][iii]+i1*a1+i2*a2;
-              if ((abs(rr(0)) < 1.3001) && (abs(rr(1)) < 1.3001))
+              if ((abs(rr(0)) < 0.8001) && (abs(rr(1)) < 0.8001))
                 idum0++;
 	    }
       	  }
@@ -421,7 +363,7 @@ void split(int layer, int nlay, int numnn, int nspin, int nins, int numat, int m
           for (int i1=-nlay; i1 <= nlay; i1++){
             for (int i2=-nlay; i2 <= nlay; i2++){
               rr=a3[ilay]+vsub[ilay][iii]+i1*a1+i2*a2;
-              if ((abs(rr(0)) < 1.3001) && (abs(rr(1)) < 1.3001))
+              if ((abs(rr(0)) < 0.8001) && (abs(rr(1)) < 0.8001))
                 Myfile<<atname[(itype[ilay][iii]) - 1]<<" "<<4*rr.transpose()<<endl;
 	    }
 	  }
@@ -503,6 +445,7 @@ void split(int layer, int nlay, int numnn, int nspin, int nins, int numat, int m
 //     =================================================================
 //     CHECK THAT IMAP IS CORRECTLY DEFINED
 //     ie.    vsub(k)=vsubat(imap(k)) + n1.aa1 + n2.aa2
+
 //     LH lead
       Vector3d vtmp;
       double vba1, vba2;
@@ -574,7 +517,7 @@ int main(){
       const int nspin=9;    // Number of energy bands
       const int numnn=2;    // No of nearest neighbours 
 
-      const int nins=7;    // No of spacer principal layers
+      const int nins=10;    // No of spacer principal layers
       const int mlay=0;     // No of substrate layers on each side of SGF
       const int numat=2;    // No of atom types: one for each element
 
@@ -602,7 +545,7 @@ int main(){
       pdsint.reserve(2); pdpint.reserve(2); ddsint.reserve(2); ddpint.reserve(2); dddint.reserve(2);
       param(numat, numnn, s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint, pdsint, pdpint, ddsint, ddpint, dddint);
 
-      const int nsubat=3; // No. of sublayer atoms in leads
+      const int nsubat=2; // No. of sublayer atoms in leads
       const int natom=nspin*nsubat;
       Vector3d aa1, aa2;
 
@@ -610,9 +553,9 @@ int main(){
       /* aa1 << 0.5, 0.5, 0; */
       /* aa2 << 0.5, -0.5, 0; */
 
-      //this for 111
+      //this for 011
       aa1 << M_SQRT2/2., 0, 0;
-      aa2 << M_SQRT2/4., sqrt(6.)/4., 0;
+      aa2 << 0, 1., 0;
 
 //     =================================================================
 //     LH LEAD BASIS VECTORS
@@ -630,15 +573,14 @@ int main(){
       vector<VectorXd, aligned_allocator<VectorXd>> itypeat;
 
 //       Sublattice
-      tmp << 0, sqrt(6.)/6., -sqrt(3.)/3.; //this for 111
-      vsubattmp.emplace_back(tmp);
       tmp << 0, 0, 0;
       vsubattmp.emplace_back(tmp);
-      tmp << M_SQRT2/4., sqrt(6.)/12., sqrt(3.)/3.; //this for 111
+      /* tmp << 0.5, 0, -0.5; //this for 001 */
+      tmp << M_SQRT2/4., 0.5 ,M_SQRT2/4.; //this for 011
       vsubattmp.emplace_back(tmp);
       for (int ilay=1; ilay<=2; ilay++){
 //       Out of plane lattice vector
-	tmp << 0, 0, (ilay - 1)*sqrt(3.);
+	tmp << 0, 0, M_SQRT2*(ilay - 1)/2.;
 	aa3.emplace_back(tmp);
 
 	vsubat.emplace_back(vsubattmp);
@@ -653,7 +595,7 @@ int main(){
 //     SUPERCELL STRUCTURE
 //     =================================================================
 
-      const int nsub=3; //No. of sublayer atoms in spacer
+      const int nsub=2; //No. of sublayer atoms in spacer
       vsubtmp.reserve(nsub);
 
 //     2 in-plane lattice vectors
@@ -664,15 +606,11 @@ int main(){
       /* a1 << 0.5, 0.5, 0; */
       /* a2 << 0.5, -0.5, 0; */
 
-      //this for 111
+      //this for 011
       a1 << M_SQRT2/2., 0, 0;
-      a2 << M_SQRT2/4., sqrt(6.)/4., 0;
+      a2 << 0, 1., 0;
 
-      /* //this for 011 */
-      /* a1 << M_SQRT2/2., 0, 0; */
-      /* a2 << 0, M_SQRT2/2., 0; */
-
-      //THIS FOR THE FIRST PLANE IN THE PRINCIPLE LAYER
+      //THIS BLOCK IS FOR EVEN LAYERS
 
 //    ----------  Crystal structure ----------------------
       vector<vector<int>> itype;
@@ -680,15 +618,14 @@ int main(){
       vector<int> itmp;
       itmp.reserve(nsub);
 //       Sublattice
-      tmp << 0, sqrt(6.)/6., -sqrt(3.)/3.; //this for 111
-      vsubtmp.emplace_back(tmp);
       tmp << 0, 0, 0;
       vsubtmp.emplace_back(tmp);
-      tmp << M_SQRT2/4., sqrt(6.)/12., sqrt(3.)/3.; //this for 111
+      /* tmp << 0.5, 0, -0.5; //this for 001 */
+      tmp << M_SQRT2/4., 0.5, M_SQRT2/4.; //this for 011
       vsubtmp.emplace_back(tmp);
       for (int ilay=1; ilay <= nlay; ilay++){
 //       Out of plane lattice vector
-	tmp << 0, 0, (ilay - 1)*sqrt(3.);
+	tmp << 0, 0, M_SQRT2*(ilay - 1)/2.;
 	a3.emplace_back(tmp);
 
 	vsub.emplace_back(vsubtmp);
@@ -699,6 +636,13 @@ int main(){
 	  itype.emplace_back(itmp);
 	  itmp.clear();
 	}
+//this for odd layers, but with ilay >= 4 above
+	/* else if(ilay == 3){ */               
+	/*   itmp.emplace_back(2); // Cu */
+	/*   itmp.emplace_back(1); // Co */
+	/*   itype.emplace_back(itmp); */
+	/*   itmp.clear(); */
+	/* } */
 	else{
 	  for (int isub = 0; isub < nsub; isub++)
 	    itmp.emplace_back(1); //  Co
@@ -713,7 +657,7 @@ int main(){
 
       for (int ilay=nlay-1; ilay <= nlay; ilay++){
 //       Out of plane lattice vector
-	tmp << 0, 0, (ilay - 1)*sqrt(3.);
+	tmp << 0, 0, M_SQRT2*(ilay - 1)/2.;
 	aa3.emplace_back(tmp);
 
 	vsubat.emplace_back(vsubattmp);
@@ -723,7 +667,7 @@ int main(){
 	  attype(kk-1) = 1;
 	itypeat.emplace_back(attype);
       }
-      VectorXd vcuu_0(ndiff), vcud_0(ndiff), vcdu_0(ndiff), vcdd_0(ndiff);
+      VectorXd vcuu_even(ndiff), vcud_even(ndiff), vcdu_even(ndiff), vcdd_even(ndiff);
       
 //     =================================================================
 //     The map between Supercell sublattice and LH atomic sublattice :
@@ -740,25 +684,21 @@ int main(){
           imapl.emplace_back(2);
           imapr.emplace_back(2);
 	}
-	if (isub == 2){
-          imapl.emplace_back(3);
-          imapr.emplace_back(3);
-	}
       }
       
-      split(0, nlay, numnn, nspin, nins, numat, mlay, ndiff,
-	      vcuu_0, vcud_0, vcdu_0, vcdd_0, iwmax, ef,
+      split(false, nlay, numnn, nspin, nins, numat, mlay, ndiff,
+	      vcuu_even, vcud_even, vcdu_even, vcdd_even, iwmax, ef,
 	      tfac, temp, nsubat, nsub, natom, aa1, 
 	      aa2, aa3, a1, a2, a3, vsub, vsubat, itypeat, itype, imapl, imapr, 
 	      s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint,
 	      pdsint, pdpint, ddsint, ddpint, dddint);
-      //NOW THIS FOR THE SECOND	PLANE IN THE PRINCIPLE LAYER
+      //NOW THIS FOR ODD LAYERS
 //       Sublattice
 
       aa3.clear();
       for (int ilay=1; ilay<=2; ilay++){
 //       Out of plane lattice vector
-	tmp << 0, 0, (ilay - 1)*sqrt(3.);
+	tmp << 0, 0, M_SQRT2*(ilay - 1)/2.;
 	aa3.emplace_back(tmp);
       }
 
@@ -778,7 +718,8 @@ int main(){
 //       Out of plane lattice vector
 
 //       Atom types
-	tmp << 0, 0, (ilay - 1)*sqrt(3.);
+//this for odd layers
+	tmp << 0, 0, M_SQRT2*(ilay - 1)/2.;
 	a3.emplace_back(tmp);
 
 	vsub.emplace_back(vsubtmp);
@@ -789,77 +730,8 @@ int main(){
 	  itype.emplace_back(itmp);
 	  itmp.clear();
 	}
+//this for odd layers, but with ilay >= 4 above
 	else if(ilay == 3){               
-	  itmp.emplace_back(1); // Co
-	  itmp.emplace_back(2); // Cu
-	  itmp.emplace_back(2); // Cu
-	  itype.emplace_back(itmp);
-	  itmp.clear();
-	}
-	else{
-	  for (int isub = 0; isub < nsub; isub++)
-	    itmp.emplace_back(1); //  Co
-	  itype.emplace_back(itmp);
-	  itmp.clear();
-	}
-      }
-
-//     =================================================================
-//     RH LEAD BASIS VECTORS
-//     =================================================================
-
-      for (int ilay=nlay-1; ilay <= nlay; ilay++){
-//       Out of plane lattice vector
-	tmp << 0, 0, (ilay - 1)*sqrt(3.);
-	aa3.emplace_back(tmp);
-      }
-
-      VectorXd vcuu_1(ndiff), vcud_1(ndiff), vcdu_1(ndiff), vcdd_1(ndiff);
-      split(1, nlay, numnn, nspin, nins, numat, mlay, ndiff,
-	      vcuu_1, vcud_1, vcdu_1, vcdd_1, iwmax, ef,
-	      tfac, temp, nsubat, nsub, natom, aa1, 
-	      aa2, aa3, a1, a2, a3, vsub, vsubat, itypeat, itype, imapl, imapr, 
-	      s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint,
-	      pdsint, pdpint, ddsint, ddpint, dddint);
-      //NOW THIS FOR THE THIRD PLANE IN THE PRINCIPLE LAYER
-//       Sublattice
-
-      aa3.clear();
-      for (int ilay=1; ilay<=2; ilay++){
-//       Out of plane lattice vector
-	tmp << 0, 0, (ilay - 1)*sqrt(3.);
-	aa3.emplace_back(tmp);
-      }
-
-//     =================================================================
-//     SUPERCELL STRUCTURE
-//     =================================================================
-
-//     2 in-plane lattice vectors
-//     CUBIC
-
-//    ----------  Crystal structure ----------------------
-//       Sublattice
-      vsub.clear();
-      itype.clear();
-      a3.clear();
-      for (int ilay=1; ilay <= nlay; ilay++){
-//       Out of plane lattice vector
-
-//       Atom types
-	tmp << 0, 0, (ilay - 1)*sqrt(3.);
-	a3.emplace_back(tmp);
-
-	vsub.emplace_back(vsubtmp);
-//       Atom types
-        if((ilay >= 4) && (ilay <= nins+2)){
-	  for (int isub = 0; isub < nsub; isub++)
-	    itmp.emplace_back(2); // Cu
-	  itype.emplace_back(itmp);
-	  itmp.clear();
-	}
-	else if(ilay == 3){               
-	  itmp.emplace_back(1); // Co
 	  itmp.emplace_back(1); // Co
 	  itmp.emplace_back(2); // Cu
 	  itype.emplace_back(itmp);
@@ -879,13 +751,13 @@ int main(){
 
       for (int ilay=nlay-1; ilay <= nlay; ilay++){
 //       Out of plane lattice vector
-	tmp << 0, 0, (ilay - 1)*sqrt(3.);
+	tmp << 0, 0, M_SQRT2*(ilay - 1)/2.;
 	aa3.emplace_back(tmp);
       }
 
-      VectorXd vcuu_2(ndiff), vcud_2(ndiff), vcdu_2(ndiff), vcdd_2(ndiff);
-      split(2, nlay, numnn, nspin, nins, numat, mlay, ndiff,
-	      vcuu_2, vcud_2, vcdu_2, vcdd_2, iwmax, ef,
+      VectorXd vcuu_odd(ndiff), vcud_odd(ndiff), vcdu_odd(ndiff), vcdd_odd(ndiff);
+      split(true, nlay, numnn, nspin, nins, numat, mlay, ndiff,
+	      vcuu_odd, vcud_odd, vcdu_odd, vcdd_odd, iwmax, ef,
 	      tfac, temp, nsubat, nsub, natom, aa1, 
 	      aa2, aa3, a1, a2, a3, vsub, vsubat, itypeat, itype, imapl, imapr, 
 	      s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint,
@@ -896,36 +768,32 @@ int main(){
       cout<<"****************************************************"<<endl;
       cout<<"UP SPIN"<<endl;
       for (int in = 0; in < ndiff; in++){
-        cout<<scientific<<3*(in+1)-2<<" "<<vcuu_2(in)/nsub<<endl;
-        cout<<3*(in+1)-1<<" "<<vcuu_1(in)/nsub<<endl;
-        cout<<3*(in+1)<<" "<<vcuu_0(in)/nsub<<endl;
+        cout<<scientific<<2*(in+1)-1<<" "<<vcuu_odd(in)/nsub<<endl;
+        cout<<2*(in+1)<<" "<<vcuu_even(in)/nsub<<endl;
       }
       cout<<endl;
       cout<<"****************************************************"<<endl;
       cout<<"****************************************************"<<endl;
       cout<<"DOWN SPIN"<<endl;
       for (int in = 0; in < ndiff; in++){
-        cout<<3*(in+1)-2<<" "<<vcuu_2(in)/nsub<<endl;
-        cout<<3*(in+1)-1<<" "<<vcuu_1(in)/nsub<<endl;
-        cout<<3*(in+1)<<" "<<vcuu_0(in)/nsub<<endl;
+        cout<<2*(in+1)-1<<" "<<vcdd_odd(in)/nsub<<endl;
+        cout<<2*(in+1)<<" "<<vcdd_even(in)/nsub<<endl;
       }
       cout<<endl;
       cout<<"****************************************************"<<endl;
       cout<<"****************************************************"<<endl;
       cout<<"UP-DOWN SPIN"<<endl;
       for (int in = 0; in < ndiff; in++){
-        cout<<3*(in+1)-2<<" "<<vcuu_2(in)/nsub<<endl;
-        cout<<3*(in+1)-1<<" "<<vcuu_1(in)/nsub<<endl;
-        cout<<3*(in+1)<<" "<<vcuu_0(in)/nsub<<endl;
+        cout<<2*(in+1)-1<<" "<<vcud_odd(in)/nsub<<endl;
+        cout<<2*(in+1)<<" "<<vcud_even(in)/nsub<<endl;
       }
       cout<<endl;
       cout<<"****************************************************"<<endl;
       cout<<"****************************************************"<<endl;
       cout<<"DOWN-UP SPIN"<<endl;
       for (int in = 0; in < ndiff; in++){
-        cout<<3*(in+1)-2<<" "<<vcuu_2(in)/nsub<<endl;
-        cout<<3*(in+1)-1<<" "<<vcuu_1(in)/nsub<<endl;
-        cout<<3*(in+1)<<" "<<vcuu_0(in)/nsub<<endl;
+        cout<<2*(in+1)-1<<" "<<vcdu_odd(in)/nsub<<endl;
+        cout<<2*(in+1)<<" "<<vcdu_even(in)/nsub<<endl;
       }
       cout<<endl;
       cout<<"****************************************************"<<endl;
@@ -936,9 +804,8 @@ int main(){
       string Mydata = "IEC_CoCuCo_011.txt";
       Myfile.open( Mydata.c_str(),ios::trunc );
       for (int in = 0; in < ndiff; in++){
-        Myfile<<3*(in+1)-2<<" "<<-(vcuu_2(in)+vcdd_2(in)-vcdu_2(in)-vcud_2(in))/nsub<<endl;
-        Myfile<<3*(in+1)-1<<" "<<-(vcuu_1(in)+vcdd_1(in)-vcdu_1(in)-vcud_1(in))/nsub<<endl;
-        Myfile<<3*(in+1)<<" "<<-(vcuu_0(in)+vcdd_0(in)-vcdu_0(in)-vcud_0(in))/nsub<<endl;
+        Myfile<<2*(in+1)-1<<" "<<-(vcuu_odd(in)+vcdd_odd(in)-vcdu_odd(in)-vcud_odd(in))/nsub<<endl;
+        Myfile<<2*(in+1)<<" "<<-(vcuu_even(in)+vcdd_even(in)-vcdu_even(in)-vcud_even(in))/nsub<<endl;
       }
       Myfile.close();
       return 0;

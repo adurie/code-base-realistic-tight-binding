@@ -549,13 +549,13 @@ int main(){
       const int natom=nspin*nsubat;
       Vector3d aa1, aa2;
 
-      /* //this for 001 */
-      /* aa1 << 0.5, 0.5, 0; */
-      /* aa2 << 0.5, -0.5, 0; */
+      //this for 001
+      aa1 << 0.5, 0.5, 0;
+      aa2 << 0.5, -0.5, 0;
 
-      //this for 011
-      aa1 << M_SQRT2/2., 0, 0;
-      aa2 << 0, M_SQRT2/2., 0;
+      /* //this for 011 */
+      /* aa1 << M_SQRT2/2., 0, 0; */
+      /* aa2 << 0, M_SQRT2/2., 0; */
 
 //     =================================================================
 //     LH LEAD BASIS VECTORS
@@ -575,8 +575,8 @@ int main(){
 //       Sublattice
       tmp << 0, 0, 0;
       vsubattmp.emplace_back(tmp);
-      /* tmp << 0.5, 0, -0.5; //this for 001 */
-      tmp << M_SQRT2/4., M_SQRT2/4., -0.5; //this for 011
+      tmp << 0.5, 0, -0.5; //this for 001
+      /* tmp << M_SQRT2/4., M_SQRT2/4., -0.5; //this for 011 */
       vsubattmp.emplace_back(tmp);
       for (int ilay=1; ilay<=2; ilay++){
 //       Out of plane lattice vector
@@ -602,13 +602,13 @@ int main(){
 //     CUBIC
       Vector3d a1, a2;
 
-      /* //this for 001 */
-      /* a1 << 0.5, 0.5, 0; */
-      /* a2 << 0.5, -0.5, 0; */
+      //this for 001
+      a1 << 0.5, 0.5, 0;
+      a2 << 0.5, -0.5, 0;
 
-      //this for 011
-      a1 << M_SQRT2/2., 0, 0;
-      a2 << 0, M_SQRT2/2., 0;
+      /* //this for 011 */
+      /* a1 << M_SQRT2/2., 0, 0; */
+      /* a2 << 0, M_SQRT2/2., 0; */
 
       //THIS BLOCK IS FOR EVEN LAYERS
 
@@ -620,8 +620,8 @@ int main(){
 //       Sublattice
       tmp << 0, 0, 0;
       vsubtmp.emplace_back(tmp);
-      /* tmp << 0.5, 0, -0.5; //this for 001 */
-      tmp << M_SQRT2/4., M_SQRT2/4., -0.5; //this for 011
+      tmp << 0.5, 0, -0.5; //this for 001
+      /* tmp << M_SQRT2/4., M_SQRT2/4., -0.5; //this for 011 */
       vsubtmp.emplace_back(tmp);
       for (int ilay=1; ilay <= nlay; ilay++){
 //       Out of plane lattice vector
@@ -801,7 +801,7 @@ int main(){
       /* cout<<"(UP + DOWN - 2*AF)"<<endl; */
 
       ofstream Myfile;	
-      string Mydata = "IEC_CoCuCo_011.txt";
+      string Mydata = "IEC_CoCuCo_001.txt";
       Myfile.open( Mydata.c_str(),ios::trunc );
       for (int in = 0; in < ndiff; in++){
         Myfile<<2*(in+1)-1<<" "<<-(vcuu_odd(in)+vcdd_odd(in)-vcdu_odd(in)-vcud_odd(in))/nsub<<endl;

@@ -280,7 +280,7 @@ int main(){
       const int nspin=9;    // Number of energy bands
       const int numnn=2;    // No of nearest neighbours 
 
-      const int nins=7;    // No of spacer principal layers
+      const int nins=3;    // No of spacer principal layers
       const int mlay=0;     // No of substrate layers on each side of SGF
       const int numat=2;    // No of atom types: one for each element
 
@@ -501,8 +501,8 @@ int main(){
       ddnntmp << M_SQRT3o2, M_SQRT3o2, M_SQRT3o2, 1.;
       /* ddnntmp << M_SQRT3o2, 1., 1., 1.; //this for odd layers? */
       ddnn.emplace_back(ddnntmp);
-      ddnntmp << 1., 1., M_SQRT2/2. + 0.5, M_SQRT2; //original
-      /* ddnntmp << 1., 1., 1., M_SQRT2; // this for even layers? */
+      /* ddnntmp << 1., 1., M_SQRT2/2. + 0.5, M_SQRT2; //original */
+      ddnntmp << 1., 1., 1., M_SQRT2; // this for even layers?
       /* ddnntmp << 1., 1.20711, 1.20711, M_SQRT2; // this for odd layers? */
       ddnn.emplace_back(ddnntmp);
 
@@ -677,12 +677,12 @@ int main(){
       i = sqrt(i);
       int nmat = nspin*nsub;
 
-      string Myphase = "phase_14th_plane.txt";
+      string Myphase = "phase_6th_plane_correct_nn.txt";
       ofstream Myfile_2;	
       Myfile_2.open( Myphase.c_str(),ios::app );
       /* Myfile_2<<"Chemical_potential_in_the_lead_(Ry) J(mRy/atom)"<<endl; */
 
-      for (double phase = -0.3; phase <= -0.2; phase += 0.005){
+      for (double phase = -0.2; phase <= 0.; phase += 0.005){
         vcuu = 0;
         vcud = 0;
         vcdu = 0;

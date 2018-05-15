@@ -26,7 +26,7 @@ int testk(double x, double y, const Vector3d &b1, const Vector3d &b2, const vect
       Vector3d xtmp;
       xfold.clear();
 //     -----------------------------------------------------------------
-      if (irecip >= 3){
+      if (irecip > 3){
         cout<<"reciprocal superlattice not cubic or rectangular"<<endl;
         cout<<"this case has not been coded"<<endl;
 	exit(EXIT_FAILURE);
