@@ -7,7 +7,8 @@ using namespace std;
 int main(){
 	/* ifstream infile("tdosrem2.txt"); */
 	/* ifstream infile("rem.txt"); */
-	ifstream infile("diamond.txt");
+	/* ifstream infile("diamond.txt"); */
+	ifstream infile("Ag_spin_up.txt");
 	/* ifstream infile("mn.txt"); */
 	/* ifstream infile("gsl.txt"); */
 	/* ifstream infile("mnm.txt"); */

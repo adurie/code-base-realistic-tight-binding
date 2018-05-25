@@ -8,6 +8,7 @@
 /* #include "greens_large_array.h" */
 /* #include "dos.h" */
 #include "dos_new.h"
+/* #include "dos_new_hex.h" */
 
 using namespace std;
 using namespace Eigen;
@@ -27,7 +28,7 @@ int testk(double x, double y, const Vector3d &b1, const Vector3d &b2, const vect
       Vector3d xtmp;
       xfold.clear();
 //     -----------------------------------------------------------------
-      if (irecip >= 3){
+      if (irecip > 3){
         cout<<"reciprocal superlattice not cubic or rectangular"<<endl;
         cout<<"this case has not been coded"<<endl;
 	exit(EXIT_FAILURE);
@@ -77,8 +78,39 @@ int testk(double x, double y, const Vector3d &b1, const Vector3d &b2, const vect
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //     HEXAGONAL ATOMIC RECIPROCAL LATTICE
       else if (irecip == 3){
-        cout<<"HEXAGONAL ATOMIC RECIPROCAL LATTICE NOT CODED"<<endl;
-	exit(EXIT_FAILURE);
+        /* cout<<"HEXAGONAL ATOMIC RECIPROCAL LATTICE NOT CODED"<<endl; */
+	/* cout<<"THIS IS A HACK, CODE NEEDS FINISHING"<<endl; */
+        for (int iff=0; iff<nfold; iff++){
+          i=ifold[iff].first;
+          j=ifold[iff].second;
+          xk=0.5*x+i;
+          yk=0.5*y+j;
+          x1=baib(0,0)*xk+baib(0,1)*yk;
+          x2=baib(1,0)*xk+baib(1,1)*yk;
+          if ((abs(x1) <= 0.50000001) && (abs(x2) <= 0.50000001)){
+//       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//       first check if this point is not related to any of the others by
+//       a reciprocal lattice vector
+            condition = 0;
+            for (int iii=0; iii<icnt; iii++){
+              dx=x1-xx1(iii);
+              dy=x2-xx2(iii);
+              ddx=floor(abs(dx)+1e-10)-abs(dx);
+              ddy=floor(abs(dy)+1e-10)-abs(dy);
+              if ((abs(ddx) < 1e-10) && (abs(ddy) < 1e-10))
+		condition = 1;
+	    }
+//       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+	    if (condition == 0){
+              xx1(icnt)=x1;
+              xx2(icnt)=x2;
+              icnt++;
+              xtmp=(0.5*x+i)*b1+(0.5*y+j)*b2;
+      	      xfold.emplace_back(xtmp);
+	    }
+	  }
+	}
+        nxfold=icnt;
       }
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //     CENTRED-RECTANGULAR ATOMIC RECIPROCAL LATTICE
@@ -153,6 +185,109 @@ void sumk(int nsub, int nsubat, const vector<pair<int,int>> &ifold, int nfold, c
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
             nktot+=iwght;
+            ifail = cond(zener,xk,zconu,zcond,nsub,nsubat,nxfold,xfold,forward<Args>(params)...);
+            if (ifail != 0)
+              cout<<i<<" "<<j<<endl;
+
+            zresu = zresu + zconu*iwght;
+            zresd = zresd + zcond*iwght;
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+	  }
+	}
+      }
+//     PRIMITIVE-RECTANGULAR
+      if (irecip == 2){
+        d1=b1/2.;
+        d2=b2/2.;
+        for (int i=0; i<=max; i++){
+          x=dq*i;
+          for (int j=0; j<=max; j++){
+            y=dq*j;
+            xk=x*d1+y*d2;
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//         determine weights
+            iwght=4;
+            if (i == 0)
+	      iwght=2;
+            if (j == 0)
+	      iwght=2;
+            if (i == max)
+	      iwght=2;
+            if (j == max)
+	      iwght=2;
+            if ((i == 0) && (j == 0))
+	      iwght=1;
+            if ((i == 0) && (j == max))
+  	      iwght=1;
+            if ((i == max) && (j == 0)) 
+	      iwght=1;
+            if ((i == max) && (j == max))
+	      iwght=1;
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//         find the folding points
+
+            nxfold = testk(x,y,b1,b2,ifold,xfold,nfold,baib,irecip);
+            if (nxfold != nsub/nsubat){
+              cout<<"ERROR SUMK : nxfold is not equal to nsub/nsubat "<<nxfold<<" "<<nsub<<" "<<nsubat<<endl;
+	      exit(EXIT_FAILURE);
+	    }
+
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+            nktot+=iwght;
+            ifail=0;
+            ifail = cond(zener,xk,zconu,zcond,nsub,nsubat,nxfold,xfold,forward<Args>(params)...);
+            if (ifail != 0)
+              cout<<i<<" "<<j<<endl;
+
+            zresu = zresu + zconu*iwght;
+            zresd = zresd + zcond*iwght;
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+	  }
+	}
+      }
+//     -----------------------------------------------------------------
+//     HEXAGONAL
+      if (irecip == 3){
+        d1=b1/2.;
+        d2=(b1+b2)/3.;
+        for (int i=0; i<=max; i++){
+          x=dq*i;
+          for (int j=0; j<=i; j++){
+            y=dq*j;
+            xk=x*d1+y*d2;
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//         determine weights
+            iwght=12;
+            if (i == j)
+	      iwght=6;
+            if (j == 0)
+	      iwght=6;
+            if (i == max)
+	      iwght=4;
+            if (i == 0)
+	      iwght=1;
+            if (j == max)
+	      iwght=2;
+            if ((i == max) && (j == 0))
+	      iwght=3;
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//         find the folding points
+	    //IT IS VITALLY IMPORTANT THAT THE BELOW IS RESTORED AT SOME POINT
+
+            nxfold = testk(x,y,b1,b2,ifold,xfold,nfold,baib,irecip);
+            /* if (nxfold != nsub/nsubat){ */
+            /*   cout<<"ERROR SUMK : nxfold is not equal to nsub/nsubat "<<nxfold<<" "<<nsub<<" "<<nsubat<<endl; */
+	      /* exit(EXIT_FAILURE); */
+	    /* } */
+
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//     THIS IS TEMPORARY AND OVERWRITES XFOLD FOUND IN TESTK
+	    xfold[0] = xk;
+	    /* cout<<"xk = "<<xk.transpose()<<endl<<endl; */
+	    /* cout<<"xfold = "<<xfold[0].transpose()<<endl<<endl; */
+
+            nktot+=iwght;
+            ifail=0;
             ifail = cond(zener,xk,zconu,zcond,nsub,nsubat,nxfold,xfold,forward<Args>(params)...);
             if (ifail != 0)
               cout<<i<<" "<<j<<endl;

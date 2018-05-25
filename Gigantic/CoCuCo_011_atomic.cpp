@@ -802,6 +802,7 @@ int main(){
 
       ofstream Myfile;	
       string Mydata = "IEC_CoCuCo_011.txt";
+      /* string Mydata = "foo.txt"; */
       Myfile.open( Mydata.c_str(),ios::trunc );
       for (int in = 0; in < ndiff; in++){
         Myfile<<2*(in+1)-1<<" "<<-(vcuu_odd(in)+vcdd_odd(in)-vcdu_odd(in)-vcud_odd(in))/nsub<<endl;

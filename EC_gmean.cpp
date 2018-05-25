@@ -392,6 +392,7 @@ int main(){
 	//see integration header for what the following zero values are interpreted as
 	int k_start = 0;
 	int k_max = 0;
+
 //now begin setup of parallelisation
 	omp_set_num_threads(4);
 	int tid, x;
@@ -400,10 +401,8 @@ int main(){
 	tid = omp_get_thread_num();
 	if (tid == 0){
 		x = omp_get_max_threads();
-
 		if (x<5)
 			cout<<"there are "<<x<<" thread(s) working on this task"<<endl;
-
 		if (x>4)
 			cout<<"warning, the program can be made more efficient as num_threads > 4"<<endl;
 	}
@@ -425,7 +424,6 @@ int main(){
 				td_8_gmean, td_11_gmean, td_12_gmean, td_15_gmean);
 			cout<<j<<endl;
 		}
-
 		if ((x > 1) && (x < 5)){
 			if ((j%x == omp_get_thread_num()) && (omp_get_thread_num() == 1)){
 				E = Ef + (2.*j + 1.)*kT*M_PI*i;
@@ -444,7 +442,6 @@ int main(){
 					td_8_gmean, td_11_gmean, td_12_gmean, td_15_gmean);
 				cout<<j<<endl;
 			}
-
 			if ((j%x == omp_get_thread_num()) && (omp_get_thread_num() == 2)){
 				E = Ef + (2.*j + 1.)*kT*M_PI*i;
 				result_complex_t2 = result_complex_t2 + kspace(&greens, k_start, abs_error, k_max, a, E, N,
@@ -462,7 +459,6 @@ int main(){
 					td_8_gmean, td_11_gmean, td_12_gmean, td_15_gmean);
 				cout<<j<<endl;
 			}
-
 			if ((j%x == omp_get_thread_num()) && (omp_get_thread_num() == 3)){
 				E = Ef + (2.*j + 1.)*kT*M_PI*i;
 				result_complex_t3 = result_complex_t3 + kspace(&greens, k_start, abs_error, k_max, a, E, N,
@@ -480,12 +476,10 @@ int main(){
 					td_8_gmean, td_11_gmean, td_12_gmean, td_15_gmean);
 				cout<<j<<endl;
 			}
-
 		}
 	}
 	}
 	result_complex = result_complex + result_complex_t1 + result_complex_t2 + result_complex_t3;
-
 	VectorXd result = result_complex.real();
 	result *= kT/(4.*M_PI*M_PI);
 
@@ -498,8 +492,13 @@ int main(){
 	/* 		u_d, td_1, td_2, td_3, td_4, td_5, td_6, td_7, td_8, td_9, */
 	/* 	       	td_10, td_11, td_12, td_13, td_14, td_15, td_16, td_17, td_18, */
 	/* 		d_3, d_4, d_9, d_10, */
-	/* 	       	d_13, d_14, d_17, d_18); */
+	/* 	       	d_13, d_14, d_17, d_18, */
+	/* 		tu_1_gmean, tu_2_gmean, tu_5_gmean, tu_6_gmean, tu_7_gmean, */
+	/* 		tu_8_gmean, tu_11_gmean, tu_12_gmean, tu_15_gmean, */
+	/* 		td_1_gmean, td_2_gmean, td_5_gmean, td_6_gmean, td_7_gmean, */
+	/* 		td_8_gmean, td_11_gmean, td_12_gmean, td_15_gmean); */
 	/* VectorXd result = result_complex.real(); */
+	/* result *= kT; */
 
 	Myfile<<"N Gamma"<<endl;
 

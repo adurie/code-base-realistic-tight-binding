@@ -17,10 +17,10 @@
 /* #include "cutest.h" */
 /* #include "calc_spawn.h" */
 /* #include "calc_par.h" */
-#include "calc_phase.h"
+#include "calc_dos.h"
 /* #include "calc_cunningham.h" */
-/* #include "greens_large_array.h" */
-#include "greens_phase.h"
+#include "dos_new_hex.h"
+
 
 //     This program calculates the coupling for a general multilayer,
 //     with general supercell configuration, and general growth direction.
@@ -52,7 +52,6 @@ using namespace Eigen;
 typedef complex<double> dcomp;
 typedef vector<Vector3d, aligned_allocator<Vector3d>> vV3d;
 typedef vector<vector<Vector3d, aligned_allocator<Vector3d>>> vvV3d;
-typedef vector<Matrix2d, aligned_allocator<Matrix2d>> vm2d;
 
 bool WayToSort(double i, double j){ return abs(i) < abs(j);}
 
@@ -129,13 +128,74 @@ vector<pair<int,int>> folding(Matrix3d &baib, const Vector3d &b1, const Vector3d
       baib = bba*bb;
 //     -----------------------------------------------------------------
       vector<pair<int,int>> ifold;
+      int icnt=0;
+      Vector3d tmp1, tmp2;
+      double xsym, ysym, x1, x2;
+      int cond;
+      pair<int,int> foldtmp;
+
       if (irecipa == 0){
         cout<<"TESTK : irecip = 0 ---- NOT CODED"<<endl;
 	exit(EXIT_FAILURE);
       }
-      if (irecipa == 3){
-        cout<<"HEXAGONAL ATOMIC RECIPROCAL LATTICE NOT CODED"<<endl;
-        exit(EXIT_FAILURE);
+      if (irecipa == 3){//THIS IS OBVIOUSLY NOT CORRECT
+//     HEXAGONAL ATOMIC RECIPROCAL LATTICE
+//     first construct supercell reciprocal lattice cluster
+//     for the vector J = i*b1 + j*b2 + vsym(k)
+//     then           J = x1*ba1 + x2*ba2
+        for (int isym=1; isym <= 4; isym++){
+          if (isym == 1){
+            xsym=0.;
+            ysym=0.;
+	  }
+          if (isym == 2){
+            xsym=0.5;
+            ysym=0.;
+	  }
+          if (isym == 3){
+            xsym=0.;
+            ysym=0.5;
+  	  }
+          if (isym == 4){
+            xsym=0.5;
+            ysym=0.5;
+	  }
+          for (int i=-nsub; i<=nsub; i++){
+            for (int j=-nsub; j<=nsub; j++){
+	      cond = 0;
+              x1=baib(0,0)*(i+xsym)+baib(0,1)*(j+ysym);
+              x2=baib(1,0)*(i+xsym)+baib(1,1)*(j+ysym);
+
+//           check consistency
+              tmp1=(i+xsym)*b1+(j+ysym)*b2;
+              tmp2=x1*ba1+x2*ba2;
+              for (int l=0; l<3; l++){
+                if (abs(tmp1(l)-tmp2(l)) > 1e-10){
+                  cout<<"ERROR FOLDING "<<tmp1<<" "<<tmp2<<endl;
+		  exit(EXIT_FAILURE);
+		}
+	      }
+
+//           check that this vector lies inside the atomic BZ
+              if((abs(x1) <= 0.50000001) && (abs(x2) <= 0.50000001)){
+//           check if this point the same as any of the others
+                for (int iii=0; iii<icnt; iii++){
+                  if((i == ifold[iii].first) && (j == ifold[iii].second)){
+		    cond = 1;
+		    break;
+	          }
+	        }
+
+	        if (cond == false){
+		  foldtmp = make_pair(i, j);
+		  ifold.emplace_back(foldtmp);
+                  icnt++;
+		}
+	      }
+	    }
+	  }
+	}
+        nfold=icnt;
       }
       if (irecipa == 4){
         cout<<"CENTRED-RECTANGULAR ATOMIC RECIPROCAL LATTICE NOT CODED"<<endl;
@@ -147,11 +207,6 @@ vector<pair<int,int>> folding(Matrix3d &baib, const Vector3d &b1, const Vector3d
 //     first construct supercell reciprocal lattice cluster
 //     for the vector J = i*b1 + j*b2 + vsym(k)
 //     then           J = x1*ba1 + x2*ba2
-        int icnt=0;
-        Vector3d tmp1, tmp2;
-	double xsym, ysym, x1, x2;
-	int cond;
-	pair<int,int> foldtmp;
         for (int isym=1; isym <= 4; isym++){
           if (isym == 1){
             xsym=0.;
@@ -280,20 +335,18 @@ int main(){
       const int nspin=9;    // Number of energy bands
       const int numnn=2;    // No of nearest neighbours 
 
-      const int nins=3;    // No of spacer principal layers
+      const int nins=0;    // No of spacer principal layers
       const int mlay=0;     // No of substrate layers on each side of SGF
       const int numat=2;    // No of atom types: one for each element
 
       const int nlay=nins+2*mlay+4;  // total No of layers inc 4 lead layers
-      const int ndiff=nins;
 
       const double ef=0.57553;  // fermi energy
-      /* const double ef=0.485;  // fermi energy */
-      double wm = 1e-14;  // infinitesimal imaginary contribution to energy
+      double wm = 1e-4;  // infinitesimal imaginary contribution to energy
 
-      const int iwmax = 15;  // No of Matsubara frequencies
+      /* const int iwmax = 15;  // No of Matsubara frequencies */
       const double tfac     = 8.617e-5/13.6058;
-      const double temp  = 315.79*tfac;
+      const double temp  = 300*tfac;
       /* const double temp  = 315.79*tfac; */
 
 //     =================================================================
@@ -303,13 +356,17 @@ int main(){
 //     in this code we assume that the LH and RH leads have the same 
 //     lattice vectors and No of basis vectors
 
-      const int nsubat=2; // No. of sublayer atoms in leads
+      const int nsubat=3; // No. of sublayer atoms in leads
       const int natom=nspin*nsubat;
       Vector3d aa1, aa2;
 
-      //this for 011
+      /* //this for 001 */
+      /* aa1 << 0.5, 0.5, 0; */
+      /* aa2 << 0.5, -0.5, 0; */
+
+      //this for 111
       aa1 << M_SQRT2/2., 0, 0;
-      aa2 << 0, 1., 0;
+      aa2 << M_SQRT2/4., sqrt(6.)/4., 0;
 
 //     =================================================================
 //     LH LEAD BASIS VECTORS
@@ -317,7 +374,7 @@ int main(){
       vector<Vector3d, aligned_allocator<Vector3d>> aa3, a3;
       aa3.reserve(4);
       a3.reserve(nlay);
-      vector<Vector3d, aligned_allocator<Vector3d>> vsubtmp, vsubattmp;
+      vector<Vector3d, aligned_allocator<Vector3d>> vsubattmp, vsubtmp;
       vsubattmp.reserve(nsubat);
       vector<vector<Vector3d, aligned_allocator<Vector3d>>> vsubat, vsub;
       vsubat.reserve(4);
@@ -327,21 +384,22 @@ int main(){
       vector<VectorXd, aligned_allocator<VectorXd>> itypeat;
 
 //       Sublattice
+      tmp << 0, sqrt(6.)/6., -sqrt(3.)/3.; //this for 111
+      vsubattmp.emplace_back(tmp);
       tmp << 0, 0, 0;
       vsubattmp.emplace_back(tmp);
-      /* tmp << 0.5, 0, -0.5; //this for 001 */
-      tmp << M_SQRT2/4., 0.5 ,M_SQRT2/4.; //this for 011
+      tmp << M_SQRT2/4., sqrt(6.)/12., sqrt(3.)/3.; //this for 111
       vsubattmp.emplace_back(tmp);
       for (int ilay=1; ilay<=2; ilay++){
 //       Out of plane lattice vector
-	tmp << 0, 0, M_SQRT2*(ilay - 1)/2.;
+	tmp << 0, 0, (ilay - 1)*sqrt(3.);
 	aa3.emplace_back(tmp);
 
 	vsubat.emplace_back(vsubattmp);
 
 //       Atom types
         for (int kk=1; kk <= nsubat; kk++)
-	  attype(kk-1) = 1;
+	  attype(kk-1) = 2;
 	itypeat.emplace_back(attype);
       }
 
@@ -349,16 +407,26 @@ int main(){
 //     SUPERCELL STRUCTURE
 //     =================================================================
 
-      const int nsub=2; //No. of sublayer atoms in spacer
+      const int nsub=3; //No. of sublayer atoms in spacer
       vsubtmp.reserve(nsub);
 
 //     2 in-plane lattice vectors
 //     CUBIC
       Vector3d a1, a2;
 
-      //this for 011
+      /* //this for 001 */
+      /* a1 << 0.5, 0.5, 0; */
+      /* a2 << 0.5, -0.5, 0; */
+
+      //this for 111
       a1 << M_SQRT2/2., 0, 0;
-      a2 << 0, 1., 0;
+      a2 << M_SQRT2/4., sqrt(6.)/4., 0;
+
+      /* //this for 011 */
+      /* a1 << M_SQRT2/2., 0, 0; */
+      /* a2 << 0, M_SQRT2/2., 0; */
+
+      //THIS FOR THE FIRST PLANE IN THE PRINCIPLE LAYER
 
 //    ----------  Crystal structure ----------------------
       vector<vector<int>> itype;
@@ -366,14 +434,15 @@ int main(){
       vector<int> itmp;
       itmp.reserve(nsub);
 //       Sublattice
+      tmp << 0, sqrt(6.)/6., -sqrt(3.)/3.; //this for 111
+      vsubtmp.emplace_back(tmp);
       tmp << 0, 0, 0;
       vsubtmp.emplace_back(tmp);
-      /* tmp << 0.5, 0, -0.5; //this for 001 */
-      tmp << M_SQRT2/4., 0.5, M_SQRT2/4.; //this for 011
+      tmp << M_SQRT2/4., sqrt(6.)/12., sqrt(3.)/3.; //this for 111
       vsubtmp.emplace_back(tmp);
       for (int ilay=1; ilay <= nlay; ilay++){
 //       Out of plane lattice vector
-	tmp << 0, 0, M_SQRT2*(ilay - 1)/2.;
+	tmp << 0, 0, (ilay - 1)*sqrt(3.);
 	a3.emplace_back(tmp);
 
 	vsub.emplace_back(vsubtmp);
@@ -384,21 +453,12 @@ int main(){
 	  itype.emplace_back(itmp);
 	  itmp.clear();
 	}
-//this for odd layers, but with ilay >= 4 above
-	/* else if(ilay == 3){ */               
-	/*   itmp.emplace_back(2); // Cu */
-	/*   itmp.emplace_back(1); // Co */
-	/*   itype.emplace_back(itmp); */
-	/*   itmp.clear(); */
-	/* } */
 	else{
 	  for (int isub = 0; isub < nsub; isub++)
-	    itmp.emplace_back(1); //  Co
+	    itmp.emplace_back(2); //  Co
 	  itype.emplace_back(itmp);
 	  itmp.clear();
 	}
-
-//       Atom types
       }
 
 //     =================================================================
@@ -407,17 +467,17 @@ int main(){
 
       for (int ilay=nlay-1; ilay <= nlay; ilay++){
 //       Out of plane lattice vector
-	tmp << 0, 0, M_SQRT2*(ilay - 1)/2.;
+	tmp << 0, 0, (ilay - 1)*sqrt(3.);
 	aa3.emplace_back(tmp);
 
 	vsubat.emplace_back(vsubattmp);
 
 //       Atom types
         for (int kk=1; kk <= nsubat; kk++)
-	  attype(kk-1) = 1;
+	  attype(kk-1) = 2;
 	itypeat.emplace_back(attype);
       }
-
+      
 //     =================================================================
 //     The map between Supercell sublattice and LH atomic sublattice :
 //     imap:   supercell --> atomic
@@ -433,8 +493,11 @@ int main(){
           imapl.emplace_back(2);
           imapr.emplace_back(2);
 	}
+	if (isub == 2){
+          imapl.emplace_back(3);
+          imapr.emplace_back(3);
+	}
       }
-
 //     =================================================================
 //     THIS SECTION TO GET NN DISTANCES ONLY
 
@@ -470,13 +533,15 @@ int main(){
       // number of nearest neighbours, but the following code
       // only caters for up to two nearest neighbours
       vector<MatrixXd, aligned_allocator<MatrixXd>> ddnn;
-      ddnn.reserve(numnn);
+      ddnn.reserve(numnn+1);//the '+1' here is for the artificial 3rd NN - see notes on greens_hex.h
       MatrixXd ddnntmp(numat, numat);
       ddnntmp.fill(1./M_SQRT2);// be aware, this appears to be for fcc only
       ddnn.emplace_back(ddnntmp);
       ddnntmp.fill(1.);
       ddnn.emplace_back(ddnntmp);
-
+      //See notes on greens_hex.h for this 3rd nn. It isn't a true nn.
+      ddnntmp.fill(sqrt(3.));
+      ddnn.emplace_back(ddnntmp);
 //     =================================================================
 //     !!!!!!! OUTPUT ATOMIC POSITIONS FOR RASMOL VIEWER !!!!!!
 //     load into rasmol with command :    > load xyz pos0.dat
@@ -639,41 +704,35 @@ int main(){
       pdsint.reserve(2); pdpint.reserve(2); ddsint.reserve(2); ddpint.reserve(2); dddint.reserve(2);
       param(numat, numnn, s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint, pdsint, pdpint, ddsint, ddpint, dddint);
 
-      double vcuu, vcud, vcdu, vcdd;
-      dcomp zresu, zresd, zresud, zresdu;
+      int ndiff = 0;
+
+      double start = -0.2;
+      double end = 1.1;
+      double step = 0.0026;
+
+      string Mydata_up = "Cu_111_spin_up.txt";
+      string Mydata_down = "Cu_111_spin_down.txt";
+      ofstream Myfile_up, Myfile_down;	
+      Myfile_up.open( Mydata_up.c_str(),ios::trunc );
+      Myfile_down.open( Mydata_down.c_str(),ios::trunc );
+
+      double zresu, zresd;
 
       double fact = (M_PI + M_PI)*temp;
       dcomp ec, i;
       i = -1.;
       i = sqrt(i);
       int nmat = nspin*nsub;
-
-      string Myphase = "CoCuCo_011_phase_6th_plane.txt";
-      ofstream Myfile_2;	
-      Myfile_2.open( Myphase.c_str(),ios::app );
-      /* Myfile_2<<"Chemical_potential_in_the_lead_(Ry) J(mRy/atom)"<<endl; */
-
-      for (double phase = -0.04; phase <= 0.065; phase += 0.005){
-        vcuu = 0;
-        vcud = 0;
-        vcdu = 0;
-        vcdd = 0;
-        for (int iw=1; iw <= iwmax; iw++){
-          wm = M_PI*(2*iw-1)*temp;
-          ec = ef + i*wm;
-          kcon(nsubat,ifold,nfold,baib,nsub,ndiff,fact,zresu,zresd,zresud,zresdu,irecip,b1,b2,ec,phase,nmat,mlay,nins,nlay,
-	  	nspin,imapl,imapr,vsub,vsubat,numnn,a1,a2,a3,aa1,aa2,aa3,itype,itypeat,ddnn,s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint,
-		pdsint, pdpint, ddsint, ddpint, dddint);
-          vcuu = vcuu - fact*real(zresu);
-          vcud = vcud - fact*real(zresud);
-          vcdu = vcdu - fact*real(zresdu);
-          vcdd = vcdd - fact*real(zresd);
-	  cout<<"iw = "<<iw<<" complete"<<endl;
-        }
-        Myfile_2<<phase<<" "<<-1000*(vcuu+vcdd-vcdu-vcud)/nsub<<endl;
+      for (double j = start; j<end + step; j=j+step){
+        ec = j + i*wm;
+        kcon(nsubat,ifold,nfold,baib,nsub,ndiff,fact,zresu,zresd,irecip,b1,b2,ec,nmat,mlay,nins,nlay,
+  	  nspin,imapl,imapr,vsub,vsubat,numnn,a1,a2,a3,aa1,aa2,aa3,itype,itypeat,ddnn,s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint,
+	  pdsint, pdpint, ddsint, ddpint, dddint);
+	  Myfile_up<<j<<" "<<zresu*(-1./(2.*M_PI))<<endl;
+  	  Myfile_down<<j<<" "<<zresd*(-1./(2.*M_PI))<<endl;
       }
-      cout<<"finished"<<endl;
-      Myfile_2.close();
+      Myfile_up.close();
+      Myfile_down.close();
 
       return 0;
 }

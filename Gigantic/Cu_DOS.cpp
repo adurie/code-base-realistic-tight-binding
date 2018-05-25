@@ -17,10 +17,10 @@
 /* #include "cutest.h" */
 /* #include "calc_spawn.h" */
 /* #include "calc_par.h" */
-#include "calc_phase.h"
+#include "calc_dos.h"
 /* #include "calc_cunningham.h" */
-/* #include "greens_large_array.h" */
-#include "greens_phase.h"
+#include "dos_new.h"
+
 
 //     This program calculates the coupling for a general multilayer,
 //     with general supercell configuration, and general growth direction.
@@ -52,7 +52,6 @@ using namespace Eigen;
 typedef complex<double> dcomp;
 typedef vector<Vector3d, aligned_allocator<Vector3d>> vV3d;
 typedef vector<vector<Vector3d, aligned_allocator<Vector3d>>> vvV3d;
-typedef vector<Matrix2d, aligned_allocator<Matrix2d>> vm2d;
 
 bool WayToSort(double i, double j){ return abs(i) < abs(j);}
 
@@ -280,20 +279,18 @@ int main(){
       const int nspin=9;    // Number of energy bands
       const int numnn=2;    // No of nearest neighbours 
 
-      const int nins=3;    // No of spacer principal layers
+      const int nins=0;    // No of spacer principal layers
       const int mlay=0;     // No of substrate layers on each side of SGF
       const int numat=2;    // No of atom types: one for each element
 
       const int nlay=nins+2*mlay+4;  // total No of layers inc 4 lead layers
-      const int ndiff=nins;
 
       const double ef=0.57553;  // fermi energy
-      /* const double ef=0.485;  // fermi energy */
-      double wm = 1e-14;  // infinitesimal imaginary contribution to energy
+      double wm = 1e-4;  // infinitesimal imaginary contribution to energy
 
-      const int iwmax = 15;  // No of Matsubara frequencies
+      /* const int iwmax = 15;  // No of Matsubara frequencies */
       const double tfac     = 8.617e-5/13.6058;
-      const double temp  = 315.79*tfac;
+      const double temp  = 300*tfac;
       /* const double temp  = 315.79*tfac; */
 
 //     =================================================================
@@ -341,7 +338,7 @@ int main(){
 
 //       Atom types
         for (int kk=1; kk <= nsubat; kk++)
-	  attype(kk-1) = 1;
+	  attype(kk-1) = 2;
 	itypeat.emplace_back(attype);
       }
 
@@ -393,13 +390,14 @@ int main(){
 	/* } */
 	else{
 	  for (int isub = 0; isub < nsub; isub++)
-	    itmp.emplace_back(1); //  Co
+	    itmp.emplace_back(2); //  Co
 	  itype.emplace_back(itmp);
 	  itmp.clear();
 	}
 
 //       Atom types
       }
+
 
 //     =================================================================
 //     RH LEAD BASIS VECTORS
@@ -414,7 +412,7 @@ int main(){
 
 //       Atom types
         for (int kk=1; kk <= nsubat; kk++)
-	  attype(kk-1) = 1;
+	  attype(kk-1) = 2;
 	itypeat.emplace_back(attype);
       }
 
@@ -639,41 +637,35 @@ int main(){
       pdsint.reserve(2); pdpint.reserve(2); ddsint.reserve(2); ddpint.reserve(2); dddint.reserve(2);
       param(numat, numnn, s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint, pdsint, pdpint, ddsint, ddpint, dddint);
 
-      double vcuu, vcud, vcdu, vcdd;
-      dcomp zresu, zresd, zresud, zresdu;
+      int ndiff = 0;
+
+      double start = -0.2;
+      double end = 1.1;
+      double step = 0.0026;
+
+      string Mydata_up = "Cu_spin_up.txt";
+      string Mydata_down = "Cu_spin_down.txt";
+      ofstream Myfile_up, Myfile_down;	
+      Myfile_up.open( Mydata_up.c_str(),ios::trunc );
+      Myfile_down.open( Mydata_down.c_str(),ios::trunc );
+
+      double zresu, zresd;
 
       double fact = (M_PI + M_PI)*temp;
       dcomp ec, i;
       i = -1.;
       i = sqrt(i);
       int nmat = nspin*nsub;
-
-      string Myphase = "CoCuCo_011_phase_6th_plane.txt";
-      ofstream Myfile_2;	
-      Myfile_2.open( Myphase.c_str(),ios::app );
-      /* Myfile_2<<"Chemical_potential_in_the_lead_(Ry) J(mRy/atom)"<<endl; */
-
-      for (double phase = -0.04; phase <= 0.065; phase += 0.005){
-        vcuu = 0;
-        vcud = 0;
-        vcdu = 0;
-        vcdd = 0;
-        for (int iw=1; iw <= iwmax; iw++){
-          wm = M_PI*(2*iw-1)*temp;
-          ec = ef + i*wm;
-          kcon(nsubat,ifold,nfold,baib,nsub,ndiff,fact,zresu,zresd,zresud,zresdu,irecip,b1,b2,ec,phase,nmat,mlay,nins,nlay,
-	  	nspin,imapl,imapr,vsub,vsubat,numnn,a1,a2,a3,aa1,aa2,aa3,itype,itypeat,ddnn,s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint,
-		pdsint, pdpint, ddsint, ddpint, dddint);
-          vcuu = vcuu - fact*real(zresu);
-          vcud = vcud - fact*real(zresud);
-          vcdu = vcdu - fact*real(zresdu);
-          vcdd = vcdd - fact*real(zresd);
-	  cout<<"iw = "<<iw<<" complete"<<endl;
-        }
-        Myfile_2<<phase<<" "<<-1000*(vcuu+vcdd-vcdu-vcud)/nsub<<endl;
+      for (double j = start; j<end + step; j=j+step){
+        ec = j + i*wm;
+        kcon(nsubat,ifold,nfold,baib,nsub,ndiff,fact,zresu,zresd,irecip,b1,b2,ec,nmat,mlay,nins,nlay,
+  	  nspin,imapl,imapr,vsub,vsubat,numnn,a1,a2,a3,aa1,aa2,aa3,itype,itypeat,ddnn,s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint,
+	  pdsint, pdpint, ddsint, ddpint, dddint);
+	  Myfile_up<<j<<" "<<zresu*(-1./(2.*M_PI))<<endl;
+  	  Myfile_down<<j<<" "<<zresd*(-1./(2.*M_PI))<<endl;
       }
-      cout<<"finished"<<endl;
-      Myfile_2.close();
+      Myfile_up.close();
+      Myfile_down.close();
 
       return 0;
 }

@@ -187,74 +187,94 @@
 % 	\end{axis}
 % \end{tikzpicture}
 
-\pgfplotsset{width=5in}
-\pgfplotsset{height=5in}
-\begin{tikzpicture}
+% \pgfplotsset{width=5in}
+% \pgfplotsset{height=5in}
+% \begin{tikzpicture}
+% 	\begin{axis}[
+% 			% title = Partial Exchange Coupling in FCC CoCuCo(100) with $k_x = 0, k_z = 0$ and the first Matsubara term only,
+% 			ylabel = J \qquad $(mRy)$,
+% 			ylabel style = {yshift=1cm},
+% 			xlabel = Spacer layer thickness \qquad $(n)$,
+% 			scaled y ticks = false,
+% 			% scaled x ticks = false,
+% 			% yticklabels = {0.05, 0.04, 0.03, 0.02, 0.01, 0, -0.01, -0.02, -0.03},
+% 		y filter/.code={\pgfmathparse{#1*1000}\pgfmathresult},
+% 			% y dir = reverse,
+% 			y tick label style={
+% 			/pgf/number format/fixed,
+% 		/pgf/number format/precision = 3},
+% 			% x tick label style={
+% 			% /pgf/number format/fixed,
+% 		% /pgf/number format/precision = 2},
+% 			ymin =-5,
+% 			% ymax=100,
+% 			% xmin = -0.04,
+% 			xmax=30,
+% 			% legend style = {at={(0.03,0.9)},anchor=west},
+% 		]
+% 		\addplot [thick] table {res};\addlegendentry{Andrey's results}
+% 		     \addplot [red,thick] table {tes.txt};\addlegendentry{Alex's results}
+% 		     % \addplot [blue,thick] table {phase7_diamond.txt};\addlegendentry{Co/Cu(14)/Co}
+% 		% \addplot [thick] table {newEC_6.txt};\addlegendentry{Co/Cu(6)/Co}
+% 		     % \addplot [red,thick] table {newEC_10.txt};\addlegendentry{Co/Cu(10)/Co}
+% 		     % \addplot [blue,thick] table {newEC_14.txt};\addlegendentry{Co/Cu(14)/Co}
+% 	\end{axis}
+% \end{tikzpicture}
+
+% \pgfplotsset{width=5in}
+% \pgfplotsset{height=5in}
+% \begin{tikzpicture}
+% 	\begin{axis}[
+% 			% title = Partial Exchange Coupling in FCC CoCuCo(100) with $k_x = 0, k_z = 0$ and the first Matsubara term only,
+% 			ylabel = J \qquad $(mRy)$,
+% 			ylabel style = {yshift=1cm},
+% 			xlabel = Spacer layer thickness \qquad $(n)$,
+% 			scaled y ticks = false,
+% 			% scaled x ticks = false,
+% 			% yticklabels = {0.05, 0.04, 0.03, 0.02, 0.01, 0, -0.01, -0.02, -0.03},
+% 		y filter/.code={\pgfmathparse{#1*1000}\pgfmathresult},
+% 			% y dir = reverse,
+% 			y tick label style={
+% 			/pgf/number format/fixed,
+% 		/pgf/number format/precision = 3},
+% 			% x tick label style={
+% 			% /pgf/number format/fixed,
+% 		% /pgf/number format/precision = 2},
+% 			ymin =-0.5,
+% 			ymax=0.5,
+% 			xmin = 4,
+% 			xmax=30,
+% 			% legend style = {at={(0.03,0.9)},anchor=west},
+% 		]
+% 		\addplot [thick] table {res};\addlegendentry{Andrey's results}
+% 		     \addplot [red,thick] table {tes.txt};\addlegendentry{Alex's results}
+% 		     % \addplot [blue,thick] table {phase7_diamond.txt};\addlegendentry{Co/Cu(14)/Co}
+% 		% \addplot [thick] table {newEC_6.txt};\addlegendentry{Co/Cu(6)/Co}
+% 		     % \addplot [red,thick] table {newEC_10.txt};\addlegendentry{Co/Cu(10)/Co}
+% 		     % \addplot [blue,thick] table {newEC_14.txt};\addlegendentry{Co/Cu(14)/Co}
+% 	\end{axis}
+% \end{tikzpicture}
+
+\pgfplotsset{width=6in}
+\pgfplotsset{height=6in}
+\begin{tikzpicture} 
 	\begin{axis}[
-			% title = Partial Exchange Coupling in FCC CoCuCo(100) with $k_x = 0, k_z = 0$ and the first Matsubara term only,
-			ylabel = J \qquad $(mRy)$,
-			ylabel style = {yshift=1cm},
-			xlabel = Spacer layer thickness \qquad $(n)$,
-			scaled y ticks = false,
-			% scaled x ticks = false,
-			% yticklabels = {0.05, 0.04, 0.03, 0.02, 0.01, 0, -0.01, -0.02, -0.03},
-		y filter/.code={\pgfmathparse{#1*1000}\pgfmathresult},
-			% y dir = reverse,
-			y tick label style={
-			/pgf/number format/fixed,
-		/pgf/number format/precision = 3},
-			% x tick label style={
-			% /pgf/number format/fixed,
-		% /pgf/number format/precision = 2},
-			ymin =-5,
-			% ymax=100,
-			% xmin = -0.04,
-			xmax=30,
-			% legend style = {at={(0.03,0.9)},anchor=west},
+			% title=Adaptive Cunningham Points based quadrature routine developed by the author,
+			ylabel=$k_z$,
+			ylabel style={rotate=-90},
+			xlabel=$k_x$,
+			% xtick={0,1.5708,3.14159},
+			% xticklabels={$0$,$\frac{\pi}{2}$,$\pi$},
+			% ytick={0,1.5708,3.14159},
+			% yticklabels={$0$,$\frac{\pi}{2}$,$\pi$},
+			% ymin=-0.2,
+			% ymax=3.34,
+			% xmin=-0.2,
+			% xmax=3.34,
 		]
-		\addplot [thick] table {res};\addlegendentry{Andrey's results}
-		     \addplot [red,thick] table {tes.txt};\addlegendentry{Alex's results}
-		     % \addplot [blue,thick] table {phase7_diamond.txt};\addlegendentry{Co/Cu(14)/Co}
-		% \addplot [thick] table {newEC_6.txt};\addlegendentry{Co/Cu(6)/Co}
-		     % \addplot [red,thick] table {newEC_10.txt};\addlegendentry{Co/Cu(10)/Co}
-		     % \addplot [blue,thick] table {newEC_14.txt};\addlegendentry{Co/Cu(14)/Co}
+		\addplot[only marks, mark size=0.7pt,violet] table  {best_to_keep_for_adaptive_demo.txt};
 	\end{axis}
 \end{tikzpicture}
-
-\pgfplotsset{width=5in}
-\pgfplotsset{height=5in}
-\begin{tikzpicture}
-	\begin{axis}[
-			% title = Partial Exchange Coupling in FCC CoCuCo(100) with $k_x = 0, k_z = 0$ and the first Matsubara term only,
-			ylabel = J \qquad $(mRy)$,
-			ylabel style = {yshift=1cm},
-			xlabel = Spacer layer thickness \qquad $(n)$,
-			scaled y ticks = false,
-			% scaled x ticks = false,
-			% yticklabels = {0.05, 0.04, 0.03, 0.02, 0.01, 0, -0.01, -0.02, -0.03},
-		y filter/.code={\pgfmathparse{#1*1000}\pgfmathresult},
-			% y dir = reverse,
-			y tick label style={
-			/pgf/number format/fixed,
-		/pgf/number format/precision = 3},
-			% x tick label style={
-			% /pgf/number format/fixed,
-		% /pgf/number format/precision = 2},
-			ymin =-0.5,
-			ymax=0.5,
-			xmin = 4,
-			xmax=30,
-			% legend style = {at={(0.03,0.9)},anchor=west},
-		]
-		\addplot [thick] table {res};\addlegendentry{Andrey's results}
-		     \addplot [red,thick] table {tes.txt};\addlegendentry{Alex's results}
-		     % \addplot [blue,thick] table {phase7_diamond.txt};\addlegendentry{Co/Cu(14)/Co}
-		% \addplot [thick] table {newEC_6.txt};\addlegendentry{Co/Cu(6)/Co}
-		     % \addplot [red,thick] table {newEC_10.txt};\addlegendentry{Co/Cu(10)/Co}
-		     % \addplot [blue,thick] table {newEC_14.txt};\addlegendentry{Co/Cu(14)/Co}
-	\end{axis}
-\end{tikzpicture}
-
 
 
 

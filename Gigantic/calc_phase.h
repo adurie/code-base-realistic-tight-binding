@@ -4,7 +4,8 @@
 #include <cmath>
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/StdVector>
-#include "greens_phase.h"
+/* #include "greens_phase.h" */
+#include "greens_phase_hex.h"
 /* #include "greens_large_array.h" */
 
 using namespace std;
@@ -25,7 +26,7 @@ int testk(double x, double y, const Vector3d &b1, const Vector3d &b2, const vect
       Vector3d xtmp;
       xfold.clear();
 //     -----------------------------------------------------------------
-      if (irecip >= 3){
+      if (irecip > 3){
         cout<<"reciprocal superlattice not cubic or rectangular"<<endl;
         cout<<"this case has not been coded"<<endl;
 	exit(EXIT_FAILURE);
@@ -75,8 +76,39 @@ int testk(double x, double y, const Vector3d &b1, const Vector3d &b2, const vect
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //     HEXAGONAL ATOMIC RECIPROCAL LATTICE
       else if (irecip == 3){
-        cout<<"HEXAGONAL ATOMIC RECIPROCAL LATTICE NOT CODED"<<endl;
-	exit(EXIT_FAILURE);
+        /* cout<<"HEXAGONAL ATOMIC RECIPROCAL LATTICE NOT CODED"<<endl; */
+	/* cout<<"THIS IS A HACK, CODE NEEDS FINISHING"<<endl; */
+        for (int iff=0; iff<nfold; iff++){
+          i=ifold[iff].first;
+          j=ifold[iff].second;
+          xk=0.5*x+i;
+          yk=0.5*y+j;
+          x1=baib(0,0)*xk+baib(0,1)*yk;
+          x2=baib(1,0)*xk+baib(1,1)*yk;
+          if ((abs(x1) <= 0.50000001) && (abs(x2) <= 0.50000001)){
+//       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//       first check if this point is not related to any of the others by
+//       a reciprocal lattice vector
+            condition = 0;
+            for (int iii=0; iii<icnt; iii++){
+              dx=x1-xx1(iii);
+              dy=x2-xx2(iii);
+              ddx=floor(abs(dx)+1e-10)-abs(dx);
+              ddy=floor(abs(dy)+1e-10)-abs(dy);
+              if ((abs(ddx) < 1e-10) && (abs(ddy) < 1e-10))
+		condition = 1;
+	    }
+//       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+	    if (condition == 0){
+              xx1(icnt)=x1;
+              xx2(icnt)=x2;
+              icnt++;
+              xtmp=(0.5*x+i)*b1+(0.5*y+j)*b2;
+      	      xfold.emplace_back(xtmp);
+	    }
+	  }
+	}
+        nxfold=icnt;
       }
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //     CENTRED-RECTANGULAR ATOMIC RECIPROCAL LATTICE
@@ -254,6 +286,8 @@ void sumk(int nsub, int nsubat, const vector<pair<int,int>> &ifold, int nfold, c
 	      exit(EXIT_FAILURE);
 	    }
 
+//     THIS IS TEMPORARY AND OVERWRITES XFOLD FOUND IN TESTK
+	    xfold[0] = xk;
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             nktot+=iwght;
             ifail=0;

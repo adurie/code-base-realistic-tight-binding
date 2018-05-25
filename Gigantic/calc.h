@@ -4,7 +4,8 @@
 #include <cmath>
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/StdVector>
-#include "greens.h"
+/* #include "greens.h" */
+#include "greens_hex.h"
 /* #include "greens_read_test.h" */
 /* #include "greens_large_array.h" */
 
@@ -76,8 +77,39 @@ int testk(double x, double y, const Vector3d &b1, const Vector3d &b2, const vect
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //     HEXAGONAL ATOMIC RECIPROCAL LATTICE
       else if (irecip == 3){
-        cout<<"HEXAGONAL ATOMIC RECIPROCAL LATTICE NOT CODED"<<endl;
-	exit(EXIT_FAILURE);
+        /* cout<<"HEXAGONAL ATOMIC RECIPROCAL LATTICE NOT CODED"<<endl; */
+	/* cout<<"THIS IS A HACK, CODE NEEDS FINISHING"<<endl; */
+        for (int iff=0; iff<nfold; iff++){
+          i=ifold[iff].first;
+          j=ifold[iff].second;
+          xk=0.5*x+i;
+          yk=0.5*y+j;
+          x1=baib(0,0)*xk+baib(0,1)*yk;
+          x2=baib(1,0)*xk+baib(1,1)*yk;
+          if ((abs(x1) <= 0.50000001) && (abs(x2) <= 0.50000001)){
+//       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//       first check if this point is not related to any of the others by
+//       a reciprocal lattice vector
+            condition = 0;
+            for (int iii=0; iii<icnt; iii++){
+              dx=x1-xx1(iii);
+              dy=x2-xx2(iii);
+              ddx=floor(abs(dx)+1e-10)-abs(dx);
+              ddy=floor(abs(dy)+1e-10)-abs(dy);
+              if ((abs(ddx) < 1e-10) && (abs(ddy) < 1e-10))
+		condition = 1;
+	    }
+//       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+	    if (condition == 0){
+              xx1(icnt)=x1;
+              xx2(icnt)=x2;
+              icnt++;
+              xtmp=(0.5*x+i)*b1+(0.5*y+j)*b2;
+      	      xfold.emplace_back(xtmp);
+	    }
+	  }
+	}
+        nxfold=icnt;
       }
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //     CENTRED-RECTANGULAR ATOMIC RECIPROCAL LATTICE
@@ -248,14 +280,20 @@ void sumk(int nsub, int nsubat, const vector<pair<int,int>> &ifold, int nfold, c
 	      iwght=3;
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 //         find the folding points
+	    //IT IS VITALLY IMPORTANT THAT THE BELOW IS RESTORED AT SOME POINT
 
             nxfold = testk(x,y,b1,b2,ifold,xfold,nfold,baib,irecip);
-            if (nxfold != nsub/nsubat){
-              cout<<"ERROR SUMK : nxfold is not equal to nsub/nsubat "<<nxfold<<" "<<nsub<<" "<<nsubat<<endl;
-	      exit(EXIT_FAILURE);
-	    }
+            /* if (nxfold != nsub/nsubat){ */
+            /*   cout<<"ERROR SUMK : nxfold is not equal to nsub/nsubat "<<nxfold<<" "<<nsub<<" "<<nsubat<<endl; */
+	      /* exit(EXIT_FAILURE); */
+	    /* } */
 
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//     THIS IS TEMPORARY AND OVERWRITES XFOLD FOUND IN TESTK
+	    xfold[0] = xk;
+	    /* cout<<"xk = "<<xk.transpose()<<endl<<endl; */
+	    /* cout<<"xfold = "<<xfold[0].transpose()<<endl<<endl; */
+
             nktot+=iwght;
             ifail=0;
             ifail = cond(zener,xk,zconu,zcond,zconud,zcondu,nsub,nsubat,nxfold,xfold,forward<Args>(params)...);

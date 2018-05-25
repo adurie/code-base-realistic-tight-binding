@@ -21,7 +21,8 @@
 #include "calc.h"
 /* #include "calc_cunningham.h" */
 /* #include "greens_large_array.h" */
-#include "greens.h"
+/* #include "greens.h" */
+#include "greens_hex.h"
 
 //     This program calculates the coupling for a general multilayer,
 //     with general supercell configuration, and general growth direction.
@@ -160,7 +161,7 @@ vector<pair<int,int>> folding(Matrix3d &baib, const Vector3d &b1, const Vector3d
   	  }
           if (isym == 4){
             xsym=0.5;
-            ysym=0.25;
+            ysym=0.5;
 	  }
           for (int i=-nsub; i<=nsub; i++){
             for (int j=-nsub; j<=nsub; j++){
@@ -373,11 +374,14 @@ void split(int layer, int nlay, int numnn, int nspin, int nins, int numat, int m
       // number of nearest neighbours, but the following code
       // only caters for up to two nearest neighbours
       vector<MatrixXd, aligned_allocator<MatrixXd>> ddnn;
-      ddnn.reserve(numnn);
+      ddnn.reserve(numnn+1);//the '+1' here is for the artificial 3rd NN - see notes on greens_hex.h
       MatrixXd ddnntmp(numat, numat);
       ddnntmp.fill(1./M_SQRT2);// be aware, this appears to be for fcc only
       ddnn.emplace_back(ddnntmp);
       ddnntmp.fill(1.);
+      ddnn.emplace_back(ddnntmp);
+      //See notes on greens_hex.h for this 3rd nn. It isn't a true nn.
+      ddnntmp.fill(sqrt(3.));
       ddnn.emplace_back(ddnntmp);
 
 //     =================================================================
@@ -933,7 +937,7 @@ int main(){
       /* cout<<"(UP + DOWN - 2*AF)"<<endl; */
 
       ofstream Myfile;	
-      string Mydata = "IEC_CoCuCo_011.txt";
+      string Mydata = "IEC_CoCuCo_111.txt";
       Myfile.open( Mydata.c_str(),ios::trunc );
       for (int in = 0; in < ndiff; in++){
         Myfile<<3*(in+1)-2<<" "<<-(vcuu_2(in)+vcdd_2(in)-vcdu_2(in)-vcud_2(in))/nsub<<endl;

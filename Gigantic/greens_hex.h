@@ -5,6 +5,11 @@
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/StdVector>
 #include <string>
+//IMPORTANT this version of greens.h is designed for hexagonal
+//reciprocal lattice structures so that it doesn't fail when 
+//calculating the SGF's due to singular ztat matrices.
+//it artificially creates a 3rd nn with small potentials so 
+//spoof ztat into being non-singular.
 
 using namespace std;
 using namespace Eigen;
@@ -292,6 +297,19 @@ MatrixXcd sk(int ind1, int ind2, int nn, Vector3d &d, double dd, const Vector3d 
         rt(7,7)=d0t(ind1,elem);
         rt(8,8)=d0e(ind1,elem);
       }
+      else if (nn > 2){//this is to make the matrix ztat non-singular! - must edit if true 3rd nn required.
+	      g1 = 1e-5;
+	      g2 = 1e-5;
+	      g3 = 1e-5;
+	      g4 = 1e-5;
+	      g5 = 1e-5;
+	      g6 = 1e-5;
+	      g7 = 1e-5;
+	      g8 = 1e-5;
+	      g9 = 1e-5;
+	      g10 = 1e-5;
+        rt = eint1(g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,c(0),c(1),c(2));
+      }
       else{
 	nn--;
         g1=sssint[ind1](ind2,nn);
@@ -341,6 +359,7 @@ MatrixXcd helement(int n1, int n2, int isub, int jsub, const Vector3d &xk, int i
       Vector3d dpar, d;
       double dd;
       int nn;
+      numnn++;// this is to make the matrix ztat non-singular!!
       for (int inn=0; inn<numnn; inn++)
         ddmax=max(ddmax,ddnn[inn](ind1,ind2)); // sometimes ddnn(ind1,ind2,numnn)=0
       for (int i1=-numnn; i1<=numnn; i1++){
@@ -356,6 +375,7 @@ MatrixXcd helement(int n1, int n2, int isub, int jsub, const Vector3d &xk, int i
             d=vsub[n2][jsub]-vsub[n1][isub]+dpar;
 	  }
           dd=sqrt(d(0)*d(0) + d(1)*d(1) + d(2)*d(2));
+	  /* cout<<dd<<endl; */
 
           if (dd > (ddmax+1e-8))
 		  continue;   // this is not a NN
