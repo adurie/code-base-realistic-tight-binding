@@ -728,8 +728,8 @@ int main(){
         kcon(nsubat,ifold,nfold,baib,nsub,ndiff,fact,zresu,zresd,irecip,b1,b2,ec,nmat,mlay,nins,nlay,
   	  nspin,imapl,imapr,vsub,vsubat,numnn,a1,a2,a3,aa1,aa2,aa3,itype,itypeat,ddnn,s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint,
 	  pdsint, pdpint, ddsint, ddpint, dddint);
-	  Myfile_up<<j<<" "<<zresu*(-1./(2.*M_PI))<<endl;
-  	  Myfile_down<<j<<" "<<zresd*(-1./(2.*M_PI))<<endl;
+	  Myfile_up<<j<<" "<<zresu*(-1./(nsub*M_PI))<<endl;
+  	  Myfile_down<<j<<" "<<zresd*(-1./(nsub*M_PI))<<endl;
       }
       Myfile_up.close();
       Myfile_down.close();

@@ -344,6 +344,9 @@ int main(){
 	ofstream Myfile;	
 	Mydata += ".txt";
 	Myfile.open( Mydata.c_str(),ios::trunc );
+
+	cout<<endl;
+
 	int ispin = -1;
 
 	Vector3d d_0, d_1, d_2, d_3, d_4, d_5, d_6, d_7, d_8;
@@ -379,11 +382,6 @@ int main(){
 	Matrix<dcomp, 9, 9> t_17, t_18;
 	u = read(d_0, ispin);
 
-	t_1 = read(d_1, ispin);
-	t_3 = read(d_3, ispin);
-	t_5 = read(d_5, ispin);
-	t_13 = read(d_13, ispin);
-
 	SelfAdjointEigenSolver<Matrix<dcomp, 9, 9>> uu;
 	uu.compute(u);
 	Matrix<double, 9, 9> lambdareal;
@@ -394,39 +392,28 @@ int main(){
 	Oo = uu.eigenvectors();
 	Odagg = Oo.adjoint();
 
-	t_1 = Odagg*t_1*Oo;
-	t_1 = convert(t_1);
-	t_3 = Odagg*t_3*Oo;
-	t_3 = convert(t_3);
-	t_5 = Odagg*t_5*Oo;
-	t_5 = convert(t_5);
-	t_13 = Odagg*t_13*Oo;
-	t_13 = convert(t_13);
-	/* cout<<(Odagg*u*O).real()<<endl<<endl; */
-	lambda = convert(lambda);
-	Matrix<double,10,1> nn,nnn;
-	Matrix<double,9,9> test;
-
-	/* test = t_1.real(); */
-	/* nn = sk_extraction(test, d_1); */
-
-	/* test = t_3.real(); */
-	/* nn = sk_extraction(test, d_3); */
-
-	test = t_5.real();
-	nn = sk_extraction(test, d_5);
-
-	test = t_13.real();
-	nnn = sk_extraction(test, d_13);
-
-	//initialise onsite and hopping matrices for each nn
-
 	/* t_1 = read(d_1, ispin); */
 	/* t_1 = Odagg*t_1*Oo; */
 	/* t_1 = convert(t_1); */
 	/* t_2 = read(d_2, ispin); */
 	/* t_2 = Odagg*t_2*Oo; */
 	/* t_2 = convert(t_2); */
+	/* t_14 = read(d_14, ispin); */
+	/* t_14 = Odagg*t_14*Oo; */
+	/* t_14 = convert(t_14); */
+	/* t_13 = read(d_13, ispin); */
+	/* t_13 = Odagg*t_13*Oo; */
+	/* t_13 = convert(t_13); */
+
+	/* cout<<"t_1"<<endl; */
+	/* cout<<t_1.real()<<endl<<endl; */
+	/* cout<<"t_13"<<endl; */
+	/* cout<<t_13.real()<<endl<<endl; */
+
+	/* cout<<(Odagg*u*O).real()<<endl<<endl; */
+	lambda = convert(lambda);
+	/* cout<<lambda<<endl<<endl; */
+
 	/* t_3 = read(d_3, ispin); */
 	/* t_3 = Odagg*t_3*Oo; */
 	/* t_3 = convert(t_3); */
@@ -445,12 +432,7 @@ int main(){
 	/* t_8 = read(d_8, ispin); */
 	/* t_8 = Odagg*t_8*Oo; */
 	/* t_8 = convert(t_8); */
-	/* t_13 = read(d_13, ispin); */
-	/* t_13 = Odagg*t_13*Oo; */
-	/* t_13 = convert(t_13); */
-	/* t_14 = read(d_14, ispin); */
-	/* t_14 = Odagg*t_14*Oo; */
-	/* t_14 = convert(t_14); */
+
 	/* t_15 = read(d_15, ispin); */
 	/* t_15 = Odagg*t_15*Oo; */
 	/* t_15 = convert(t_15); */
@@ -464,30 +446,161 @@ int main(){
 	/* t_18 = Odagg*t_18*Oo; */
 	/* t_18 = convert(t_18); */
 
-	t_1 = TB(0,1,0,9,d_1,nn,nnn);
-	t_2 = TB(0,1,0,9,d_2,nn,nnn);
-	t_3 = TB(0,1,0,9,d_3,nn,nnn);
-	t_4 = TB(0,1,0,9,d_4,nn,nnn);
-	t_5 = TB(0,1,0,9,d_5,nn,nnn);
-	t_6 = TB(0,1,0,9,d_6,nn,nnn);
-	t_7 = TB(0,1,0,9,d_7,nn,nnn);
-	t_8 = TB(0,1,0,9,d_8,nn,nnn);
-	t_13 = TB(0,1,1,9,d_13,nn,nnn);
-	t_14 = TB(0,1,1,9,d_14,nn,nnn);
-	t_15 = TB(0,1,1,9,d_15,nn,nnn);
-	t_16 = TB(0,1,1,9,d_16,nn,nnn);
-	t_17 = TB(0,1,1,9,d_17,nn,nnn);
-	t_18 = TB(0,1,1,9,d_18,nn,nnn);
+	/* cout<<"t_15"<<endl<<t_15.real()<<endl<<endl; */
+	/* cout<<"t_16"<<endl<<t_16.real()<<endl<<endl; */
+	/* cout<<"t_17"<<endl<<t_17.real()<<endl<<endl; */
+	/* cout<<"t_18"<<endl<<t_18.real()<<endl<<endl; */
 
-	/* Myfile<<"P X Y"<<endl; */
-	Myfile<<"X Y"<<endl;
+	/* cout<<lambda<<endl<<endl; */
+	/* cout<<fixed<<(t_13+t_14+t_15+t_16+t_17+t_18).real()<<endl<<endl; */
+	/* cout<<fixed<<(t_1+t_2+t_3+t_4+t_5+t_6+t_7+t_8).real()<<endl<<endl; */
+
+	/* Matrix<double,10,1> nn,nnn; */
+	/* Matrix<double,9,9> test; */
+
+	/* test = t_1.real(); */
+	/* nn = sk_extraction(test, d_1); */
+
+	/* test = t_3.real(); */
+	/* nn = sk_extraction(test, d_3); */
+
+	/* test = t_5.real(); */
+	/* nn = sk_extraction(test, d_5); */
+
+	/* test = t_13.real(); */
+	/* nnn = sk_extraction(test, d_13); */
+
+	//initialise onsite and hopping matrices for each nn
+
+	t_1 = read(d_1, ispin);
+	t_1 = Odagg*t_1*Oo;
+	t_1 = convert(t_1);
+	t_2 = read(d_2, ispin);
+	t_2 = Odagg*t_2*Oo;
+	t_2 = convert(t_2);
+	t_3 = read(d_3, ispin);
+	t_3 = Odagg*t_3*Oo;
+	t_3 = convert(t_3);
+	t_4 = read(d_4, ispin);
+	t_4 = Odagg*t_4*Oo;
+	t_4 = convert(t_4);
+	t_5 = read(d_5, ispin);
+	t_5 = Odagg*t_5*Oo;
+	t_5 = convert(t_5);
+	t_6 = read(d_6, ispin);
+	t_6 = Odagg*t_6*Oo;
+	t_6 = convert(t_6);
+	t_7 = read(d_7, ispin);
+	t_7 = Odagg*t_7*Oo;
+	t_7 = convert(t_7);
+	t_8 = read(d_8, ispin);
+	t_8 = Odagg*t_8*Oo;
+	t_8 = convert(t_8);
+	t_13 = read(d_13, ispin);
+	t_13 = Odagg*t_13*Oo;
+	t_13 = convert(t_13);
+	t_14 = read(d_14, ispin);
+	t_14 = Odagg*t_14*Oo;
+	t_14 = convert(t_14);
+	t_15 = read(d_15, ispin);
+	t_15 = Odagg*t_15*Oo;
+	t_15 = convert(t_15);
+	t_16 = read(d_16, ispin);
+	t_16 = Odagg*t_16*Oo;
+	t_16 = convert(t_16);
+	t_17 = read(d_17, ispin);
+	t_17 = Odagg*t_17*Oo;
+	t_17 = convert(t_17);
+	t_18 = read(d_18, ispin);
+	t_18 = Odagg*t_18*Oo;
+	t_18 = convert(t_18);
 
 	dcomp i;
 	i = -1.;
 	i = sqrt(i);
 
-	Matrix<dcomp, 9, 9> E;
+	Matrix<dcomp, 9, 9> E_gamma, E_H, E_P, E_N;
+	double k_x, k_y, k_z, pi;
 	double b = 2.;
+	Vector3d K;
+	pi = 2*M_PI;
+	K << 0, 0, 0;
+	E_gamma = lambda + (t_1*exp(i*d_1.dot(K))+ t_2*exp(i*d_2.dot(K))+ t_3*exp(i*d_3.dot(K))
+		+ t_4*exp(i*d_4.dot(K)) + t_5*exp(i*d_5.dot(K)) + t_6*exp(i*d_6.dot(K))
+			+ t_7*exp(i*d_7.dot(K)) + t_8*exp(i*d_8.dot(K))
+			+ t_13*exp(i*d_13.dot(K)) + t_14*exp(i*d_14.dot(K))
+			+ t_15*exp(i*d_15.dot(K)) + t_16*exp(i*d_16.dot(K))
+			+ t_17*exp(i*d_17.dot(K)) + t_18*exp(i*d_18.dot(K)));
+	K << 0, 0, pi/b;
+	E_H = lambda + (t_1*exp(i*d_1.dot(K))+ t_2*exp(i*d_2.dot(K))+ t_3*exp(i*d_3.dot(K))
+		+ t_4*exp(i*d_4.dot(K)) + t_5*exp(i*d_5.dot(K)) + t_6*exp(i*d_6.dot(K))
+			+ t_7*exp(i*d_7.dot(K)) + t_8*exp(i*d_8.dot(K))
+			+ t_13*exp(i*d_13.dot(K)) + t_14*exp(i*d_14.dot(K))
+			+ t_15*exp(i*d_15.dot(K)) + t_16*exp(i*d_16.dot(K))
+			+ t_17*exp(i*d_17.dot(K)) + t_18*exp(i*d_18.dot(K)));
+	K << M_PI/b, M_PI/b, M_PI/b;
+	E_P = lambda + (t_1*exp(i*d_1.dot(K))+ t_2*exp(i*d_2.dot(K))+ t_3*exp(i*d_3.dot(K))
+		+ t_4*exp(i*d_4.dot(K)) + t_5*exp(i*d_5.dot(K)) + t_6*exp(i*d_6.dot(K))
+			+ t_7*exp(i*d_7.dot(K)) + t_8*exp(i*d_8.dot(K))
+			+ t_13*exp(i*d_13.dot(K)) + t_14*exp(i*d_14.dot(K))
+			+ t_15*exp(i*d_15.dot(K)) + t_16*exp(i*d_16.dot(K))
+			+ t_17*exp(i*d_17.dot(K)) + t_18*exp(i*d_18.dot(K)));
+	K << M_PI/b, M_PI/b, 0;
+	E_N = lambda + (t_1*exp(i*d_1.dot(K))+ t_2*exp(i*d_2.dot(K))+ t_3*exp(i*d_3.dot(K))
+		+ t_4*exp(i*d_4.dot(K)) + t_5*exp(i*d_5.dot(K)) + t_6*exp(i*d_6.dot(K))
+			+ t_7*exp(i*d_7.dot(K)) + t_8*exp(i*d_8.dot(K))
+			+ t_13*exp(i*d_13.dot(K)) + t_14*exp(i*d_14.dot(K))
+			+ t_15*exp(i*d_15.dot(K)) + t_16*exp(i*d_16.dot(K))
+			+ t_17*exp(i*d_17.dot(K)) + t_18*exp(i*d_18.dot(K)));
+	double s, p, d1, d2, sss1, sss2, pps1, pps2, ppp1, ppp2, dds1, dds2, ddp1, ddp2, ddd1, ddd2, sps1, sps2, sds1, sds2, pds1, pds2, pdp1, pdp2;
+	sss1 = real((1./16.)*(E_gamma(0,0)-E_H(0,0)));
+	sss2 = real((1./24.)*(E_gamma(0,0)+E_H(0,0)-2.*E_P(0,0)));// very important - typo in intro of Papa p12
+	s = 0.25*real((E_gamma(0,0) + E_H(0,0) + 2.*E_P(0,0)));
+	p = 0.125*real(E_gamma(1,1) + E_H(1,1) + 2.*(E_N(2,2) + E_N(3,3) + E_N(1,1)));
+	cout<<"p = "<<p<<endl;
+	double xx1, xy1, r3;
+	r3 = 1./sqrt(3.);
+	xx1 = (1./16.)*real(E_gamma(1,1) - E_H(1,1));
+	xy1 = -0.125*real(E_N(2,3));
+	pps1 = 2.*xy1 + xx1;
+	ppp1 = xx1 - xy1;
+	cout<<"1st neighbours"<<endl;
+	cout<<"sss = "<<sss1<<endl;
+	cout<<"pps = "<<pps1<<endl;
+	cout<<"ppp = "<<ppp1<<endl;
+	ppp2 = (1./16.)*real(E_gamma(1,1) + E_H(1,1) - 2.*E_N(1,1));
+	pps2 = (1./16.)*real(E_gamma(1,1) + E_H(1,1) + 2.*(-E_N(2,2) - E_N(3,3) + E_N(1,1)));
+	cout<<"2nd neighbours"<<endl;
+	cout<<"sss = "<<sss2<<endl;
+	cout<<"pps = "<<pps2<<endl;
+	cout<<"ppp = "<<ppp2<<endl;
+	double delta;
+	//magic 1.693948 below extracted from 5th element of onsite matrix (x2)
+	delta = 1.693948 - 0.5*real((E_gamma(4,4) + E_H(6,6)) - E_N(5,5) - E_N(6,6));
+	cout<<"delta = "<<delta<<endl;
+
+
+	cout<<lambda.real()<<endl;
+
+	/* t_1 = TB(0,1,0,9,d_1,nn,nnn); */
+	/* t_2 = TB(0,1,0,9,d_2,nn,nnn); */
+	/* t_3 = TB(0,1,0,9,d_3,nn,nnn); */
+	/* t_4 = TB(0,1,0,9,d_4,nn,nnn); */
+	/* t_5 = TB(0,1,0,9,d_5,nn,nnn); */
+	/* t_6 = TB(0,1,0,9,d_6,nn,nnn); */
+	/* t_7 = TB(0,1,0,9,d_7,nn,nnn); */
+	/* t_8 = TB(0,1,0,9,d_8,nn,nnn); */
+	/* t_13 = TB(0,1,1,9,d_13,nn,nnn); */
+	/* t_14 = TB(0,1,1,9,d_14,nn,nnn); */
+	/* t_15 = TB(0,1,1,9,d_15,nn,nnn); */
+	/* t_16 = TB(0,1,1,9,d_16,nn,nnn); */
+	/* t_17 = TB(0,1,1,9,d_17,nn,nnn); */
+	/* t_18 = TB(0,1,1,9,d_18,nn,nnn); */
+
+	/* Myfile<<"P X Y"<<endl; */
+	Myfile<<"X Y"<<endl;
+
+	Matrix<dcomp, 9, 9> E;
 
 	/* Matrix<dcomp, 18, 18> E; */
 	/* Matrix<dcomp, 9, 9> u_11, u_12; */
@@ -495,8 +608,6 @@ int main(){
 	/* Matrix<complex<double>, 9, 9> zero = Matrix<complex<double>, 9, 9>::Zero(); */
 
 
-	double k_x, k_y, k_z, pi;
-	Vector3d K;
 	for (int k = 0; k < 351; k++)
 	{
 		if (k < 101){
