@@ -557,28 +557,58 @@ int main(){
 	sss2 = real((1./24.)*(E_gamma(0,0)+E_H(0,0)-2.*E_P(0,0)));// very important - typo in intro of Papa p12
 	s = 0.25*real((E_gamma(0,0) + E_H(0,0) + 2.*E_P(0,0)));
 	p = 0.125*real(E_gamma(1,1) + E_H(1,1) + 2.*(E_N(2,2) + E_N(3,3) + E_N(1,1)));
+	cout<<"onsite terms"<<endl;
+	cout<<"s = "<<s<<endl;
 	cout<<"p = "<<p<<endl;
+	d2 = 0.25*real(E_gamma(7,7) + E_H(7,7) + 2.*E_P(7,7));
+	cout<<"d2 = "<<d2<<endl;
 	double xx1, xy1, r3;
 	r3 = 1./sqrt(3.);
 	xx1 = (1./16.)*real(E_gamma(1,1) - E_H(1,1));
 	xy1 = -0.125*real(E_N(2,3));
 	pps1 = 2.*xy1 + xx1;
 	ppp1 = xx1 - xy1;
+	cout<<endl;
 	cout<<"1st neighbours"<<endl;
 	cout<<"sss = "<<sss1<<endl;
 	cout<<"pps = "<<pps1<<endl;
 	cout<<"ppp = "<<ppp1<<endl;
+	double xyxy1;
+	xyxy1 = (1./16.)*real(E_gamma(4,4)-E_H(6,6));
+	double d2d21;
+	d2d21 = (1./16.)*real(E_gamma(7,7)-E_H(7,7));
+	double xyyz1;
+	xyyz1 = -(1./8.)*real(E_N(5,6));
+	ddd1 = (6./5.)*(xyxy1-xyyz1) - (3./5.)*d2d21;
+	ddp1 = (3./5.)*(2.*d2d21 + xyxy1 - xyyz1);
+	dds1 = xyxy1 + 2.*xyyz1;
+	cout<<"dds = "<<dds1<<endl;
+	cout<<"ddp = "<<ddp1<<endl;
+	cout<<"ddd = "<<ddd1<<endl;
 	ppp2 = (1./16.)*real(E_gamma(1,1) + E_H(1,1) - 2.*E_N(1,1));
 	pps2 = (1./16.)*real(E_gamma(1,1) + E_H(1,1) + 2.*(-E_N(2,2) - E_N(3,3) + E_N(1,1)));
+	cout<<endl;
 	cout<<"2nd neighbours"<<endl;
 	cout<<"sss = "<<sss2<<endl;
 	cout<<"pps = "<<pps2<<endl;
 	cout<<"ppp = "<<ppp2<<endl;
 	double delta;
 	//magic 1.693948 below extracted from 5th element of onsite matrix (x2)
-	delta = 1.693948 - 0.5*real((E_gamma(4,4) + E_H(6,6)) - E_N(5,5) - E_N(6,6));
+	/* delta = 1.693948 + real(-0.5*(E_gamma(4,4) + E_H(6,6)) - E_N(5,5) - E_N(6,6)); */
+	ddd2 = 0.25*real(E_N(7,7) - E_P(7,7));
+	double ddd2_alt;
+	/* ddd2_alt = (1./8.)*real(E_gamma(4,4) + E_H(6,6) - 2.*delta); */
+	delta = -4.*ddd2 + real(0.5*E_gamma(4,4) + 0.5*E_H(6,6));
+	ddp2 = (1./8.)*real(2.*delta - 1.5*(E_N(5,5) + E_N(6,6)) - E_N(5,6));
+	dds2 = (1./12.)*real(E_gamma(7,7) + E_H(7,7) + E_P(7,7) - (3./2.)*(E_N(5,5) + 2.*E_N(5,6) + E_N(6,6)));
+	cout<<"dds = "<<dds2<<endl;
+	cout<<"ddp = "<<ddp2<<endl;
+	cout<<"ddd = "<<ddd2<<endl;
+	/* cout<<"ddd = "<<ddd2_alt<<endl; */
+	cout<<endl;
 	cout<<"delta = "<<delta<<endl;
-
+	ddd2_alt = 0.25*real(E_gamma(4,4) + E_H(6,6) + 2.*E_N(5,5) + 2.*E_N(6,6) + 2*delta);
+	cout<<"unknown potential = "<<ddd2_alt<<endl<<endl;
 
 	cout<<lambda.real()<<endl;
 
