@@ -4,8 +4,9 @@
 #include <eigen3/Eigen/Dense>
 #include <vector>
 #include "TB_sk.h"
+#include <iomanip>
 /* #include "TBdynamic.h" */
-
+//Very good matching of SK potentials obtained through comparison of eigenvalues through interpolation scheme, for the 4x4 matrix s,p but not o good for the rest yet
 using namespace std;
 using namespace Eigen;
 typedef complex<double> dcomp;
@@ -287,8 +288,8 @@ Matrix<dcomp, 9, 9> convert(Matrix<dcomp, 9, 9> &t){
 	m.emplace_back(2);
 	m.emplace_back(3);
 	m.emplace_back(4);
-	m.emplace_back(0);
 	m.emplace_back(1);
+	m.emplace_back(0);
 	for (int i = 0; i<9; i++){
 		for (int j = 0; j<9; j++){
 			result(i,j) = t(m[i],m[j]);
@@ -455,7 +456,7 @@ int main(){
 	/* cout<<fixed<<(t_13+t_14+t_15+t_16+t_17+t_18).real()<<endl<<endl; */
 	/* cout<<fixed<<(t_1+t_2+t_3+t_4+t_5+t_6+t_7+t_8).real()<<endl<<endl; */
 
-	/* Matrix<double,10,1> nn,nnn; */
+	Matrix<double,10,1> nn,nnn;
 	/* Matrix<double,9,9> test; */
 
 	/* test = t_1.real(); */
@@ -560,19 +561,35 @@ int main(){
 	cout<<"onsite terms"<<endl;
 	cout<<"s = "<<s<<endl;
 	cout<<"p = "<<p<<endl;
+	d1 = real(lambda(5,5));
+	cout<<"d1 = "<<d1<<endl;
 	d2 = 0.25*real(E_gamma(7,7) + E_H(7,7) + 2.*E_P(7,7));
 	cout<<"d2 = "<<d2<<endl;
 	double xx1, xy1, r3;
 	r3 = 1./sqrt(3.);
 	xx1 = (1./16.)*real(E_gamma(1,1) - E_H(1,1));
 	xy1 = -0.125*real(E_N(2,3));
-	pps1 = 2.*xy1 + xx1;
-	ppp1 = xx1 - xy1;
+  
+	/* //this block obtained from matching eigenvalues, see block below */
+	/* sps1 = 0.20140; */
+	/* pps1 = 0.00725; */
+	/* ppp1 = 0.11224; */
+
+	/* //this block obtained from matching eigenvalues, a second attempt */
+	/* sss1 = -0.11807; */
+	/* sps1 = -0.16907; */
+	/* pps1 = 0.07499; */
+	/* ppp1 = 0.07835; */
+
+	/* pps1 = 2.*xy1 + xx1;//obtained from Papa formula in intro *1/ */
+	/* ppp1 = xx1 - xy1;//obtained from Papa formula in intro *1/ */
 	cout<<endl;
 	cout<<"1st neighbours"<<endl;
+
 	cout<<"sss = "<<sss1<<endl;
-	cout<<"pps = "<<pps1<<endl;
-	cout<<"ppp = "<<ppp1<<endl;
+	/* cout<<"pps = "<<pps1<<endl; */
+	/* cout<<"ppp = "<<ppp1<<endl; */
+
 	double xyxy1;
 	xyxy1 = (1./16.)*real(E_gamma(4,4)-E_H(6,6));
 	double d2d21;
@@ -582,12 +599,28 @@ int main(){
 	ddd1 = (6./5.)*(xyxy1-xyyz1) - (3./5.)*d2d21;
 	ddp1 = (3./5.)*(2.*d2d21 + xyxy1 - xyyz1);
 	dds1 = xyxy1 + 2.*xyyz1;
-	cout<<"dds = "<<dds1<<endl;
-	cout<<"ddp = "<<ddp1<<endl;
-	cout<<"ddd = "<<ddd1<<endl;
-	ppp2 = (1./16.)*real(E_gamma(1,1) + E_H(1,1) - 2.*E_N(1,1));
-	pps2 = (1./16.)*real(E_gamma(1,1) + E_H(1,1) + 2.*(-E_N(2,2) - E_N(3,3) + E_N(1,1)));
+
+	/* cout<<"dds = "<<dds1<<endl; */
+	/* cout<<"ddp = "<<ddp1<<endl; */
+	/* cout<<"ddd = "<<ddd1<<endl; */
+
+	//this block obtained from matching eigenvalues, see block below accurate!
+	ppp1 = -0.018593;
+	pps1 = 0.2689;
+	sps1 = -0.16918;
+
+	cout<<"ppp = "<<ppp1<<endl;
+	cout<<"pps = "<<pps1<<endl;
+	cout<<"sps = "<<sps1<<endl;
+
+	/* ppp2 = (1./16.)*real(E_gamma(2,1) + E_H(1,1) - 2.*E_N(1,1)); //obtained from Papa formula in intro */
+	/* pps2 = (1./16.)*real(E_gamma(1,1) + E_H(1,1) + 2.*(-E_N(2,2) - E_N(3,3) + E_N(1,1)));//obtained from Papa formula in intro */
 	cout<<endl;
+	//this block obtained from matching eigenvalues, see block below accurate!
+	ppp2 = 0.03060;
+	pps2 = 0.16341; 
+	sps2 = -0.06189; 
+
 	cout<<"2nd neighbours"<<endl;
 	cout<<"sss = "<<sss2<<endl;
 	cout<<"pps = "<<pps2<<endl;
@@ -612,25 +645,343 @@ int main(){
 
 	cout<<lambda.real()<<endl;
 
-	/* t_1 = TB(0,1,0,9,d_1,nn,nnn); */
-	/* t_2 = TB(0,1,0,9,d_2,nn,nnn); */
-	/* t_3 = TB(0,1,0,9,d_3,nn,nnn); */
-	/* t_4 = TB(0,1,0,9,d_4,nn,nnn); */
-	/* t_5 = TB(0,1,0,9,d_5,nn,nnn); */
-	/* t_6 = TB(0,1,0,9,d_6,nn,nnn); */
-	/* t_7 = TB(0,1,0,9,d_7,nn,nnn); */
-	/* t_8 = TB(0,1,0,9,d_8,nn,nnn); */
-	/* t_13 = TB(0,1,1,9,d_13,nn,nnn); */
-	/* t_14 = TB(0,1,1,9,d_14,nn,nnn); */
-	/* t_15 = TB(0,1,1,9,d_15,nn,nnn); */
-	/* t_16 = TB(0,1,1,9,d_16,nn,nnn); */
-	/* t_17 = TB(0,1,1,9,d_17,nn,nnn); */
-	/* t_18 = TB(0,1,1,9,d_18,nn,nnn); */
+	K << 0, M_PI/b, M_PI/b;
+	Matrix<dcomp, 9, 9> E_AA;
+	/* cout<<exp(i*d_17.dot(K))<<" "<<exp(i*d_18.dot(K))<<endl; */
+	E_AA = t_1;
+	/* E_AA = lambda */ 
+		/* + t_1*exp(i*d_1.dot(K))+ t_2*exp(i*d_2.dot(K))+ t_3*exp(i*d_3.dot(K)) */
+		/* + t_4*exp(i*d_4.dot(K)) + t_5*exp(i*d_5.dot(K)) + t_6*exp(i*d_6.dot(K)) */
+		/* 	+ t_7*exp(i*d_7.dot(K)) + t_8*exp(i*d_8.dot(K)) */
+			/* + t_13*exp(i*d_13.dot(K)) + t_14*exp(i*d_14.dot(K)) */
+			/* + t_15*exp(i*d_15.dot(K)) + t_16*exp(i*d_16.dot(K)) */
+			/* + t_17*exp(i*d_17.dot(K)) + t_18*exp(i*d_18.dot(K)) */
+			/* ; */
+	Matrix4cd AA, BB;
+	AA = E_AA.topLeftCorner(4,4);
+	cout<<AA<<endl<<endl;
+	/* ComplexEigenSolver<Matrix<dcomp,9,9>> CA; */
+	ComplexEigenSolver<Matrix<dcomp,4,4>> CA, CB;
+	/* CA.compute(E_AA); */
+	CA.compute(AA);
+	Vector4d eigs, eigs2;
+	eigs = CA.eigenvalues().real();
+	cout<<CA.eigenvalues().transpose()<<endl<<endl;
+	cout<<CA.eigenvalues().sum()<<endl<<endl;
+
+	Matrix<dcomp, 5, 5> CC, DD;
+	CC = E_AA.bottomRightCorner(5,5);
+	ComplexEigenSolver<Matrix<dcomp, 5, 5>> DA, DB;
+	DA.compute(CC);
+	Matrix<double, 5, 1> deigs, deigs2;
+	deigs = DA.eigenvalues().real();
+
+	double a1, a2, a3, a4, a5;
+	double b1, b2, b3;
+	double c1, c2, c3, c4, c5;
+
+	cout<<t_13.real()<<endl<<endl;
+	/* dds1 = -0.04253; */
+	/* ddp1 = 0.01857; */
+	/* ddd1 = 0.000316; */
+	
+	/* a1 = (1./9.)*(3.*dds1 + 2.*ddp1 + 4.*ddd1); */
+	/* a2 = (1./9.)*(3.*dds1 - ddp1 - 2.*ddd1); */
+	/* a3 = (sqrt(3.)/9.)*(ddp1 - ddd1); */
+	/* a4 = (1./3.)*(ddp1 - ddd1); */
+	/* a5 = (1./3.)*(2.*ddp1 + ddd1); */
+	/* DD<< a1,  a2, a2,   0, -2.*a3, */ 
+	/*      a2,  a1, a2, -a4,     a3, */
+	/*      a2,  a2, a1,  a4,     a3, */
+	/*       0, -a4, a4,  a5,      0, */
+	/*  -2.*a3,  a3, a3,   0,     a5; */
+
+	b1 = r3*sps1;
+	b2 = (1./3.)*(pps1 + 2.*ppp1);
+	b3 = (1./3.)*(pps1 - ppp1);
+	BB<<sss1, b1, b1, b1,
+	     -b1, b2, b3, b3,
+	     -b1, b3, b2, b3,
+	     -b1, b3, b3, b2;
+	Matrix<dcomp, 4, 5> BBBB;
+	Matrix<dcomp, 5, 4> CCCC;
+	Matrix<dcomp, 9, 9> MASTER;
+	ComplexEigenSolver<Matrix<dcomp, 9, 9>> EA, EB;
+	EA.compute(E_AA);
+	Matrix<double, 9, 1> feigs, feigs2;
+	feigs = EA.eigenvalues().real();
+	cout<<feigs.transpose()<<endl<<endl;
+
+	/* sds1 = -0.02; */
+	/* pds1 = 0.07; */
+	/* pdp1 = -0.0001; */
+
+	/* ddd2 = -0.00678; */
+
+	cout<<t_13.topLeftCorner(4,4)<<endl<<endl;
+
+	/* for (double xx = 1.; xx >= 0.; xx -= 0.01){ */
+	/* 	for (double yy = 1.; yy >= 0.; yy -= 0.01){ */
+	/* 		for (double zz = 1.; zz >= 0.; zz -= 0.01){ */
+	/* 			double result; */
+	/* 			result = sqrt(3.)*(xx*xx - yy*yy)/(3.*zz*zz - 1.); */
+	/* 			if (result < 0){ */
+	/* 				if (((-result > 0.474) && (-result < 0.479)) || ((-result > 2.097) && (-result < 2.102))) */
+	/* 					cout<<result<<" x = "<<xx<<" y = "<<yy<<" z = "<<zz<<endl; */
+	/* 			} */
+	/* 		} */
+	/* 	} */
+	/* } */
+
+
+	/* //This block uses the bottom right 5x5 submatrix of t_13 to find the SK potentials of d orbitals */
+	/* for (double pot = -0.02667; pot <= -0.02086; pot += 0.00001){ */
+	/* for (double pot1 = 0.00043; pot1 <= 0.00328; pot1 += 0.00001){ */
+	/* 	dds2 = pot; */
+	/* 	ddp2 = pot1; */
+	/* 	a1 = (sqrt(3.)/4.)*(ddd2-dds2); */
+	/* 	DD<< ddp2,    0,    0,                     0,                     0, */ 
+	/* 	        0, ddd2,    0,                     0,                     0, */
+	/* 	        0,    0, ddp2,                     0,                     0, */
+	/* 	        0,    0,    0, 0.75*dds2 + 0.25*ddd2,                    a1, */
+	/* 	        0,    0,    0,                    a1, 0.25*dds2 + 0.75*ddd2; */
+	/* 	DB.compute(DD); */
+	/* 	deigs2 = DB.eigenvalues().real(); */
+	/* 	/1* cout<<eigs2.transpose()<<endl<<endl; *1/ */
+	/* 	if ((abs(deigs(0)-deigs2(0)) < 2.9e-3) && (abs(deigs(1)-deigs2(1)) < 2.9e-3) && (abs(deigs(2)-deigs2(2)) < 2.9e-3) && (abs(deigs(3)-deigs2(3)) < 2.9e-3) && (abs(deigs(4)-deigs2(4)) < 2.9e-3)){ */
+	/* 		Myfile<<setprecision(9)<<dds2<<" "<<ddp2<<" "<<ddd2<<endl; */
+	/* 		cout<<deigs2.transpose()<<endl; */
+	/* 		break; */
+	/* 	} */
+	/* } */
+	/* } */
+
+	sds1 = -0.076; pds1 = 0.108; pdp1 = 0.019; dds1 = -0.026; ddp1 = 0.02; ddd1 = 0.011;
+	for (double pot = -0.081; pot <= 0.071; pot += 0.001){
+	for (double pot1 = -0.1; pot1 <= 0.11; pot1 += 0.001){
+	for (double pot2 = -0.021; pot2 <= 0.021; pot2 += 0.001){
+	for (double pot3 = -0.041; pot3 <= 0.011; pot3 += 0.001){
+	for (double pot4 = 0.019; pot4 <= 0.021; pot4 += 0.001){
+	for (double pot5 = -0.031; pot5 <= 0.031; pot5 += 0.001){
+		sds1 = pot;
+		pds1 = pot1;
+		pdp1 = pot2;
+		dds1 = pot3;
+		ddp1 = pot4;
+		ddd1 = pot5;
+		a1 = (1./9.)*(3.*dds1 + 2.*ddp1 + 4.*ddd1);
+		a2 = (1./9.)*(3.*dds1 - ddp1 - 2.*ddd1);
+		a3 = (sqrt(3.)/9.)*(ddp1 - ddd1);
+		a4 = (1./3.)*(ddp1 - ddd1);
+		a5 = (1./3.)*(2.*ddp1 + ddd1);
+		DD<< a1,  a2, a2,   0, -2.*a3, 
+		     a2,  a1, a2, -a4,     a3,
+		     a2,  a2, a1,  a4,     a3,
+		      0, -a4, a4,  a5,      0,
+		 -2.*a3,  a3, a3,   0,     a5;
+		c1 = r3*sds1;
+		c2 = r3*(r3*pds1 + (1./3.)*pdp1);
+		c3 = (r3/3.)*(sqrt(3.)*pds1 - 2.*pdp1);
+		c4 = r3*pdp1;
+		c5 = (1./3.)*pdp1;
+		BBBB<< c1, c1, c1,  0,     0,
+		       c2, c3, c2, c4,   -c5,
+		       c2, c2, c3, c4,   -c5,
+		       c3, c2, c2,  0, 2.*c5;
+		CCCC<< c1, -c2, -c2,    -c3,
+		       c1, -c3, -c2,    -c2,
+		       c1, -c2, -c3,    -c2,
+		        0, -c4, -c4,      0,
+			0,  c5,  c5, -2.*c5;
+		MASTER.topLeftCorner(4,4) = BB;
+		MASTER.bottomRightCorner(5,5) = DD;
+		MASTER.topRightCorner(4,5) = BBBB;
+		MASTER.bottomLeftCorner(5,4) = CCCC;
+		EB.compute(MASTER);
+		feigs2 = EB.eigenvalues().real();
+		/* cout<<eigs2.transpose()<<endl<<endl; */
+		if ((abs(feigs(0)-feigs2(0))/abs(feigs(0)) < 1e-1) && (abs(feigs(1)-feigs2(1))/abs(feigs(1)) < 1e-1) && 
+				(abs(feigs(2)-feigs2(2))/abs(feigs(2)) < 1e-1)
+				 && (abs(feigs(7)-feigs2(7))/abs(feigs(7)) < 1e-1) &&
+				(abs(feigs(8)-feigs2(8))/abs(feigs(8)) < 1e-1)){
+			Myfile<<setprecision(9)<<sds1<<" "<<pds1<<" "<<pdp1<<" "<<dds1<<" "<<ddp1<<" "<<ddd1<<endl;
+			cout<<feigs.transpose()<<endl<<feigs2.transpose()<<endl<<endl;
+			break;
+		}
+	}
+	}
+	}
+	}
+	}
+	}
+
+	/* //This block uses the bottom right 5x5 submatrix of t_1 to find the SK potentials of d orbitals accurate */
+	/* for (double pot = -0.04255; pot <= -0.04250; pot += 0.000001){ */
+	/* for (double pot1 = 0.00030; pot1 <= 0.00033; pot1 += 0.000001){ */
+	/* for (double pot2 = 0.01855; pot2 <= 0.01857; pot2 += 0.000001){ */
+	/* 	dds1 = pot; */
+	/* 	ddp1 = pot1; */
+	/* 	ddd1 = pot2; */
+	/* 	a1 = (1./9.)*(3.*dds1 + 2.*ddp1 + 4.*ddd1); */
+	/* 	a2 = (1./9.)*(3.*dds1 - ddp1 - 2.*ddd1); */
+	/* 	a3 = (sqrt(3.)/9.)*(ddp1 - ddd1); */
+	/* 	a4 = (1./3.)*(ddp1 - ddd1); */
+	/* 	a5 = (1./3.)*(2.*ddp1 + ddd1); */
+	/* 	DD<< a1,  a2, a2,   0, -2.*a3, */ 
+	/* 	     a2,  a1, a2, -a4,     a3, */
+	/* 	     a2,  a2, a1,  a4,     a3, */
+	/* 	      0, -a4, a4,  a5,      0, */
+	/* 	 -2.*a3,  a3, a3,   0,     a5; */
+	/* 	DB.compute(DD); */
+	/* 	deigs2 = DB.eigenvalues().real(); */
+	/* 	/1* cout<<eigs2.transpose()<<endl<<endl; *1/ */
+	/* 	if ((abs(deigs(0)-deigs2(0)) < 7.1e-6) && (abs(deigs(1)-deigs2(1)) < 7.1e-6) && (abs(deigs(2)-deigs2(2)) < 7.1e-6) && (abs(deigs(3)-deigs2(3)) < 7.1e-6) && (abs(deigs(4)-deigs2(4)) < 7.1e-6)){ */
+	/* 		Myfile<<setprecision(9)<<dds1<<" "<<ddp1<<" "<<ddd1<<endl; */
+	/* 		break; */
+	/* 	} */
+	/* } */
+	/* } */
+	/* } */
+	/* //This block uses the bottom right 5x5 submatrix of t_1 to find the SK potentials of d orbitals */
+	/* for (double pot = -0.04255; pot <= -0.04250; pot += 0.000001){ */
+	/* for (double pot1 = 0.01855; pot1 <= 0.01859; pot1 += 0.000001){ */
+	/* for (double pot2 = 0.00030; pot2 <= 0.00032; pot2 += 0.000001){ */
+	/* 	dds1 = pot; */
+	/* 	ddp1 = pot1; */
+	/* 	ddd1 = pot2; */
+	/* 	a1 = (1./9.)*(3.*dds1 + 2.*ddp1 + 4.*ddd1); */
+	/* 	a2 = (1./9.)*(3.*dds1 - ddp1 - 2.*ddd1); */
+	/* 	a3 = (sqrt(3.)/9.)*(ddp1 - ddd1); */
+	/* 	a4 = (1./3.)*(ddp1 - ddd1); */
+	/* 	a5 = (1./3.)*(2.*ddp1 + ddd1); */
+	/* 	DD<< a1,  a2, a2,   0, -2.*a3, */ 
+	/* 	     a2,  a1, a2, -a4,     a3, */
+	/* 	     a2,  a2, a1,  a4,     a3, */
+	/* 	      0, -a4, a4,  a5,      0, */
+	/* 	 -2.*a3,  a3, a3,   0,     a5; */
+	/* 	DB.compute(DD); */
+	/* 	deigs2 = DB.eigenvalues().real(); */
+	/* 	/1* cout<<eigs2.transpose()<<endl<<endl; *1/ */
+	/* 	if ((abs(deigs(0)-deigs2(0)) < 7.1e-6) && (abs(deigs(1)-deigs2(1)) < 7.1e-6) && (abs(deigs(2)-deigs2(2)) < 7.1e-6) && (abs(deigs(3)-deigs2(3)) < 7.1e-6) && (abs(deigs(4)-deigs2(4)) < 7.1e-6)){ */
+	/* 		Myfile<<setprecision(9)<<dds1<<" "<<ddp1<<" "<<ddd1<<endl; */
+	/* 		break; */
+	/* 	} */
+	/* } */
+	/* } */
+	/* } */
+
+	/* //This block uses the top left 4x4 submatrix of t_1 to find the SK potentials of p, s orbitals and does so correctly */
+	/* for (double pot = 0.26889233; pot <= 0.26894123; pot += 0.00000001){ */
+	/* /1* for (double pot1 = -0.0185935; pot1 <= -0.0185932; pot1 += 0.00000001){ *1/ */
+	/* for (double pot2 = -0.16919453; pot2 <= -0.16916656; pot2 += 0.00000001){ */
+	/* 	pps1 = pot; */
+	/* 	/1* ppp1 = pot1; *1/ */
+	/* 	sps1 = pot2; */
+	/* 	BB<<sss1   , r3*sps1                 , r3*sps1                 , r3*sps1                 , */
+	/* 	   -r3*sps1, (1./3.)*(pps1 + 2.*ppp1), (1./3.)*(pps1 - ppp1)   , (1./3.)*(pps1 - ppp1)   , */
+	/* 	   -r3*sps1, (1./3.)*(pps1 - ppp1)   , (1./3.)*(pps1 + 2.*ppp1), (1./3.)*(pps1 - ppp1)   , */
+	/* 	   -r3*sps1, (1./3.)*(pps1 - ppp1)   , (1./3.)*(pps1 - ppp1)   , (1./3.)*(pps1 + 2.*ppp1); */
+	/* 	CB.compute(BB); */
+	/* 	eigs2 = CB.eigenvalues().real(); */
+	/* 	/1* cout<<eigs2.transpose()<<endl<<endl; *1/ */
+	/* 	if ((abs(eigs(0)-eigs2(0)) < 1.2349e-5) && (abs(eigs(1)-eigs2(1)) < 1.2349e-5) && (abs(eigs(2)-eigs2(2)) < 1.2349e-5) && (abs(eigs(3)-eigs2(3)) < 1.2349e-5)){ */
+	/* 		Myfile<<setprecision(9)<<pps1<<" "<<ppp1<<" "<<sps1<<endl; */
+	/* 		break; */
+	/* 	} */
+	/* } */
+	/* } */
+
+	//produces incorrect potentials
+	/* for (double pot0 = -0.11810; pot0 <= -0.11805; pot0 += 0.00001){ */
+	/* for (double pot = -0.16908; pot <= -0.16900; pot += 0.00001){ */
+	/* for (double pot1 = 0.07498; pot1 <= 0.07500; pot1 += 0.00001){ */
+	/* for (double pot2 = 0.07834; pot2 <= 0.07836; pot2 += 0.00001){ */
+	/* 	sss1 = pot0; */
+	/* 	sps1 = pot; */
+	/* 	pps1 = pot1; */
+	/* 	ppp1 = pot2; */
+	/* 	BB<<s+5.65685*sss1, 0, 0, (5.65865*sqrt(3.)/3.)*i*sps1, */
+	/* 		0, p+(5.65865/3.)*(pps1+2.*ppp1), 0, 0, */
+	/* 		0, 0, p+(5.65865/3.)*(pps1+2.*ppp1), (4./3.)*(ppp1-pps1), */
+	/* 		-(5.65865*sqrt(3.)/3.)*i*sps1, 0, (4./3.)*(ppp1-pps1), p+(5.65865/3.)*(pps1+2.*ppp1); */
+	/* 	CB.compute(BB); */
+	/* 	eigs2 = CB.eigenvalues().real(); */
+	/* 	/1* cout<<eigs2.transpose()<<endl<<endl; *1/ */
+	/* 	if ((abs(eigs(0)-eigs2(0)) < 5.77e-5) && (abs(eigs(1)-eigs2(1)) < 5.77e-5) && (abs(eigs(2)-eigs2(2)) < 5.77e-5) && (abs(eigs(3)-eigs2(3)) < 5.77e-5)){ */
+	/* 		Myfile<<sss1<<" "<<sps1<<" "<<pps1<<" "<<ppp1<<endl; */
+	/* 	} */
+	/* } */
+	/* }}} */
+
+	//produces incorrect potentials
+	/* for (double pot = -0.2019; pot < -0.2009; pot += 0.00001){ */
+	/* for (double pot1 = 0.0067; pot1 < 0.0078; pot1 += 0.00001){ */
+	/* for (double pot2 = 0.1117; pot2 < 0.1127; pot2 += 0.00001){ */
+	/* 	sps1 = pot; */
+	/* 	pps1 = pot1; */
+	/* 	ppp1 = pot2; */
+	/* 	BB<<s+4.*sss1, 0, (4.*sqrt(3.)/3.)*i*sps1, (4.*sqrt(3.)/3.)*i*sps1, */
+	/* 		0, p+(4./3.)*(pps1+2.*ppp1), 0, 0, */
+	/* 		-(4.*sqrt(3.)/3.)*i*sps1, 0, p+(4./3.)*(pps1+2.*ppp1), (4./3.)*(ppp1-pps1), */
+	/* 		-(4.*sqrt(3.)/3.)*i*sps1, 0, (4./3.)*(ppp1-pps1), p+(4./3.)*(pps1+2.*ppp1); */
+	/* 	CB.compute(BB); */
+	/* 	eigs2 = CB.eigenvalues().real(); */
+	/* 	/1* cout<<eigs2.transpose()<<endl<<endl; *1/ */
+	/* 	if ((abs(eigs(0)-eigs2(0)) < 1.5e-5) && (abs(eigs(1)-eigs2(1)) < 1.5e-5) && (abs(eigs(2)-eigs2(2)) < 1.5e-5) && (abs(eigs(3)-eigs2(3)) < 1.5e-5)){ */
+	/* 		Myfile<<sps1<<" "<<pps1<<" "<<ppp1<<endl<<endl; */
+	/* 		break; */
+	/* 	} */
+	/* } */
+	/* }} */
+
+	/* //this block is used to obtain potentials by matching eigenvalues */
+	/* for (double pot = -0.062; pot < -0.0618; pot += 0.00001){ */
+	/* for (double pot1 = 0.1633; pot1 < 0.1635; pot1 += 0.00001){ */
+	/* for (double pot2 = 0.0305; pot2 < 0.0307; pot2 += 0.00001){ */
+	/* 	sps2 = pot; */
+	/* 	pps2 = pot1; */
+	/* 	ppp2 = pot2; */
+	/* 	BB<<s+2.*sss2, 0, 2.*i*sps2, 2.*i*sps2, */
+	/* 		0, p+2*pps2, 0, 0, */
+	/* 		-2.*i*sps2, 0, p+2*ppp2, 0, */
+	/* 		-2.*i*sps2, 0, 0, p+2*ppp2; */
+	/* 	CB.compute(BB); */
+	/* 	eigs2 = CB.eigenvalues().real(); */
+	/* 	/1* cout<<eigs2.transpose()<<endl<<endl; *1/ */
+	/* 	if ((abs(eigs(0)-eigs2(0)) < 1.1e-5) && (abs(eigs(1)-eigs2(1)) < 1.1e-5) && (abs(eigs(2)-eigs2(2)) < 1.1e-5) && (abs(eigs(3)-eigs2(3)) < 1.1e-5)){ */
+	/* 		Myfile<<sps2<<" "<<pps2<<" "<<ppp2<<endl<<endl; */
+	/* 		break; */
+	/* 	} */
+	/* } */
+	/* }} */
+	/* cout<<sps2<<endl<<endl; */
+	
+	nn<<sss1, sps1, pps1, ppp1, sds1, pds1, pdp1, dds1, ddp1, ddd1;
+	nnn<<sss2, sps2, pps2, ppp2, sds2, pds2, pdp2, dds2, ddp2, ddd2;
+
+	t_1 = TB(0,1,0,9,d_1,nn,nnn);
+	t_2 = TB(0,1,0,9,d_2,nn,nnn);
+	t_3 = TB(0,1,0,9,d_3,nn,nnn);
+	t_4 = TB(0,1,0,9,d_4,nn,nnn);
+	t_5 = TB(0,1,0,9,d_5,nn,nnn);
+	t_6 = TB(0,1,0,9,d_6,nn,nnn);
+	t_7 = TB(0,1,0,9,d_7,nn,nnn);
+	t_8 = TB(0,1,0,9,d_8,nn,nnn);
+	t_13 = TB(0,1,1,9,d_13,nn,nnn);
+	t_14 = TB(0,1,1,9,d_14,nn,nnn);
+	t_15 = TB(0,1,1,9,d_15,nn,nnn);
+	t_16 = TB(0,1,1,9,d_16,nn,nnn);
+	t_17 = TB(0,1,1,9,d_17,nn,nnn);
+	t_18 = TB(0,1,1,9,d_18,nn,nnn);
+
+	cout<<t_13.topLeftCorner(4,4)<<endl<<endl;
 
 	/* Myfile<<"P X Y"<<endl; */
-	Myfile<<"X Y"<<endl;
+	/* Myfile<<"X Y"<<endl; */
 
 	Matrix<dcomp, 9, 9> E;
+	Matrix<dcomp, 4, 4> E_small;
+	Matrix<dcomp, 5, 5> E_mid;
 
 	/* Matrix<dcomp, 18, 18> E; */
 	/* Matrix<dcomp, 9, 9> u_11, u_12; */
@@ -669,12 +1020,16 @@ int main(){
 		K(2) = k_z;
 
 		//fully diagonalised Hamiltonian
-		E = lambda + (t_1*exp(i*d_1.dot(K))+ t_2*exp(i*d_2.dot(K))+ t_3*exp(i*d_3.dot(K))
+		E = lambda
+		       	+ t_1*exp(i*d_1.dot(K))+ t_2*exp(i*d_2.dot(K))+ t_3*exp(i*d_3.dot(K))
 			+ t_4*exp(i*d_4.dot(K)) + t_5*exp(i*d_5.dot(K)) + t_6*exp(i*d_6.dot(K))
 				+ t_7*exp(i*d_7.dot(K)) + t_8*exp(i*d_8.dot(K))
-				+ t_13*exp(i*d_13.dot(K)) + t_14*exp(i*d_14.dot(K))
-				+ t_15*exp(i*d_15.dot(K)) + t_16*exp(i*d_16.dot(K))
-				+ t_17*exp(i*d_17.dot(K)) + t_18*exp(i*d_18.dot(K)));
+				/* + t_13*exp(i*d_13.dot(K)) + t_14*exp(i*d_14.dot(K)) */
+				/* + t_15*exp(i*d_15.dot(K)) + t_16*exp(i*d_16.dot(K)) */
+				/* + t_17*exp(i*d_17.dot(K)) + t_18*exp(i*d_18.dot(K)) */
+				;
+
+		/* E_mid = E.bottomRightCorner(5,5); */
 
 		/* if (k == 5) */
 		/* 	cout<<E<<endl<<endl; */
@@ -684,8 +1039,14 @@ int main(){
 		/* 	cout<<E<<endl<<endl; */
 
 		SelfAdjointEigenSolver<Matrix<dcomp, 9, 9>> es;
+		/* SelfAdjointEigenSolver<Matrix<dcomp, 4, 4>> es; */
+		/* SelfAdjointEigenSolver<Matrix<dcomp, 5, 5>> es; */
+		/* es.compute(E_small); */
+		/* es.compute(E_mid); */
 		es.compute(E);
 		Matrix<double, 9, 1> O;
+		/* Matrix<double, 4, 1> O; */
+		/* Matrix<double, 5, 1> O; */
 		O = es.eigenvalues();
 
 		/* //Hamiltonian firstly diagonalised in-plane */
@@ -700,15 +1061,15 @@ int main(){
 		/* Matrix<double, 18, 1> O; */
 		/* O = es.eigenvalues(); */
 
-		Myfile<<k<<" "<<O(0)<<endl;
-		Myfile<<k<<" "<<O(1)<<endl;
-		Myfile<<k<<" "<<O(2)<<endl;
-		Myfile<<k<<" "<<O(3)<<endl;
-		Myfile<<k<<" "<<O(4)<<endl;
-		Myfile<<k<<" "<<O(5)<<endl;
-		Myfile<<k<<" "<<O(6)<<endl;
-		Myfile<<k<<" "<<O(7)<<endl;
-		Myfile<<k<<" "<<O(8)<<endl;
+		/* Myfile<<k<<" "<<O(0)<<endl; */
+		/* Myfile<<k<<" "<<O(1)<<endl; */
+		/* Myfile<<k<<" "<<O(2)<<endl; */
+		/* Myfile<<k<<" "<<O(3)<<endl; */
+		/* Myfile<<k<<" "<<O(4)<<endl; */
+		/* Myfile<<k<<" "<<O(5)<<endl; */
+		/* Myfile<<k<<" "<<O(6)<<endl; */
+		/* Myfile<<k<<" "<<O(7)<<endl; */
+		/* Myfile<<k<<" "<<O(8)<<endl; */
 
 		/* Myfile<<"A"<<" "<<k<<" "<<O(0)<<endl; */
 		/* Myfile<<"B"<<" "<<k<<" "<<O(1)<<endl; */
