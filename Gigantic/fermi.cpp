@@ -5,7 +5,9 @@
 using namespace std;
 
 int main(){
-	ifstream infile("Ag_spin_down.txt");
+	/* ifstream infile("Ag_spin_down.txt"); */
+	/* ifstream infile("Cu_111_spin_down2.txt"); */
+	ifstream infile("Cu_spin_down.txt");
 	/* ifstream infile("Fe_tdos.txt"); */
 	string line;
 	double DOS = 0;
@@ -21,7 +23,7 @@ int main(){
 		DOS+=b;
 		E = DOS*step;
 	}
-	cout<<a<<endl;
-	cout<<E<<endl;
+	cout<<"Fermi level = "<<a<<"Ry"<<endl;
+	cout<<"Termination energy = "<<E<<"Ry"<<endl;
 	return 0;
 }
