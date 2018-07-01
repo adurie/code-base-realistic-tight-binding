@@ -8,7 +8,8 @@
 #include <eigen3/Eigen/StdVector>
 #include <utility>
 #include <cstdlib>
-#include "FeAgFe_new.h"
+/* #include "FeAgFe_new.h" */
+#include "Fe_iron_dn_extract.h"
 /* #include "cunningham_spawn.h" */
 /* #include "cunningham_quad.h" */
 /* #include "cunningham_multipoint.h" */
@@ -676,9 +677,9 @@ int main(){
       double end = 1.;
       double step = 0.0026;
 
-      string Mydata_up = "Fe_spin_up_new.txt";
-      string Mydata_down = "Fe_spin_down_new.txt";
-      string Mydata_total = "Fe_tdos.txt";
+      string Mydata_up = "Fe_spin_up_new_extract_ignore.txt";
+      string Mydata_down = "Fe_spin_down_sk.txt";
+      string Mydata_total = "Fe_tdos_extract_ignore.txt";
       ofstream Myfile_up, Myfile_down, Myfile_total;	
       Myfile_up.open( Mydata_up.c_str(),ios::trunc );
       Myfile_down.open( Mydata_down.c_str(),ios::trunc );
