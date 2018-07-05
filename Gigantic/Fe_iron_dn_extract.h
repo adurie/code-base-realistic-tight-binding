@@ -66,18 +66,17 @@ void param(int numat, int numnn, Matrix2d &s0, Matrix2d &p0, Matrix2d &d0t, Matr
 //     first n.n.
 //      
 	double sss1, sss2, pps1, pps2, ppp1, ppp2, dds1, dds2, ddp1, ddp2, ddd1, ddd2, sps1, sps2, sds1, sds2, pds1, pds2, pdp1, pdp2;
-	sss1 = -0.118047;
-	sss2 = -0.0227164;
-	ppp1 = -0.018593;
-	pps1 = 0.2689;
-	sps1 = -0.16918;
+	sds1 = -0.07158; dds1 = -0.04897; ddp1 = 0.02434; ddd1 = -0.00178;
+	pps1 = 0.26892; ppp1 = -0.01859; sps1 = 0.16918;
+	pds1 = -0.11882; pdp1 = 0.03462; 
+	pdp2 = -0.01088; pds2 = -0.05257;
+	sds2 = -0.02805; dds2 = -0.02267; ddp2 = -0.00468; ddd2 = 0.00209;
 	ppp2 = 0.03060;
 	pps2 = 0.16341; 
-	sps2 = -0.06189; 
-	sds2 = -0.02805; dds2 = -0.02267; ddp2 = -0.00468; ddd2 = 0.00209;
-	sds1 = -0.07770;
-	pdp2 = -0.01088; pds2 = -0.05257;
-	pds1 = 0.11758; pdp1 = -0.01924; dds1 = -0.03998; ddp1 = 0.02639; ddd1 = -0.00877;
+	sps2 = 0.06189; 
+	sss1 = -0.118047;
+	sss2 = -0.0227164;
+
       sss(0,0) = sss1;
       sps(0,0) = sps1;
       pps(0,0) = pps1; 

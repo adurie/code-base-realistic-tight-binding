@@ -673,7 +673,8 @@ int main(){
 
       int ndiff = 0;
 
-      double start = -1;
+      /* double start = -1; */
+      double start = 0.4196;
       double end = 1.;
       double step = 0.0026;
 
@@ -681,9 +682,9 @@ int main(){
       string Mydata_down = "Fe_spin_down_sk.txt";
       string Mydata_total = "Fe_tdos_extract_ignore.txt";
       ofstream Myfile_up, Myfile_down, Myfile_total;	
-      Myfile_up.open( Mydata_up.c_str(),ios::trunc );
-      Myfile_down.open( Mydata_down.c_str(),ios::trunc );
-      Myfile_total.open( Mydata_total.c_str(),ios::trunc );
+      Myfile_up.open( Mydata_up.c_str(),ios::app );
+      Myfile_down.open( Mydata_down.c_str(),ios::app );
+      Myfile_total.open( Mydata_total.c_str(),ios::app );
       double up_result;
       double down_result;
 
