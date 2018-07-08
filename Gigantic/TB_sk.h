@@ -11,7 +11,7 @@ Matrix<complex<double>, 9, 9> eint1(double, double, double, double,
 		     double, double, double, double, double,
 		     double, double, double, double);
 
-Matrix<complex<double>, 9, 9> TB(int ind, int dd, int nn, int nspin, Vector3d &pos, Matrix<double,10,1> &NN, Matrix<double,10,1> &NNN){
+Matrix<complex<double>, 9, 9> TB(int ind, int dd, int nn, int nspin, const Vector3d &pos, VectorXd &NN, VectorXd &NNN){
 //  lattice constant a set to 1 as is irrelevant, disappears after integration
 //  ind = atom type,    0=Fe down, 1=Fe up,  2=Ag
 //  dd = type of matrix, 0 = U, 1 = T

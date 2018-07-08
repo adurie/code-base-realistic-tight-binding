@@ -15,6 +15,9 @@ using namespace std;
 using namespace Eigen;
 
 template <typename func1, typename... Args>
+void dxargs(VectorXd&, VectorXd&, func1&&, Args&&...);
+
+template <typename func1, typename... Args>
 double f1dim(double x, int n, VectorXd &pcom, VectorXd &xicom, func1&& func, Args&&... params)
 {
 	double f;
@@ -211,9 +214,9 @@ routines mnbrak and brent.*/
 	p = p + xi;
 }
 
-template <typename func1, typename func2, typename... Args>
+template <typename func1, typename... Args>
 void frprmn(VectorXd &p, double ftol, int &iter, double &fret,
-	func1&& func, func2&& dfunc, Args&&... params)
+	func1&& func, Args&&... params)
 {
 /* Given a starting point p[1..n] , Fletcher-Reeves-Polak-Ribiere minimization is performed on a
 function func , using its gradient as calculated by a routine dfunc . The convergence tolerance
@@ -226,7 +229,7 @@ function). The routine linmin is called to perform line minimizations. */
 	double gg,gam,fp,dgg;
 	VectorXd g(n), h(n), xi(n);
 	fp = forward<func1>(func)(p, forward<Args>(params)...);
-	forward<func2>(dfunc)(p, xi, forward<Args>(params)...);
+	dxargs(p, xi, func, params...);
 	g = -xi;
 	h = g;
 	xi = h;
@@ -238,7 +241,7 @@ function). The routine linmin is called to perform line minimizations. */
 		if (2.0*abs(fret-fp) <= ftol*(abs(fret)+abs(fp)+EPS)) 
 			return;
 		fp = fret;
-		forward<func2>(dfunc)(p, xi, forward<Args>(params)...);
+		dxargs(p, xi, func, params...);
 		dgg = gg = 0.0;
 		gg = g.dot(g);
 		/* dgg = xi.dot(g); 		//This statement for Fletcher-Reeves. */

@@ -1169,8 +1169,17 @@ int main(){
 	/* 	} */
 	/* } */
 	/* } */
-
-	Matrix<double,10,1>nn,nnn;
+//obtained from conj.cpp
+sss1 =  -0.118103; sps1 =   0.169403; pps1 =    0.269011; ppp1 =  -0.0186036;
+sds1 = -0.0761861; pds1 =  -0.112363; pdp1 =   0.0305943; dds1 =  -0.0433613; ddp1 =   0.0207795; ddd1 = -0.00149068;
+sss2 = -0.0228124; sps2 =  0.0616934; pps2 =    0.164078; ppp2 =   0.0300529;
+sds2 = -0.0281175; pds2 = -0.0534488; pdp2 =  -0.0129463; dds2 =  -0.0244981; ddp2 = -0.00288585; ddd2 =  0.00130428;
+//obtained from conj.cpp in one run
+sss1 = -0.11806; sps1 = 0.169358; pps1 = 0.269424; ppp1 = -0.0188317; sds1 = -0.0756415;
+pds1 = -0.110769; pdp1 = 0.0306304; dds1 = -0.0438971; ddp1 = 0.0200678; ddd1 = -0.000538349;
+sss2 = -0.023016; sps2 = 0.061915; pps2 = 0.165029; ppp2 = 0.0301988; sds2 = -0.0318296;
+pds2 =-0.0567376; pdp2 = -0.0105958; dds2 = -0.024202; ddp2 = -0.00369887; ddd2 = 0.00177699;
+	VectorXd nn(10),nnn(10);
 	nn<<sss1, sps1, pps1, ppp1, sds1, pds1, pdp1, dds1, ddp1, ddd1;
 	nnn<<sss2, sps2, pps2, ppp2, sds2, pds2, pdp2, dds2, ddp2, ddd2;
 	cout<<"full 1st nn SK potentials;"<<endl;
@@ -1262,25 +1271,25 @@ int main(){
 
 		//fully diagonalised Hamiltonian
 		E = lambda
-		       	/* + t_1*exp(i*d_1.dot(K))+ t_2*exp(i*d_2.dot(K))+ t_3*exp(i*d_3.dot(K)) */
-			/* + t_4*exp(i*d_4.dot(K)) + t_5*exp(i*d_5.dot(K)) + t_6*exp(i*d_6.dot(K)) */
-				/* + t_7*exp(i*d_7.dot(K)) + t_8*exp(i*d_8.dot(K)) */
+		       	+ t_1*exp(i*d_1.dot(K))+ t_2*exp(i*d_2.dot(K))+ t_3*exp(i*d_3.dot(K))
+			+ t_4*exp(i*d_4.dot(K)) + t_5*exp(i*d_5.dot(K)) + t_6*exp(i*d_6.dot(K))
+				+ t_7*exp(i*d_7.dot(K)) + t_8*exp(i*d_8.dot(K))
 				+ t_13*exp(i*d_13.dot(K)) + t_14*exp(i*d_14.dot(K))
 				+ t_15*exp(i*d_15.dot(K)) + t_16*exp(i*d_16.dot(K))
 				+ t_17*exp(i*d_17.dot(K)) + t_18*exp(i*d_18.dot(K))
 				;
 
 		/* E_mid = E.bottomRightCorner(5,5); */
-		E_small = E.topLeftCorner(4,4);
+		/* E_small = E.topLeftCorner(4,4); */
 
-		/* SelfAdjointEigenSolver<Matrix<dcomp, 9, 9>> es; */
-		SelfAdjointEigenSolver<Matrix<dcomp, 4, 4>> es;
+		SelfAdjointEigenSolver<Matrix<dcomp, 9, 9>> es;
+		/* SelfAdjointEigenSolver<Matrix<dcomp, 4, 4>> es; */
 		/* SelfAdjointEigenSolver<Matrix<dcomp, 5, 5>> es; */
-		es.compute(E_small);
+		/* es.compute(E_small); */
 		/* es.compute(E_mid); */
-		/* es.compute(E); */
-		/* Matrix<double, 9, 1> O; */
-		Matrix<double, 4, 1> O;
+		es.compute(E);
+		Matrix<double, 9, 1> O;
+		/* Matrix<double, 4, 1> O; */
 		/* Matrix<double, 5, 1> O; */
 		O = es.eigenvalues();
 
@@ -1312,11 +1321,11 @@ int main(){
 		Myfile<<"C"<<" "<<k<<" "<<O(2)<<endl;
 		Myfile<<"D"<<" "<<k<<" "<<O(3)<<endl;
 
-		/* Myfile<<"E"<<" "<<k<<" "<<O(4)<<endl; */
-		/* Myfile<<"F"<<" "<<k<<" "<<O(5)<<endl; */
-		/* Myfile<<"G"<<" "<<k<<" "<<O(6)<<endl; */
-		/* Myfile<<"H"<<" "<<k<<" "<<O(7)<<endl; */
-		/* Myfile<<"I"<<" "<<k<<" "<<O(8)<<endl; */
+		Myfile<<"E"<<" "<<k<<" "<<O(4)<<endl;
+		Myfile<<"F"<<" "<<k<<" "<<O(5)<<endl;
+		Myfile<<"G"<<" "<<k<<" "<<O(6)<<endl;
+		Myfile<<"H"<<" "<<k<<" "<<O(7)<<endl;
+		Myfile<<"I"<<" "<<k<<" "<<O(8)<<endl;
 
 		/* Myfile<<"J"<<" "<<k<<" "<<O(9)<<endl; */
 		/* Myfile<<"K"<<" "<<k<<" "<<O(10)<<endl; */
