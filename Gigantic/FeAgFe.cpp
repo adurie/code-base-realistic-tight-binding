@@ -8,7 +8,7 @@
 #include <eigen3/Eigen/StdVector>
 #include <utility>
 #include <cstdlib>
-#include "FeAgFe.h"
+#include "FeAgFe_sk.h"
 /* #include "cunningham_spawn.h" */
 /* #include "cunningham_quad.h" */
 /* #include "cunningham_multipoint.h" */
@@ -502,12 +502,12 @@ int main(){
       ddnntmp << M_SQRT3o2, M_SQRT3o2, M_SQRT3o2, 1.;
       /* ddnntmp << M_SQRT3o2, 1., 1., 1.; //this for odd layers? */
       ddnn.emplace_back(ddnntmp);
-      ddnntmp << 1., 1., M_SQRT2/2. + 0.5, M_SQRT2; //original
+      ddnntmp << 1., 1., 1., M_SQRT2; //original
       /* ddnntmp << 1., 1., 1., M_SQRT2; // this for even layers? */
       /* ddnntmp << 1., 1.20711, 1.20711, M_SQRT2; // this for odd layers? */
       ddnn.emplace_back(ddnntmp);
       double sq3nn = sqrt(7/4.+1./M_SQRT2);
-      ddnntmp << M_SQRT2, sq3nn, M_SQRT2, sqrt(3.); //original
+      ddnntmp << M_SQRT2, sq3nn, sq3nn, sqrt(3.); //original
       /* ddnntmp << M_SQRT2, 1.20711, 1.20711, sqrt(3.);  // this for even layers? */
       /* ddnntmp << M_SQRT2, M_SQRT2, M_SQRT2, sqrt(3.);  // this for odd layers? */
       ddnn.emplace_back(ddnntmp);

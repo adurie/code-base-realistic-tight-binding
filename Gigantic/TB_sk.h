@@ -43,7 +43,7 @@ Matrix<complex<double>, 9, 9> TB(int ind, int dd, int nn, int nspin, const Vecto
 	Vector3d d0t;
 	Vector3d d0e;
 
-	Matrix<double, 3, 2> sss, sps, pps, ppp, sds, pds, pdp, dds, ddp, ddd;
+	Matrix<double, 3, 3> sss, sps, pps, ppp, sds, pds, pdp, dds, ddp, ddd;
 //    -----------------------------------------------------------------;
       const double delta = 1.545054e-01;
       const double dels2 = 0.5*delta;
@@ -97,6 +97,20 @@ Matrix<complex<double>, 9, 9> TB(int ind, int dd, int nn, int nspin, const Vecto
         dds(ii,1) = NNN(7);
         ddp(ii,1) = NNN(8);
         ddd(ii,1) = NNN(9);
+//     third n.n.
+//
+	if (NNN.size() > 10){
+        sss(ii,2) = NNN(10);
+        sps(ii,2) = NNN(11);
+        pps(ii,2) = NNN(12);
+        ppp(ii,2) = NNN(13);
+        sds(ii,2) = NNN(14);
+        pds(ii,2) = NNN(15);
+        pdp(ii,2) = NNN(16);
+        dds(ii,2) = NNN(17);
+        ddp(ii,2) = NNN(18);
+        ddd(ii,2) = NNN(19);
+	}
       }
 
 //     -----------------------------------------------------------------

@@ -356,11 +356,13 @@ int main(){
 
 	cout<<endl;
 
-	int ispin = -1;
+	int ispin = +1;
 
 	Vector3d d_0, d_1, d_2, d_3, d_4, d_5, d_6, d_7, d_8;
 	Vector3d d_13, d_14, d_15, d_16;
 	Vector3d d_17, d_18;
+	Vector3d d_19, d_20, d_21, d_22, d_23, d_24, d_25, d_26,
+		 d_27, d_28, d_29, d_30;
 	/* double a = 6.692; */
 	double a = 1.;
 	
@@ -384,11 +386,27 @@ int main(){
 	d_16 << 0, -2*a, 0;
 	d_17 << 0, 0, 2*a;
 	d_18 << 0, 0, -2*a;
+	//position vectors of third nearest neighbours
+	d_19 << 2*a, 2*a, 0;
+	d_20 << -2*a, -2*a, 0;
+	d_21 << 2*a, 0, 2*a;
+	d_22 << -2*a, 0, -2*a;
+	d_23 << 0, 2*a, 2*a;
+	d_24 << 0, -2*a, -2*a;
+	d_25 << 2*a, -2*a, 0;
+	d_26 << -2*a, 2*a, 0;
+	d_27 << -2*a, 0, 2*a;
+	d_28 << 2*a, 0, -2*a;
+	d_29 << 0, -2*a, 2*a;
+	d_30 << 0, 2*a, -2*a;
+	cout<<endl;
 
 	Matrix<dcomp, 9, 9> u;
 	Matrix<dcomp, 9, 9> t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8;
 	Matrix<dcomp, 9, 9> t_13, t_14, t_15, t_16;
 	Matrix<dcomp, 9, 9> t_17, t_18;
+	Matrix<dcomp, 9, 9> t_19, t_20, t_21, t_22, t_23, t_24, t_25,
+		t_26, t_27, t_28, t_29, t_30;
 	u = read(d_0, ispin);
 
 	SelfAdjointEigenSolver<Matrix<dcomp, 9, 9>> uu;
@@ -509,6 +527,43 @@ int main(){
 	t_18 = read(d_18, ispin);
 	t_18 = Odagg*t_18*Oo;
 	t_18 = convert(t_18);
+
+	t_19 = read(d_19, ispin);
+	t_19 = Odagg*t_19*Oo;
+	t_19 = convert(t_19);
+	t_20 = read(d_20, ispin);
+	t_20 = Odagg*t_20*Oo;
+	t_20 = convert(t_20);
+	t_21 = read(d_21, ispin);
+	t_21 = Odagg*t_21*Oo;
+	t_21 = convert(t_21);
+	t_22 = read(d_22, ispin);
+	t_22 = Odagg*t_22*Oo;
+	t_22 = convert(t_22);
+	t_23 = read(d_23, ispin);
+	t_23 = Odagg*t_23*Oo;
+	t_23 = convert(t_23);
+	t_24 = read(d_24, ispin);
+	t_24 = Odagg*t_24*Oo;
+	t_24 = convert(t_24);
+	t_25 = read(d_25, ispin);
+	t_25 = Odagg*t_25*Oo;
+	t_25 = convert(t_25);
+	t_26 = read(d_26, ispin);
+	t_26 = Odagg*t_26*Oo;
+	t_26 = convert(t_26);
+	t_27 = read(d_27, ispin);
+	t_27 = Odagg*t_27*Oo;
+	t_27 = convert(t_27);
+	t_28 = read(d_28, ispin);
+	t_28 = Odagg*t_28*Oo;
+	t_28 = convert(t_28);
+	t_29 = read(d_29, ispin);
+	t_29 = Odagg*t_29*Oo;
+	t_29 = convert(t_29);
+	t_30 = read(d_30, ispin);
+	t_30 = Odagg*t_30*Oo;
+	t_30 = convert(t_30);
 
 	Matrix<double,10,1> nn1,nn2,nn3,nn4,nn5,nn6,nn7,nn8,nnav,nnn1,nnn2,nnn3,nnn4,nnn5,nnn6,nnnav;
 	Matrix<double,9,9> test;
@@ -647,22 +702,22 @@ int main(){
 	/* pps1 = 0.2689; */
 	/* sps1 = -0.16918; */
 
-	cout<<"ppp = "<<ppp1<<endl;
-	cout<<"pps = "<<pps1<<endl;
-	cout<<"sps = "<<sps1<<endl;
+	/* cout<<"ppp = "<<ppp1<<endl; */
+	/* cout<<"pps = "<<pps1<<endl; */
+	/* cout<<"sps = "<<sps1<<endl; */
 
 	/* ppp2 = (1./16.)*real(E_gamma(2,1) + E_H(1,1) - 2.*E_N(1,1)); //obtained from Papa formula in intro */
 	/* pps2 = (1./16.)*real(E_gamma(1,1) + E_H(1,1) + 2.*(-E_N(2,2) - E_N(3,3) + E_N(1,1)));//obtained from Papa formula in intro */
 	cout<<endl;
 	//this block obtained from matching eigenvalues, see block below accurate!
-	ppp2 = 0.03060;
-	pps2 = 0.16341; 
-	sps2 = 0.06189; 
+	/* ppp2 = 0.03060; */
+	/* pps2 = 0.16341; */ 
+	/* sps2 = 0.06189; */ 
 
-	cout<<"2nd neighbours"<<endl;
-	cout<<"sss = "<<sss2<<endl;
-	cout<<"pps = "<<pps2<<endl;
-	cout<<"ppp = "<<ppp2<<endl;
+	/* cout<<"2nd neighbours"<<endl; */
+	/* cout<<"sss = "<<sss2<<endl; */
+	/* cout<<"pps = "<<pps2<<endl; */
+	/* cout<<"ppp = "<<ppp2<<endl; */
 	double delta;
 	//magic 1.693948 below extracted from 5th element of onsite matrix (x2)
 	/* delta = 1.693948 + real(-0.5*(E_gamma(4,4) + E_H(6,6)) - E_N(5,5) - E_N(6,6)); */
@@ -1179,9 +1234,94 @@ sss1 = -0.11806; sps1 = 0.169358; pps1 = 0.269424; ppp1 = -0.0188317; sds1 = -0.
 pds1 = -0.110769; pdp1 = 0.0306304; dds1 = -0.0438971; ddp1 = 0.0200678; ddd1 = -0.000538349;
 sss2 = -0.023016; sps2 = 0.061915; pps2 = 0.165029; ppp2 = 0.0301988; sds2 = -0.0318296;
 pds2 =-0.0567376; pdp2 = -0.0105958; dds2 = -0.024202; ddp2 = -0.00369887; ddd2 = 0.00177699;
-	VectorXd nn(10),nnn(10);
+double sss3, sps3, pps3, ppp3, sds3, pds3, pdp3, dds3, ddp3, ddd3;
+//obtained from conj.cpp keeping 1st and 2nd nn version fixed
+sss3 = 0.0171521; sps3 = -0.0243898; pps3 = -0.0500761; ppp3 = 0.015545; sds3 = 0.00872122;
+pds3 = 0.00898767; pdp3 = -0.00244515; dds3 = 0.00487065; ddp3 = -0.000943947; ddd3 = -0.000206366;
+//obtained from conj.cpp in one run
+sss1 = -0.117924; sps1 = 0.169252; pps1 = 0.268776; ppp1 = -0.0187581; sds1 = -0.0757635;
+pds1 = -0.110995; pdp1 = 0.0287141; dds1 = -0.0447073; ddp1 = 0.0197826; ddd1 = 5.90525e-05;
+sss2 = -0.0220203; sps2 = 0.0614591; pps2 = 0.1639; ppp2 = 0.0290812; sds2 = -0.0326461;
+pds2 = -0.0571585; pdp2 = -0.0117408; dds2 = -0.0253075; ddp2 = -0.00318763; ddd2 = 0.0026379;
+sss3 = 0.017236; sps3 = -0.0252936; pps3 = -0.0503531; ppp3 = 0.0160445; sds3 = 0.0088867; 
+pds3 = 0.0103232; pdp3 = -0.00234456; dds3 = 0.00533451; ddp3 = -0.00119393; ddd3 = -0.000529859;
+//obtained from conj.cpp in one run but over 35 k-points
+/* sss1 = -0.117542; sps1 = 0.170921; pps1 = 0.269489; ppp1 = -0.0200408; sds1 = -0.0792361; */
+/* pds1 = -0.115149; pdp1 = 0.0246214; dds1 = -0.0431099; ddp1 = 0.0194892; ddd1 = -0.000221514; */
+/* sss2 = -0.0228803; sps2 = 0.0597177; pps2 = 0.161577; ppp2 = 0.0302199; sds2 = -0.0321991; */
+/* pds2 = -0.0566746; pdp2 = -0.0116066; dds2 = -0.0252924; ddp2 = -0.00275971; ddd2 = 0.00362367; */
+/* sss3 = 0.018064; sps3 = -0.0265867; pps3 = -0.0500519; ppp3 = 0.0163536; sds3 = 0.00738257; */ 
+/* pds3 = 0.0102813; pdp3 = -0.00646097; dds3 = 0.00258293; ddp3 = -0.00116498; ddd3 = -0.000344613; */
+//obtained from conj.cpp in one run with the usual 8 k-points, but with smaller step in dxargs
+/* sss1 = -0.118215; sps1 = 0.170286; pps1 = 0.267537; ppp1 = -0.0181281; sds1 = -0.0774747; */
+/* pds1 = -0.117903; pdp1 = 0.0210175; dds1 = -0.043845; ddp1 = 0.0205712; ddd1 = -0.000717575; */
+/* sss2 = -0.0227063; sps2 = 0.05606; pps2 = 0.163461; ppp2 = 0.0288275; sds2 = -0.0335694; */
+/* pds2 = -0.0568299; pdp2 = -0.0108152; dds2 = -0.024618; ddp2 = -0.00190861; ddd2 = 0.00202976; */
+/* sss3 = 0.017559; sps3 = -0.0249802; pps3 = -0.0502737; ppp3 = 0.0164508; sds3 = 0.00599136; */ 
+/* pds3 = 0.0087034; pdp3 = -0.000854381; dds3 = 0.00251543; ddp3 = -0.00209; ddd3 = 0.00113103; */
+//obtained from conj.cpp in one run SPIN UP THIS TIME!
+/* sss1 = -0.121162; sps1 = 0.173363; pps1 = 0.272863; ppp1 = -0.0178175; sds1 = -0.0822938; */
+/* pds1 = -0.120081; pdp1 = 0.0308906; dds1 = -0.0505002; ddp1 = 0.0248364; ddd1 = -0.000290327; */
+/* sss2 = -0.0225453; sps2 = 0.0654877; pps2 = 0.172982; ppp2 = 0.032321; sds2 = -0.035475; */
+/* pds2 = -0.0673341; pdp2 = -0.0195645; dds2 = -0.0321466; ddp2 = -0.00496235; ddd2 = 0.00295384; */
+/* sss3 = 0.0187611; sps3 = -0.0265531; pps3 = -0.0504351; ppp3 = 0.0150564; sds3 = 0.00808336; */ 
+/* pds3 = 0.00602272; pdp3 = 0.00130759; dds3 = 0.00818363; ddp3 = -0.00161298; ddd3 = -0.000514812; */
+
+//spin up obtained from conj.cpp in one run with 350 k-points over the same k-point path as bandstructure 
+sss1 = -0.121541; sps1 = 0.172875; pps1 = 0.273266; ppp1 = -0.0182001; sds1 = -0.0852609;
+pds1 = -0.124371; pdp1 = 0.0233553; dds1 = -0.049139; ddp1 = 0.0262377; ddd1 = -0.00143019;
+sss2 = -0.0239523; sps2 = 0.0608069; pps2 = 0.170197; ppp2 = 0.0314321; sds2 = -0.0365085;
+pds2 = -0.0703064; pdp2 = -0.0146721; dds2 = -0.032293; ddp2 = -0.00262184; ddd2 = 0.00332746;
+sss3 = 0.0190502; sps3 = -0.0285496; pps3 = -0.0500113; ppp3 = 0.0167854; sds3 = 0.00457944; 
+pds3 = 0.00712668; pdp3 = -0.00213332; dds3 = 0.00432888; ddp3 = -0.00220879; ddd3 = 0.000162835;
+//spin down obtained from conj.cpp in one run with 350 k-points over the same k-point path as bandstructure 
+/* sss1 = -0.118269; sps1 = 0.168832; pps1 = 0.267676; ppp1 = -0.0185253; sds1 = -0.0786542; */
+/* pds1 = -0.117806; pdp1 = 0.0212018; dds1 = -0.0440309; ddp1 = 0.0211417; ddd1 = -0.000775478; */
+/* sss2 = -0.02272; sps2 = 0.0567299; pps2 = 0.162659; ppp2 = 0.0295257; sds2 = -0.0334902; */
+/* pds2 = -0.0567011; pdp2 = -0.0127372; dds2 = -0.0255078; ddp2 = -0.00205756; ddd2 = 0.00253642; */
+/* sss3 = 0.0175224; sps3 = -0.0266653; pps3 = -0.0506264; ppp3 = 0.016701; sds3 = 0.00493575; */ 
+/* pds3 = 0.0078857; pdp3 = -0.00184691; dds3 = 0.00297654; ddp3 = -0.00177099; ddd3 = 0.000399248; */
+cout<<lambda<<endl<<endl;
+
+//this block from Papa
+      s =  1.14481; // on-site
+      p =  1.80769;
+      d1 =  0.5*(0.78456 + 0.75661);
+      d2 =  0.5*(0.78456 + 0.75661);
+      sss1 = -0.13243;   //  same atom hopping
+      sps1 =  0.17278;
+      pps1 =  0.25911;
+      ppp1 =  0.02653;
+      sds1 = -0.07145;
+      pds1 = -0.09702;
+      pdp1 =  0.02129;
+      dds1 = -0.05266;
+      ddp1 =  0.03276;
+      ddd1 = -0.00286;
+      sss2 = -0.03003;
+      sps2 =  0.07159;
+      pps2 =  0.18256;
+      ppp2 =  0.03703;
+      sds2 = -0.04075;
+      pds2 = -0.06522;
+      pdp2 = -0.00467;
+      dds2 = -0.03396;
+      ddp2 =  0.00581;
+      ddd2 =  0.00114;
+      sss3 =  0.01589;
+      sps3 = -0.02306;
+      pps3 = -0.04253;
+      ppp3 =  0.01538;
+      sds3 =  0.00016;
+      pds3 =  0.00222;
+      pdp3 = -0.00351;
+      dds3 =  0.00233;
+      ddp3 =  0.00013;
+      ddd3 = -0.00060;
+
+	VectorXd nn(10),nnn(20);
 	nn<<sss1, sps1, pps1, ppp1, sds1, pds1, pdp1, dds1, ddp1, ddd1;
-	nnn<<sss2, sps2, pps2, ppp2, sds2, pds2, pdp2, dds2, ddp2, ddd2;
+	nnn<<sss2, sps2, pps2, ppp2, sds2, pds2, pdp2, dds2, ddp2, ddd2, sss3, sps3, pps3, ppp3, sds3, pds3, pdp3, dds3, ddp3, ddd3;
 	cout<<"full 1st nn SK potentials;"<<endl;
 	cout<<"sss = "<<nn(0)<<endl;
 	cout<<"sps = "<<nn(1)<<endl;
@@ -1205,8 +1345,25 @@ pds2 =-0.0567376; pdp2 = -0.0105958; dds2 = -0.024202; ddp2 = -0.00369887; ddd2 
 	cout<<"dds = "<<nnn(7)<<endl;
 	cout<<"ddp = "<<nnn(8)<<endl;
 	cout<<"ddd = "<<nnn(9)<<endl;
+	cout<<endl;
+	cout<<"full 3rd nn SK potentials;"<<endl;
+	cout<<"sss = "<<nnn(10)<<endl;
+	cout<<"sps = "<<nnn(11)<<endl;
+	cout<<"pps = "<<nnn(12)<<endl;
+	cout<<"ppp = "<<nnn(13)<<endl;
+	cout<<"sds = "<<nnn(14)<<endl;
+	cout<<"pds = "<<nnn(15)<<endl;
+	cout<<"pdp = "<<nnn(16)<<endl;
+	cout<<"dds = "<<nnn(17)<<endl;
+	cout<<"ddp = "<<nnn(18)<<endl;
+	cout<<"ddd = "<<nnn(19)<<endl;
 	/* cout<<endl<<t_13.real().bottomRightCorner(5,5)<<endl<<endl; */
 
+	lambda.fill(0.);
+	lambda(0,0) = s;
+	lambda(1,1) = lambda(2,2) = lambda(3,3) = p;
+	lambda(4,4) = lambda(5,5) = lambda(6,6) = d1;
+	lambda(7,7) = lambda(8,8) = d2;
 	t_1 = TB(0,1,0,9,d_1,nn,nnn);
 	t_2 = TB(0,1,0,9,d_2,nn,nnn);
 	t_3 = TB(0,1,0,9,d_3,nn,nnn);
@@ -1221,6 +1378,18 @@ pds2 =-0.0567376; pdp2 = -0.0105958; dds2 = -0.024202; ddp2 = -0.00369887; ddd2 
 	t_16 = TB(0,1,1,9,d_16,nn,nnn);
 	t_17 = TB(0,1,1,9,d_17,nn,nnn);
 	t_18 = TB(0,1,1,9,d_18,nn,nnn);
+	t_19 = TB(0,1,2,9,d_19,nn,nnn);
+	t_20 = TB(0,1,2,9,d_20,nn,nnn);
+	t_21 = TB(0,1,2,9,d_21,nn,nnn);
+	t_22 = TB(0,1,2,9,d_22,nn,nnn);
+	t_23 = TB(0,1,2,9,d_23,nn,nnn);
+	t_24 = TB(0,1,2,9,d_24,nn,nnn);
+	t_25 = TB(0,1,2,9,d_25,nn,nnn);
+	t_26 = TB(0,1,2,9,d_26,nn,nnn);
+	t_27 = TB(0,1,2,9,d_27,nn,nnn);
+	t_28 = TB(0,1,2,9,d_28,nn,nnn);
+	t_29 = TB(0,1,2,9,d_29,nn,nnn);
+	t_30 = TB(0,1,2,9,d_30,nn,nnn);
 
 	/* cout<<endl<<t_13.real().bottomRightCorner(5,5)<<endl<<endl; */
 
@@ -1277,6 +1446,12 @@ pds2 =-0.0567376; pdp2 = -0.0105958; dds2 = -0.024202; ddp2 = -0.00369887; ddd2 
 				+ t_13*exp(i*d_13.dot(K)) + t_14*exp(i*d_14.dot(K))
 				+ t_15*exp(i*d_15.dot(K)) + t_16*exp(i*d_16.dot(K))
 				+ t_17*exp(i*d_17.dot(K)) + t_18*exp(i*d_18.dot(K))
+				+ t_19*exp(i*d_19.dot(K)) + t_20*exp(i*d_20.dot(K))
+				+ t_21*exp(i*d_21.dot(K)) + t_22*exp(i*d_22.dot(K))
+				+ t_23*exp(i*d_23.dot(K)) + t_24*exp(i*d_24.dot(K))
+				+ t_25*exp(i*d_25.dot(K)) + t_26*exp(i*d_26.dot(K))
+				+ t_27*exp(i*d_27.dot(K)) + t_28*exp(i*d_28.dot(K))
+				+ t_29*exp(i*d_29.dot(K)) + t_30*exp(i*d_30.dot(K))
 				;
 
 		/* E_mid = E.bottomRightCorner(5,5); */

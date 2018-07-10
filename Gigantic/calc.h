@@ -5,9 +5,9 @@
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/StdVector>
 /* #include "greens.h" */
-#include "greens_hex.h"
+/* #include "greens_hex.h" */
 /* #include "greens_read_test.h" */
-/* #include "greens_large_array.h" */
+#include "greens_large_array.h"
 
 using namespace std;
 using namespace Eigen;

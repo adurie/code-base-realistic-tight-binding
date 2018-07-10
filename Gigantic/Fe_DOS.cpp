@@ -8,7 +8,8 @@
 #include <eigen3/Eigen/StdVector>
 #include <utility>
 #include <cstdlib>
-#include "FeAgFe.h"
+/* #include "FeAgFe.h" */
+#include "FeAgFe_sk.h"
 /* #include "cunningham_spawn.h" */
 /* #include "cunningham_quad.h" */
 /* #include "cunningham_multipoint.h" */
@@ -678,15 +679,19 @@ int main(){
 
       int ndiff = 0;
 
-      double start = .1;
+      double start = .4;
       double end = 1.5;
       double step = 0.0026;
 
-      string Mydata_up = "Fe_spin_up.txt";
-      string Mydata_down = "Fe_spin_down.txt";
-      ofstream Myfile_up, Myfile_down;	
+      string Mydata_up = "Fe_spin_up_sk.txt";
+      string Mydata_down = "Fe_spin_down_sk.txt";
+      string Mydata_total = "Fe_tdos_sk.txt";
+      ofstream Myfile_up, Myfile_down, Myfile_total;	
       Myfile_up.open( Mydata_up.c_str(),ios::trunc );
       Myfile_down.open( Mydata_down.c_str(),ios::trunc );
+      Myfile_total.open( Mydata_total.c_str(),ios::trunc );
+      double up_result;
+      double down_result;
 
       double zresu, zresd;
 
@@ -700,11 +705,15 @@ int main(){
         kcon(nsubat,ifold,nfold,baib,nsub,ndiff,fact,zresu,zresd,irecip,b1,b2,ec,nmat,mlay,nins,nlay,
   	  nspin,imapl,imapr,vsub,vsubat,numnn,a1,a2,a3,aa1,aa2,aa3,itype,itypeat,ddnn,s0, p0, d0t, d0e, sssint, spsint, ppsint, pppint, sdsint,
 	  pdsint, pdpint, ddsint, ddpint, dddint);
-	  Myfile_up<<j<<" "<<zresu*(-1./(2.*M_PI))<<endl;
-  	  Myfile_down<<j<<" "<<zresd*(-1./(2.*M_PI))<<endl;
+	  up_result = zresu*(-1./(2.*M_PI));
+	  down_result = zresd*(-1./(2.*M_PI));
+	  Myfile_up<<j<<" "<<up_result<<endl;
+  	  Myfile_down<<j<<" "<<down_result<<endl;
+  	  Myfile_total<<j<<" "<<up_result + down_result<<endl;
       }
       Myfile_up.close();
       Myfile_down.close();
+      Myfile_total.close();
 
       return 0;
 }

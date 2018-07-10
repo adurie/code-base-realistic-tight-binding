@@ -6,8 +6,8 @@
 #include <eigen3/Eigen/StdVector>
 /* #include "greens.h" */
 /* #include "greens_large_array.h" */
-/* #include "dos.h" */
-#include "dos_new.h"
+#include "dos.h"
+/* #include "dos_new.h" */
 /* #include "dos_new_hex.h" */
 
 using namespace std;
@@ -318,7 +318,7 @@ void kcon(int nsubat, const vector<pair<int,int>> &ifold, int nfold,const Matrix
 	Args&&... params){
 
       double xc, xcold;
-      double xcon=.1;
+      double xcon=.7;
 
       int nk;
       double diff;

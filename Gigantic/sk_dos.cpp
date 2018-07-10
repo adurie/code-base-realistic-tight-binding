@@ -290,18 +290,18 @@ int main(){
 
 	double result;
 
-	double start = -0.2;
-	double end = 1.1;
+	double start = 0.4;
+	double end = 1.5;
 	double step = 0.0026;
 
 	for (double j = start; j<end + step; j=j+step){
-		result = kspace(&greens, 1, 0.05, a/2., j + 1e-4*i, lambda, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8,
+		result = kspace(&greens, 1, 0.05, a., j + 1e-4*i, lambda, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8,
 				t_13, t_14, t_15, t_16, t_17, t_18, d_1, d_2, d_3, d_4,
 				d_5, d_6, d_7, d_8, d_13, d_14, d_15, d_16, d_17, d_18);
 
 		cout<<100*(j-start+step)/(end-start+step)<<"% completed"<<endl;
 
-		Myfile<<j<<" "<<-result*(a/2.)*(a/2.)/(4.*M_PI*M_PI*M_PI)<<endl;
+		Myfile<<j<<" "<<-result*(a)*(a)/(4.*M_PI*M_PI*M_PI)<<endl;
 		/* Myfile<<j<<" "<<-0.5*result/M_PI<<endl; */
 	}
 

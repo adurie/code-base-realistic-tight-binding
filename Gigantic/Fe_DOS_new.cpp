@@ -504,8 +504,8 @@ int main(){
       ddnntmp << M_SQRT3o2, M_SQRT3o2, M_SQRT3o2, 1.;
       /* ddnntmp << M_SQRT3o2, 1., 1., 1.; //this for odd layers? */
       ddnn.emplace_back(ddnntmp);
-      ddnntmp << 1., 1., M_SQRT2/2. + 0.5, M_SQRT2; //original
-      /* ddnntmp << 1., 1., 1., M_SQRT2; // this for even layers? */
+      /* ddnntmp << 1., 1., M_SQRT2/2. + 0.5, M_SQRT2; //original */
+      ddnntmp << 1., 1., 1., M_SQRT2; // this for even layers?
       /* ddnntmp << 1., 1.20711, 1.20711, M_SQRT2; // this for odd layers? */
       ddnn.emplace_back(ddnntmp);
 

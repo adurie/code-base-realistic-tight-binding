@@ -234,7 +234,7 @@ function). The routine linmin is called to perform line minimizations. */
 	h = g;
 	xi = h;
 	double EPS = 1e-10;
-	int ITMAX = 200;
+	int ITMAX = 500;
 	for (its=1;its<=ITMAX;its++) {	//Loop over iterations.
 		iter=its;
 		linmin(p,xi,n,fret,func,params...);	//Next statement is the normal return:
