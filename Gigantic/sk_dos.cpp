@@ -33,11 +33,13 @@ ddmat gs(ddmat &OM, ddmat &T)
 
 double greens(double k_x, double k_z, double a, dcomp omega, dmat &u, dmat &t_1,
 		dmat &t_2, dmat &t_3, dmat &t_4, dmat &t_5, dmat &t_6, dmat &t_7, 
-		dmat &t_8, dmat &t_13,
-	  	dmat &t_14, dmat &t_15, dmat &t_16, dmat &t_17, dmat &t_18, vec &d_1,
-	       	vec &d_2, vec &d_3, vec &d_4, vec &d_5, vec &d_6, vec &d_7, vec &d_8,
-	       	vec &d_13, vec &d_14, vec &d_15,
-	       	vec &d_16, vec &d_17, vec &d_18){
+		dmat &t_8, dmat &t_13, dmat &t_14, dmat &t_15, dmat &t_16, dmat &t_17, dmat &t_18,
+		dmat &t_19, dmat &t_20, dmat &t_21, dmat &t_22, dmat &t_23, dmat &t_24, dmat &t_25, dmat &t_26, dmat &t_27, 
+		dmat &t_28, dmat &t_29, dmat &t_30,
+		vec &d_1, vec &d_2, vec &d_3, vec &d_4, vec &d_5, vec &d_6, vec &d_7, vec &d_8,
+	       	vec &d_13, vec &d_14, vec &d_15, vec &d_16, vec &d_17, vec &d_18, vec &d_19, vec &d_20,
+		vec &d_21, vec &d_22, vec &d_23, vec &d_24, vec &d_25, vec &d_26, vec &d_27, vec &d_28,
+		vec &d_29, vec &d_30){
 
 	dcomp i;
 	i = -1.;
@@ -50,16 +52,19 @@ double greens(double k_x, double k_z, double a, dcomp omega, dmat &u, dmat &t_1,
 	K(2) = k_z;
 
 	//construct diagonalised in-plane matrices
-	Matrix<dcomp, 9, 9> u_11, u_12, u_21, T_21;
-	u_11 = u + t_13*exp(i*d_13.dot(K))+ t_14*exp(i*d_14.dot(K))+ t_17*exp(i*d_17.dot(K)) + t_18*exp(i*d_18.dot(K));
-	u_12 = t_1 + t_3*exp(i*d_14.dot(K)) + t_7*exp(i*d_18.dot(K)) + t_6*exp(i*(d_14 + d_18).dot(K));
+	Matrix<dcomp, 9, 9> u_11, u_12, u_21, T_21, T_11;
+	u_11 = u + t_13*exp(i*d_13.dot(K))+ t_14*exp(i*d_14.dot(K))+ t_17*exp(i*d_17.dot(K)) + t_18*exp(i*d_18.dot(K))
+		+ t_21*exp(i*d_21.dot(K)) + t_22*exp(i*d_22.dot(K)) + t_27*exp(i*d_27.dot(K)) + t_28*exp(i*d_28.dot(K));
+	u_12 = t_1 + t_3*exp(i*d_14.dot(K)) + t_7*exp(i*d_18.dot(K)) + t_6*exp(i*(d_22).dot(K));
 	u_21 = t_2 + t_4*exp(i*d_13.dot(K)) + t_8*exp(i*d_17.dot(K)) + t_5*exp(i*(d_13 + d_17).dot(K));
 	Matrix<complex<double>, 9, 9> zero = Matrix<complex<double>, 9, 9>::Zero();
 	Matrix<dcomp, 18, 18> U, T, Tdagg, OM, GL, GR, GN, GRinv, GNinv;
 	U << u_11, u_12, u_21, u_11;
 	/* T_21 = t_7 + t_1*exp(i*d_13.dot(K)) + t_5*exp(i*d_3.dot(K)) + t_12*exp(i*d_10.dot(K)); */
-	T_21 = u_12;
-	T << t_15, zero, T_21, t_15;
+	T_11 = t_15 + t_19*exp(i*d_13.dot(K)) + t_23*exp(i*d_17.dot(K)) + t_26*exp(i*d_14.dot(K)) + t_30*exp(i*d_18.dot(K));
+	/* T_21 = u_12; */
+	T_21 = t_5 + t_1*exp(i*d_21.dot(K)) + t_7*exp(i*d_13.dot(K)) + t_3*exp(i*d_17.dot(K));
+	T << T_11, zero, T_21, T_11;
 
       	Matrix<complex<double>, 18, 18> I = Matrix<complex<double>, 18, 18>::Identity();
 
@@ -153,6 +158,8 @@ int main(){
 	Vector3d d_0, d_1, d_2, d_3, d_4, d_5, d_6, d_7, d_8;
 	Vector3d d_13, d_14, d_15, d_16;
 	Vector3d d_17, d_18;
+	Vector3d d_19, d_20, d_21, d_22, d_23, d_24, d_25, d_26,
+		 d_27, d_28, d_29, d_30;
 	double a = 1.;
 	
 	//position of onsite potentials
@@ -176,10 +183,26 @@ int main(){
 	d_17 << 0, 0, 2*a;
 	d_18 << 0, 0, -2*a;
 
+	//position vectors of third nearest neighbours
+	d_19 << 2*a, 2*a, 0;
+	d_20 << -2*a, -2*a, 0;
+	d_21 << 2*a, 0, 2*a;
+	d_22 << -2*a, 0, -2*a;
+	d_23 << 0, 2*a, 2*a;
+	d_24 << 0, -2*a, -2*a;
+	d_25 << 2*a, -2*a, 0;
+	d_26 << -2*a, 2*a, 0;
+	d_27 << -2*a, 0, 2*a;
+	d_28 << 2*a, 0, -2*a;
+	d_29 << 0, -2*a, 2*a;
+	d_30 << 0, 2*a, -2*a;
+
 	Matrix<dcomp, 9, 9> u;
 	Matrix<dcomp, 9, 9> t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8;
 	Matrix<dcomp, 9, 9> t_13, t_14, t_15, t_16;
 	Matrix<dcomp, 9, 9> t_17, t_18;
+	Matrix<dcomp, 9, 9> t_19, t_20, t_21, t_22, t_23, t_24, t_25,
+		t_26, t_27, t_28, t_29, t_30;
 	u = read(d_0, ispin);
 
 	SelfAdjointEigenSolver<Matrix<dcomp, 9, 9>> uu;
@@ -196,6 +219,7 @@ int main(){
 	i = -1.;
 	i = sqrt(i);
 	double s, p, d1, d2, sss1, sss2, pps1, pps2, ppp1, ppp2, dds1, dds2, ddp1, ddp2, ddd1, ddd2, sps1, sps2, sds1, sds2, pds1, pds2, pdp1, pdp2;
+	double sss3, sps3, pps3, ppp3, sds3, pds3, pdp3, dds3, ddp3, ddd3;
 
 	sds1 = -0.07158; dds1 = -0.04897; ddp1 = 0.02434; ddd1 = -0.00178;
 	pps1 = 0.26892; ppp1 = -0.01859; sps1 = 0.16918;
@@ -212,9 +236,45 @@ int main(){
 	d1 = 0.846975;
 	d2 = 0.79515;
 
-	Matrix<double,10,1>nn,nnn;
+//this block from Papa
+      s =  1.14481; // on-site
+      p =  1.80769;
+      d1 =  0.5*(0.78456 + 0.75661);
+      d2 =  0.5*(0.78456 + 0.75661);
+      sss1 = -0.13243;   //  same atom hopping
+      sps1 =  0.17278;
+      pps1 =  0.25911;
+      ppp1 =  0.02653;
+      sds1 = -0.07145;
+      pds1 = -0.09702;
+      pdp1 =  0.02129;
+      dds1 = -0.05266;
+      ddp1 =  0.03276;
+      ddd1 = -0.00286;
+      sss2 = -0.03003;
+      sps2 =  0.07159;
+      pps2 =  0.18256;
+      ppp2 =  0.03703;
+      sds2 = -0.04075;
+      pds2 = -0.06522;
+      pdp2 = -0.00467;
+      dds2 = -0.03396;
+      ddp2 =  0.00581;
+      ddd2 =  0.00114;
+      sss3 =  0.01589;
+      sps3 = -0.02306;
+      pps3 = -0.04253;
+      ppp3 =  0.01538;
+      sds3 =  0.00016;
+      pds3 =  0.00222;
+      pdp3 = -0.00351;
+      dds3 =  0.00233;
+      ddp3 =  0.00013;
+      ddd3 = -0.00060;
+
+	VectorXd nn(10),nnn(20);
 	nn<<sss1, sps1, pps1, ppp1, sds1, pds1, pdp1, dds1, ddp1, ddd1;
-	nnn<<sss2, sps2, pps2, ppp2, sds2, pds2, pdp2, dds2, ddp2, ddd2;
+	nnn<<sss2, sps2, pps2, ppp2, sds2, pds2, pdp2, dds2, ddp2, ddd2, sss3, sps3, pps3, ppp3, sds3, pds3, pdp3, dds3, ddp3, ddd3;
 
 	/* t_1 = read(d_1, ispin); */
 	/* t_1 = Odagg*t_1*Oo; */
@@ -259,6 +319,11 @@ int main(){
 	/* t_18 = Odagg*t_18*Oo; */
 	/* t_18 = convert(t_18); */
 
+	lambda.fill(0.);
+	lambda(0,0) = s;
+	lambda(1,1) = lambda(2,2) = lambda(3,3) = p;
+	lambda(4,4) = lambda(5,5) = lambda(6,6) = d1;
+	lambda(7,7) = lambda(8,8) = d2;
 	t_1 = TB(0,1,0,9,d_1,nn,nnn);
 	t_2 = TB(0,1,0,9,d_2,nn,nnn);
 	t_3 = TB(0,1,0,9,d_3,nn,nnn);
@@ -273,6 +338,18 @@ int main(){
 	t_16 = TB(0,1,1,9,d_16,nn,nnn);
 	t_17 = TB(0,1,1,9,d_17,nn,nnn);
 	t_18 = TB(0,1,1,9,d_18,nn,nnn);
+	t_19 = TB(0,1,2,9,d_19,nn,nnn);
+	t_20 = TB(0,1,2,9,d_20,nn,nnn);
+	t_21 = TB(0,1,2,9,d_21,nn,nnn);
+	t_22 = TB(0,1,2,9,d_22,nn,nnn);
+	t_23 = TB(0,1,2,9,d_23,nn,nnn);
+	t_24 = TB(0,1,2,9,d_24,nn,nnn);
+	t_25 = TB(0,1,2,9,d_25,nn,nnn);
+	t_26 = TB(0,1,2,9,d_26,nn,nnn);
+	t_27 = TB(0,1,2,9,d_27,nn,nnn);
+	t_28 = TB(0,1,2,9,d_28,nn,nnn);
+	t_29 = TB(0,1,2,9,d_29,nn,nnn);
+	t_30 = TB(0,1,2,9,d_30,nn,nnn);
 	d_1 = 0.5*d_1;
 	d_2 = 0.5*d_2;
 	d_3 = 0.5*d_3;
@@ -287,6 +364,17 @@ int main(){
 	d_16 = 0.5*d_16;
 	d_17 = 0.5*d_17;
 	d_18 = 0.5*d_18;
+	d_20 = 0.5*d_20;
+	d_21 = 0.5*d_21;
+	d_22 = 0.5*d_22;
+	d_23 = 0.5*d_23;
+	d_24 = 0.5*d_24;
+	d_25 = 0.5*d_25;
+	d_26 = 0.5*d_26;
+	d_27 = 0.5*d_27;
+	d_28 = 0.5*d_28;
+	d_29 = 0.5*d_29;
+	d_30 = 0.5*d_30;
 
 	double result;
 
@@ -295,9 +383,11 @@ int main(){
 	double step = 0.0026;
 
 	for (double j = start; j<end + step; j=j+step){
-		result = kspace(&greens, 1, 0.05, a., j + 1e-4*i, lambda, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8,
-				t_13, t_14, t_15, t_16, t_17, t_18, d_1, d_2, d_3, d_4,
-				d_5, d_6, d_7, d_8, d_13, d_14, d_15, d_16, d_17, d_18);
+		result = kspace(&greens, 1, 0.05, a, j + 1e-4*i, lambda, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8,
+				t_13, t_14, t_15, t_16, t_17, t_18, t_19, t_20, t_21, t_22, t_23, t_24, t_25, 
+			       t_26, t_27, t_28, t_29, t_30, d_1, d_2, d_3, d_4,
+				d_5, d_6, d_7, d_8, d_13, d_14, d_15, d_16, d_17, d_18, d_19, d_20, d_21, d_22, d_23, d_24, d_25, 
+			       d_26, d_27, d_28, d_29, d_30);
 
 		cout<<100*(j-start+step)/(end-start+step)<<"% completed"<<endl;
 

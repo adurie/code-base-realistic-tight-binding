@@ -1395,8 +1395,8 @@ cout<<lambda<<endl<<endl;
 
 	/* cout<<t_13.topLeftCorner(4,4)<<endl<<endl; */
 
-	Myfile<<"P X Y"<<endl;
-	/* Myfile<<"X Y"<<endl; */
+	/* Myfile<<"P X Y"<<endl; */
+	Myfile<<"X Y"<<endl;
 
 	Matrix<dcomp, 9, 9> E;
 	Matrix<dcomp, 4, 4> E_small;
@@ -1407,7 +1407,8 @@ cout<<lambda<<endl<<endl;
 	/* Matrix<dcomp, 18, 18> U, T; */
 	/* Matrix<complex<double>, 9, 9> zero = Matrix<complex<double>, 9, 9>::Zero(); */
 
-
+	int nt = 351;
+	VectorXd vec1(nt), vec2(nt), vec3(nt), vec4(nt), vec5(nt), vec6(nt), vec7(nt), vec8(nt), vec9(nt);
 	for (int k = 0; k < 351; k++)
 	{
 		if (k < 101){
@@ -1480,6 +1481,15 @@ cout<<lambda<<endl<<endl;
 		/* Matrix<double, 18, 1> O; */
 		/* O = es.eigenvalues(); */
 
+		vec1(k) = O(0);
+		vec2(k) = O(1);
+		vec3(k) = O(2);
+		vec4(k) = O(3);
+		vec5(k) = O(4);
+		vec6(k) = O(5);
+		vec7(k) = O(6);
+		vec8(k) = O(7);
+		vec9(k) = O(8);
 		/* Myfile<<k<<" "<<O(0)<<endl; */
 		/* Myfile<<k<<" "<<O(1)<<endl; */
 		/* Myfile<<k<<" "<<O(2)<<endl; */
@@ -1491,16 +1501,16 @@ cout<<lambda<<endl<<endl;
 		/* Myfile<<k<<" "<<O(7)<<endl; */
 		/* Myfile<<k<<" "<<O(8)<<endl; */
 
-		Myfile<<"A"<<" "<<k<<" "<<O(0)<<endl;
-		Myfile<<"B"<<" "<<k<<" "<<O(1)<<endl;
-		Myfile<<"C"<<" "<<k<<" "<<O(2)<<endl;
-		Myfile<<"D"<<" "<<k<<" "<<O(3)<<endl;
+		/* Myfile<<"A"<<" "<<k<<" "<<O(0)<<endl; */
+		/* Myfile<<"B"<<" "<<k<<" "<<O(1)<<endl; */
+		/* Myfile<<"C"<<" "<<k<<" "<<O(2)<<endl; */
+		/* Myfile<<"D"<<" "<<k<<" "<<O(3)<<endl; */
 
-		Myfile<<"E"<<" "<<k<<" "<<O(4)<<endl;
-		Myfile<<"F"<<" "<<k<<" "<<O(5)<<endl;
-		Myfile<<"G"<<" "<<k<<" "<<O(6)<<endl;
-		Myfile<<"H"<<" "<<k<<" "<<O(7)<<endl;
-		Myfile<<"I"<<" "<<k<<" "<<O(8)<<endl;
+		/* Myfile<<"E"<<" "<<k<<" "<<O(4)<<endl; */
+		/* Myfile<<"F"<<" "<<k<<" "<<O(5)<<endl; */
+		/* Myfile<<"G"<<" "<<k<<" "<<O(6)<<endl; */
+		/* Myfile<<"H"<<" "<<k<<" "<<O(7)<<endl; */
+		/* Myfile<<"I"<<" "<<k<<" "<<O(8)<<endl; */
 
 		/* Myfile<<"J"<<" "<<k<<" "<<O(9)<<endl; */
 		/* Myfile<<"K"<<" "<<k<<" "<<O(10)<<endl; */
@@ -1513,6 +1523,32 @@ cout<<lambda<<endl<<endl;
 		/* Myfile<<"R"<<" "<<k<<" "<<O(17)<<endl; */
 
 	}
+	for (int k = 0; k < vec1.size(); k++)
+		Myfile<<k<<" "<<vec1(k)<<endl;
+	Myfile<<endl;
+	for (int k = 0; k < vec2.size(); k++)
+		Myfile<<k<<" "<<vec2(k)<<endl;
+	Myfile<<endl;
+	for (int k = 0; k < vec3.size(); k++)
+		Myfile<<k<<" "<<vec3(k)<<endl;
+	Myfile<<endl;
+	for (int k = 0; k < vec4.size(); k++)
+		Myfile<<k<<" "<<vec4(k)<<endl;
+	Myfile<<endl;
+	for (int k = 0; k < vec5.size(); k++)
+		Myfile<<k<<" "<<vec5(k)<<endl;
+	Myfile<<endl;
+	for (int k = 0; k < vec6.size(); k++)
+		Myfile<<k<<" "<<vec6(k)<<endl;
+	Myfile<<endl;
+	for (int k = 0; k < vec7.size(); k++)
+		Myfile<<k<<" "<<vec7(k)<<endl;
+	Myfile<<endl;
+	for (int k = 0; k < vec8.size(); k++)
+		Myfile<<k<<" "<<vec8(k)<<endl;
+	Myfile<<endl;
+	for (int k = 0; k < vec9.size(); k++)
+		Myfile<<k<<" "<<vec9(k)<<endl;
 
 	Myfile.close();
 	/* Myfile2.close(); */
