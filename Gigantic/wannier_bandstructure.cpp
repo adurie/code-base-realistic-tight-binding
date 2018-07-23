@@ -646,7 +646,7 @@ int main(){
 			+ t_13*exp(i*d_13.dot(K)) + t_14*exp(i*d_14.dot(K))
 			+ t_15*exp(i*d_15.dot(K)) + t_16*exp(i*d_16.dot(K))
 			+ t_17*exp(i*d_17.dot(K)) + t_18*exp(i*d_18.dot(K)));
-	K << M_PI/b, M_PI/b, 0;
+	K << 0, M_PI/b, M_PI/b;
 	E_N = lambda + (t_1*exp(i*d_1.dot(K))+ t_2*exp(i*d_2.dot(K))+ t_3*exp(i*d_3.dot(K))
 		+ t_4*exp(i*d_4.dot(K)) + t_5*exp(i*d_5.dot(K)) + t_6*exp(i*d_6.dot(K))
 			+ t_7*exp(i*d_7.dot(K)) + t_8*exp(i*d_8.dot(K))
@@ -670,8 +670,8 @@ int main(){
 	xx1 = (1./16.)*real(E_gamma(1,1) - E_H(1,1));
 	xy1 = -0.125*real(E_N(2,3));
   
-	/* pps1 = 2.*xy1 + xx1;//obtained from Papa formula in intro *1/ */
-	/* ppp1 = xx1 - xy1;//obtained from Papa formula in intro *1/ */
+	pps1 = 2.*xy1 + xx1;//obtained from Papa formula in intro */
+	ppp1 = xx1 - xy1;//obtained from Papa formula in intro */
 	cout<<endl;
 	cout<<"1st neighbours"<<endl;
 
@@ -690,6 +690,7 @@ int main(){
 	dds1 = xyxy1 + 2.*xyyz1;
 	cout<<endl;
 	cout<<"These are Papa eq. first nn SK potentials {"<<endl;
+	cout<<"sss = "<<sss1<<endl<<"pps = "<<pps1<<endl<<"ppp = "<<ppp1<<endl;
 	cout<<"ddd = "<<ddd1<<endl<<"ddp = "<<ddp1<<endl<<"dds = "<<dds1<<endl;
 	cout<<"}"<<endl;
 
@@ -706,7 +707,7 @@ int main(){
 	/* cout<<"pps = "<<pps1<<endl; */
 	/* cout<<"sps = "<<sps1<<endl; */
 
-	/* ppp2 = (1./16.)*real(E_gamma(2,1) + E_H(1,1) - 2.*E_N(1,1)); //obtained from Papa formula in intro */
+	ppp2 = (1./16.)*real(E_gamma(1,1) + E_H(1,1) - 2.*E_N(1,1)); //obtained from Papa formula in intro
 	/* pps2 = (1./16.)*real(E_gamma(1,1) + E_H(1,1) + 2.*(-E_N(2,2) - E_N(3,3) + E_N(1,1)));//obtained from Papa formula in intro */
 	cout<<endl;
 	//this block obtained from matching eigenvalues, see block below accurate!
@@ -714,10 +715,10 @@ int main(){
 	/* pps2 = 0.16341; */ 
 	/* sps2 = 0.06189; */ 
 
-	/* cout<<"2nd neighbours"<<endl; */
+	cout<<"Papa 2nd neighbours"<<endl;
 	/* cout<<"sss = "<<sss2<<endl; */
 	/* cout<<"pps = "<<pps2<<endl; */
-	/* cout<<"ppp = "<<ppp2<<endl; */
+	cout<<"ppp = "<<ppp2<<endl;
 	double delta;
 	//magic 1.693948 below extracted from 5th element of onsite matrix (x2)
 	/* delta = 1.693948 + real(-0.5*(E_gamma(4,4) + E_H(6,6)) - E_N(5,5) - E_N(6,6)); */

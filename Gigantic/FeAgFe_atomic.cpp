@@ -822,7 +822,7 @@ int main(){
       /* cout<<"(UP + DOWN - 2*AF)"<<endl; */
 
       ofstream Myfile;	
-      string Mydata = "IEC_FeAgFe.txt";
+      string Mydata = "IEC_FeAgFe_decim.txt";
       Myfile.open( Mydata.c_str(),ios::trunc );
       for (int in = 0; in < ndiff; in++){
         Myfile<<2*(in+1)-1<<" "<<-(vcuu_odd(in)+vcdd_odd(in)-vcdu_odd(in)-vcud_odd(in))/nsub<<endl;

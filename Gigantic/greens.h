@@ -16,6 +16,55 @@ typedef vector<vector<Vector3d, aligned_allocator<Vector3d>>> vvV3d;
 typedef	vector<VectorXd, aligned_allocator<VectorXd>> vVXd;
 typedef vector<MatrixXd, aligned_allocator<MatrixXd>> vMXd;
 
+void remve(MatrixXcd &zh0, vector<int> &lst, int n, int nlst){
+      MatrixXcd zh(n,n);
+      vector<int> notlst;
+//     remove rows and columns contained in lst from zh0
+
+//     first create a list of rows not to eliminate
+      int icount=0;
+      int condition = 0;
+      for (int i = 0; i < n; i++){
+	for (int j = 0; j < nlst; j++){
+	  if (lst[j] == i) 
+            condition = 1;
+	}
+	if (condition == 0){
+	  icount++;
+	  notlst.emplace_back(i);
+	}
+	condition = 0;
+      }
+
+      int ii, jj;
+      for (int i = 0; i < icount; i++){
+	for (int j = 0; j < icount; j++){
+          ii = notlst[i];
+	  jj = notlst[j];
+	  zh(i,j) = zh0(ii,jj);
+	}
+      }
+
+      if (icount != n-nlst)
+        cout<<"ERROR REMVE: "<<icount<<" "<<n-nlst<<endl;
+
+      zh0 = zh;
+
+      return;
+}
+
+void decim(MatrixXcd &zh0, int k, int n){
+      MatrixXcd zh(n,n);
+//     Decimate row/column k from zh0
+      for (int i = 0; i < n; i++){
+	for (int j = 0; j < n; j++){
+          zh(i,j)=zh0(i,j)-zh0(i,k)*zh0(k,j)/zh0(k,k);
+	}
+      }
+      zh0 = zh;
+      return;
+}
+
 void adlayer1(MatrixXcd &zgl, MatrixXcd &zu, MatrixXcd &zt, dcomp zener, int n){
 //     adlayer ontop of gl
       MatrixXcd zwrk(n, n);
@@ -138,6 +187,199 @@ int surfacenew(MatrixXcd &zu, MatrixXcd &zt, dcomp zener, MatrixXcd &zsurfl, Mat
       /* adlayer1(zsurfr,zu,zs,zener-0.05,n); */
 
       return ifail;
+}
+
+double surfacedecim(MatrixXcd &zu0, MatrixXcd &zt0, dcomp zener, MatrixXcd &zsurfl, MatrixXcd &zsurfr, int n){
+//     This program calculates the surface Green's function 
+//     using decimation/reduction and Mobius transformation
+//     The decimation part reduces the size of U and T is T is singular.
+//     This part is described in Sanvito et. al. PRB 73, 085414 (2006)
+
+//     A simpler version is given in (Andrey's)
+//     Papers and Notes/Tight Binding/Surface Greens Functions/decimation*.mws
+
+//     -----------------------------------------------------------------
+//     The following is a key parameter: may need to change this for 
+//     more accurate SGF
+
+      double svmin=5e-7;      // if sv(i)<svmin then sv(i)=0
+//     -----------------------------------------------------------------
+      MatrixXcd zunit = MatrixXcd::Identity(n,n);
+//     -----------------------------------------------------------------
+//     Find SVD of zt : zt = Q.S.P     where S(1,1) >= S(2,2,) >= ... >= 0
+      MatrixXcd zt(n,n), zu(n,n), zp(n,n), ztmp(n,n);
+      zt = zt0;
+      /* JacobiSVD<MatrixXcd> svd; */
+      JacobiSVD<MatrixXcd,NoQRPreconditioner> svd(zt, ComputeFullV);
+      VectorXd sv;
+      sv = svd.singularValues();
+      zp = svd.matrixV().adjoint();
+      dcomp i;
+      i = -1;
+      i = sqrt(i);
+//     zp can have some very small numbers ... set these to 0
+      for (int ii = 0; ii < n; ii++){
+	for (int jj = 0; jj < n; jj++){
+	  if ((abs(real(zp(ii,jj))) < 1e-40) && (abs(imag(zp(ii,jj))) < 1e-40))
+	    zp(ii,jj) = 0.;
+	  else if (abs(real(zp(ii,jj))) < 1e-40)
+	    zp(ii,jj) = i*imag(zp(ii,jj));
+	  else if (abs(imag(zp(ii,jj))) < 1e-40)
+	    zp(ii,jj) = real(zp(ii,jj));
+	}
+      }
+
+//     Now rearrange P and S so that 0 <= S(1,1) <= S(2,2) <= ...
+      dcomp ztmp1;
+      for (int ii = 0; ii < n/2; ii++){
+	for (int jj = 0; jj < n; jj++){
+          ztmp1 = zp(ii, jj);
+	  zp(ii, jj) = zp(n-ii-1, jj);
+	  zp(n-ii-1, jj) = ztmp1;
+	}
+      }
+      sv.reverseInPlace();
+
+//     Now transform all matrices  M -> P.M.P^h
+      zu = zu0;
+      zt = zt0;
+      ztmp = zp*zu;
+      zu = ztmp*zp.adjoint();
+      ztmp = zp*zt;
+      zt = ztmp*zp.adjoint();
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//     now set up lst and nlst:   the rows to be decimated
+      int icnt=0;
+      vector<int> lst;
+      int nlst;
+      for (int ii = 0; ii < n; ii++){
+	if (abs(sv(ii)) < svmin){
+	  lst.emplace_back(ii);
+	  icnt++;
+	}
+      }
+      int itmp;
+      for (int ii = 0; ii < icnt; ii++){
+	itmp = lst[ii] + n;
+	lst.emplace_back(itmp);
+      }
+      nlst=2*icnt;
+
+//     -----------------------------------------------------------------
+//     Create a matrix to calculate the bulk decimated/reduced on and off 
+//     site elements
+      int dn = 2*n;
+      MatrixXcd zh(dn,dn), zhbulk(dn,dn);
+      ztmp = zener*zunit - zu;
+      zh.topLeftCorner(n,n) = ztmp;
+      zh.bottomRightCorner(n,n) = ztmp;
+      zh.topRightCorner(n,n) = -zt;
+      zh.bottomLeftCorner(n,n) = -zt.adjoint();
+
+      zhbulk = zh;
+      int iii;
+      for (int ii = 0; ii<nlst; ii++){
+	iii = lst[ii];
+        decim(zhbulk,iii,dn);
+      }
+      remve(zhbulk,lst,dn,nlst);
+
+//     zhbulk is (2.nred x 2.nred)
+//     Now calculate the reduced/decimated SGF ie. the very bottom RH element
+      int nred=n-nlst/2;
+      MatrixXcd zunit2 = MatrixXcd::Identity(nred,nred);
+      MatrixXcd zured1(nred,nred), zured2(nred,nred), ztred(nred,nred);
+      zured1 = zener*zunit2 - zhbulk.topLeftCorner(nred,nred);
+      zured2 = zener*zunit2 - zhbulk.block(nred,nred,nred,nred);
+      ztred = -zhbulk.block(0,nred,nred,nred);
+//     Create SGFs
+      int ifail=0;
+      MatrixXcd zglred(nred,nred), zgrred(nred,nred);
+      ifail = surfacenew(zured2,ztred,zener,zglred,zgrred,nred);
+      if (ifail != 0)// zt has a near zero eigenvalue
+	cout<<"eigenvalues ill-conditioned. Consider coding to higher precision"<<endl;
+
+//     =================================================================
+//     Left Hand SGF:
+//     =================================================================
+//     Create the nxn non-reduced SGF by adlayering
+//     First create u and t for the last layer
+      MatrixXcd zhlast(dn,dn);
+      MatrixXcd zulast(n,n), ztlast(n,n);
+      zhlast = zh;
+      for (int ii=0; ii < nlst/2; ii++){
+        iii=lst[ii];
+        decim(zhlast,iii,dn);
+      }
+      zulast = zener*zunit - zhlast.bottomRightCorner(n,n);
+//     Bulk out ztlast to be (n x n)
+      ztlast = -zhlast.topRightCorner(n,n);
+
+//     Now bulk the SGF to (n x n)
+//     (could use non-square matrices instead here!)
+      zsurfl.fill(0.);
+      zsurfl.block(n-nred,n-nred,nred,nred) = zglred;
+
+//     Now adlayer on top of this
+      adlayer1(zsurfl,zulast,ztlast,zener,n);
+
+//     Now untransform this SGF
+      zp.adjointInPlace();
+      ztmp = zp*zsurfl;
+      zsurfl = ztmp*zp.adjoint();
+
+//     =================================================================
+//     Right Hand SGF:
+//     =================================================================
+      MatrixXcd ztreddag(nred,nred);
+      ztreddag = ztred.adjoint();
+      adlayer1(zgrred,zured1,ztreddag,zener,nred);
+
+//     Now bulk the SGF to (n x n)
+      zsurfr.fill(0.);
+      zsurfr.block(n-nred,n-nred,nred,nred) = zgrred;
+
+//     Now adlayer on top of this
+      MatrixXcd ztdag(n,n);
+      ztdag = zt.adjoint();
+      adlayer1(zsurfr,zu,ztdag,zener,n);
+
+//     Now untransform this SGF
+      ztmp = zp*zsurfr;
+      zsurfr = ztmp*zp.adjoint();
+
+//     =================================================================
+//     =================================================================
+
+//     Check these are the correct SGF
+      MatrixXcd zsurf2(n,n);
+      zsurf2 = zsurfl;
+      adlayer1(zsurf2,zu0,zt0,zener,n);
+      double xmaxerrl=0.;
+      double errl;
+      for (int ii = 0; ii < n; ii++){
+	for (int jj = 0; jj < n; jj++){
+          errl = abs(zsurfl(ii,jj) - zsurf2(ii,jj));
+	  xmaxerrl = max(xmaxerrl, errl);
+	}
+      }
+
+      MatrixXcd zt0dag(n,n);
+      zsurf2 = zsurfr;
+      zt0dag = zt0.adjoint();
+      adlayer1(zsurf2,zu0,zt0dag,zener,n);
+      double xmaxerrr=0.;
+      double errr;
+      for (int ii = 0; ii < n; ii++){
+	for (int jj = 0; jj < n; jj++){
+          errr = abs(zsurfr(ii,jj) - zsurf2(ii,jj));
+	  xmaxerrr = max(xmaxerrr, errr);
+	}
+      }
+
+      double errmax=max(xmaxerrl,xmaxerrr);
+
+      return errmax;
 }
 
 Matrix<complex<double>, 9, 9> eint1(double sss, double sps, double pps, double ppp,
@@ -437,7 +679,7 @@ int green(dcomp zener, int ispin, string &side, MatrixXcd &zgl, MatrixXcd &zgr,
 //     calculate the LH & RH SGF in the atomic basis, and convert to the 
 //     supercell basis.
 
-      int natom = nspin*nsubat;
+      int natom = nspin*nsub;
       MatrixXcd zgltmp(nmat,nmat), zgrtmp(nmat,nmat);
       MatrixXcd ztat(natom,natom), zuat(natom,natom);
       zgltmp.fill(0.);
@@ -472,9 +714,16 @@ int green(dcomp zener, int ispin, string &side, MatrixXcd &zgl, MatrixXcd &zgr,
         zuat = hamil(xkat,ilay+1,ilay+1,ispin,1,nsubat,nsubat,nmat,nspin,imapl,imapr,vsub,vsubat,forward<Args>(params)...);
 
         ifail=0;
-        ifail = surfacenew(zuat,ztat,zener,zglat,zgrat,natom);
-        if (ifail != 0)// zt has a near zero eigenvalue
-	  cout<<"eigenvalues ill-conditioned. Consider coding to higher precision"<<endl;
+	//this routine supercedes surfacenew below
+	double errmax;
+        errmax = surfacedecim(zuat,ztat,zener,zglat,zgrat,natom);
+        if (errmax > 1e-3){   // zt has a near zero eigenvalue
+          cout<<"ERROR surfacedecim:  errmax = "<<errmax<<endl;
+          ifail=1;
+	}
+        /* ifail = surfacenew(zuat,ztat,zener,zglat,zgrat,natom); */
+        /* if (ifail != 0)// zt has a near zero eigenvalue */
+	  /* cout<<"eigenvalues ill-conditioned. Consider coding to higher precision"<<endl; */
 
 //       - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //       now load elements into zgl and zgr

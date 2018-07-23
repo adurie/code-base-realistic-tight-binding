@@ -5,11 +5,6 @@
 #include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/StdVector>
 #include <string>
-//IMPORTANT this version of greens.h is designed for hexagonal
-//reciprocal lattice structures so that it doesn't fail when 
-//calculating the SGF's due to singular ztat matrices.
-//it artificially creates a 3rd nn with small potentials so 
-//spoof ztat into being non-singular.
 
 using namespace std;
 using namespace Eigen;
@@ -90,6 +85,7 @@ int surfacenew(MatrixXcd &zu, MatrixXcd &zt, dcomp zener, MatrixXcd &zsurfl, Mat
 
       dcomp zi=-1;
       zi = sqrt(zi);
+      double ener = real(zener);
 
       MatrixXcd zunit = MatrixXcd::Identity(n,n);
 
@@ -102,7 +98,7 @@ int surfacenew(MatrixXcd &zu, MatrixXcd &zt, dcomp zener, MatrixXcd &zsurfl, Mat
 //     redefine gamma and delta
       MatrixXcd ztmp1(n,n), ztinv(n,n), zs(n,n), zsinv(n,n), zgamma(n,n);
       MatrixXcd zero = MatrixXcd::Zero(n,n);
-      ztmp1 = zener*zunit - zu;
+      ztmp1 = ener*zunit - zu;
       ztinv = zt.inverse();
       zs = zt.adjoint();
       zsinv = zs.inverse();
@@ -117,13 +113,60 @@ int surfacenew(MatrixXcd &zu, MatrixXcd &zt, dcomp zener, MatrixXcd &zsurfl, Mat
       ComplexEigenSolver<MatrixXcd> ces;
       ces.compute(zp);
       O = ces.eigenvectors();
+      VectorXcd rr;
+      rr = ces.eigenvalues();
       int ifail = ces.info();
       if (ifail != 0){
         cout<<"SURFACENEW : ifail = "<<ifail<<endl;
         ifail=1;
         return ifail;
       }
+
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//     sort the |evals| into increasing order
+//     and check eval(n+1)>eval(n)
+
+//     define zdp
+      MatrixXcd zdp(n2,n2);
+      zdp.fill(0.);
+      zdp.bottomRightCorner(n,n) = ztinv;
+      MatrixXcd zfoo1(n2,n2), zfoo2(n2,n2);
+      zfoo1 = O;
+      zfoo2 = O.inverse();
+
+      double evlir;
+      dcomp zevlir, zdevl, zdkde;
+      VectorXd evlab(n2);
+      evlab.fill(0.);
+      for (int ir = 0; ir < n2; ir++){
+	evlir = abs(rr(ir));
+	zevlir = rr(ir);
+	if (evlir > (1+1e-8))
+	  evlab(ir) = evlir;
+	else if (evlir < (1-1e-8))
+	  evlab(ir) = evlir;
+        else { // the eigenvalue lies on the unit circle .. check its derivative
+	  zdevl = 0.;
+	  for (int is = 0; is < n2; is++){
+	    for (int it = 0; it < n2; it++){
+	      zdevl = zdevl + zfoo2(ir,is)*zdp(is,it)*zfoo1(it,ir);
+	    }
+	  }
+          zdkde=zdevl/(zevlir*zi);
+          if (imag(zdkde) > 5.e-5)
+	    cout<<"ERROR:dimag(zdkde)=/ 0 "<<imag(zdkde)<<endl;
+          evlab(ir)=evlir*exp(-real(zdkde)*1.e-8);
+	  }
+	}
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+      /* do ir=1,n */
+      /*   do is=1,n */
+      /*     ik=evlab(is+n) */
+      /*     ztmp1(ir,is)=dcmplx(vr(ir,ik),vi(ir,ik)) */
+      /*     ztmp2(ir,is)=dcmplx(vr(ir+n,ik),vi(ir+n,ik)) */
+      /*   enddo */
+      /* enddo */
 //     calculate L.H. zsurf
       MatrixXcd b = O.topRightCorner(n, n);
       MatrixXcd d = O.bottomRightCorner(n, n);
@@ -163,6 +206,17 @@ int surfacenew(MatrixXcd &zu, MatrixXcd &zt, dcomp zener, MatrixXcd &zsurfl, Mat
 
 //	more efficient but not fully functional (though final results don't seem impacted)
 //	*UPDATE* since adding the below loop, ifail no longer complains
+      /* do ir=1,n2 */
+      /*   ik=isort(ir) */
+      /*   zevl(ir)=dcmplx(rr(ik),ri(ik)) */
+      /* enddo */
+      /* do ir=1,n */
+      /*   do is=1,n */
+      /*     ik=isort(is) */
+      /*     ztmp1(ir,is)=dcmplx(vr(ir,ik),vi(ir,ik)) */
+      /*     ztmp2(ir,is)=ztmp1(ir,is) */
+      /*   enddo */
+      /* enddo */
       MatrixXcd zevl, ztmp2, ztmp3;
       zevl = ces.eigenvalues().asDiagonal();
       ztmp1 = O.topLeftCorner(n,n);
@@ -218,7 +272,7 @@ double surfacedecim(MatrixXcd &zu0, MatrixXcd &zt0, dcomp zener, MatrixXcd &zsur
       JacobiSVD<MatrixXcd,NoQRPreconditioner> svd(zt, ComputeFullV);
       VectorXd sv;
       sv = svd.singularValues();
-      zp = svd.matrixV().adjoint();
+      zp = svd.matrixV();
       dcomp i;
       i = -1;
       i = sqrt(i);
@@ -357,40 +411,32 @@ double surfacedecim(MatrixXcd &zu0, MatrixXcd &zt0, dcomp zener, MatrixXcd &zsur
 //     =================================================================
 
 //     Check these are the correct SGF
-      MatrixXcd zsurf2(n,n), zsurf3(n,n);
+      MatrixXcd zsurf2(n,n);
+      zsurf2 = zsurfl;
+      adlayer1(zsurf2,zu0,zt0,zener,n);
       double xmaxerrl=0.;
       double errl;
+      for (int ii = 0; ii < n; ii++){
+	for (int jj = 0; jj < n; jj++){
+          errl = abs(zsurfl(ii,jj) - zsurf2(ii,jj));
+	  xmaxerrl = max(xmaxerrl, errl);
+	}
+      }
+
       MatrixXcd zt0dag(n,n);
+      zsurf2 = zsurfr;
+      zt0dag = zt0.adjoint();
+      adlayer1(zsurf2,zu0,zt0dag,zener,n);
       double xmaxerrr=0.;
       double errr;
-      zt0dag = zt0.adjoint();
-      double errmax = 1;
-      zsurf2 = zsurfl;
-      zsurf3 = zsurfr;
-
-      while (errmax > 1e-3){
-        adlayer1(zsurf2,zu0,zt0,zener,n);
-        for (int ii = 0; ii < n; ii++){
-  	  for (int jj = 0; jj < n; jj++){
-            errl = abs(zsurfl(ii,jj) - zsurf2(ii,jj));
-	    xmaxerrl = max(xmaxerrl, errl);
-	  }
-        }
-
-        adlayer1(zsurf3,zu0,zt0dag,zener,n);
-        for (int ii = 0; ii < n; ii++){
-	  for (int jj = 0; jj < n; jj++){
-            errr = abs(zsurfr(ii,jj) - zsurf3(ii,jj));
-	    xmaxerrr = max(xmaxerrr, errr);
-	  }
-        }
-
-        errmax=max(xmaxerrl,xmaxerrr);
-	zsurfl = zsurf2;
-	zsurfr = zsurf3;
-	xmaxerrr = 0;
-	xmaxerrl = 0;
+      for (int ii = 0; ii < n; ii++){
+	for (int jj = 0; jj < n; jj++){
+          errr = abs(zsurfr(ii,jj) - zsurf2(ii,jj));
+	  xmaxerrr = max(xmaxerrr, errr);
+	}
       }
+
+      double errmax=max(xmaxerrl,xmaxerrr);
 
       return errmax;
 }
@@ -547,19 +593,6 @@ MatrixXcd sk(int ind1, int ind2, int nn, Vector3d &d, double dd, const Vector3d 
         rt(7,7)=d0t(ind1,elem);
         rt(8,8)=d0e(ind1,elem);
       }
-      else if (nn > 2){//this is to make the matrix ztat non-singular! - must edit if true 3rd nn required.
-	      g1 = 1e-5;
-	      g2 = 1e-5;
-	      g3 = 1e-5;
-	      g4 = 1e-5;
-	      g5 = 1e-5;
-	      g6 = 1e-5;
-	      g7 = 1e-5;
-	      g8 = 1e-5;
-	      g9 = 1e-5;
-	      g10 = 1e-5;
-        rt = eint1(g1,g2,g3,g4,g5,g6,g7,g8,g9,g10,c(0),c(1),c(2));
-      }
       else{
 	nn--;
         g1=sssint[ind1](ind2,nn);
@@ -609,7 +642,6 @@ MatrixXcd helement(int n1, int n2, int isub, int jsub, const Vector3d &xk, int i
       Vector3d dpar, d;
       double dd;
       int nn;
-      numnn++;// this is to make the matrix ztat non-singular!!
       for (int inn=0; inn<numnn; inn++)
         ddmax=max(ddmax,ddnn[inn](ind1,ind2)); // sometimes ddnn(ind1,ind2,numnn)=0
       for (int i1=-numnn; i1<=numnn; i1++){
@@ -625,7 +657,6 @@ MatrixXcd helement(int n1, int n2, int isub, int jsub, const Vector3d &xk, int i
             d=vsub[n2][jsub]-vsub[n1][isub]+dpar;
 	  }
           dd=sqrt(d(0)*d(0) + d(1)*d(1) + d(2)*d(2));
-	  /* cout<<dd<<endl; */
 
           if (dd > (ddmax+1e-8))
 		  continue;   // this is not a NN
@@ -742,7 +773,6 @@ int green(dcomp zener, int ispin, string &side, MatrixXcd &zgl, MatrixXcd &zgr,
         zuat = hamil(xkat,ilay+1,ilay+1,ispin,1,nsubat,nsubat,nmat,nspin,imapl,imapr,vsub,vsubat,forward<Args>(params)...);
 
         ifail=0;
-
 	//this routine supercedes surfacenew below
 	double errmax;
         errmax = surfacedecim(zuat,ztat,zener,zglat,zgrat,natom);
@@ -750,7 +780,6 @@ int green(dcomp zener, int ispin, string &side, MatrixXcd &zgl, MatrixXcd &zgr,
           cout<<"ERROR surfacedecim:  errmax = "<<errmax<<endl;
           ifail=1;
 	}
-
         /* ifail = surfacenew(zuat,ztat,zener,zglat,zgrat,natom); */
         /* if (ifail != 0)// zt has a near zero eigenvalue */
 	  /* cout<<"eigenvalues ill-conditioned. Consider coding to higher precision"<<endl; */

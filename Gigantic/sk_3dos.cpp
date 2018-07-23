@@ -1,3 +1,4 @@
+//not correct
 #include <iostream>
 #include <cmath>
 #include <fstream>
@@ -126,7 +127,7 @@ double temp(int N, dcomp Ec, Args&&... params) {
 	/* Myfile.open( Mydata.c_str(),ios::trunc ); */
 
   double k_x, k_y, k_z;
-  double A = M_PI/2.;
+  double A = M_PI;
   int n = 2*N;
   double integral = 0;
 
@@ -136,7 +137,7 @@ double temp(int N, dcomp Ec, Args&&... params) {
       for (int l = 0; l!=k+1; l++){
         if (l%2!=0){
           k_y = A*l/n;
-          for (int m = 0; m!=l+1; m++){
+          for (int m = 0; m!=(k-l)/2 + 1; m++){
             if (m%2!=0){
               k_z = A*m/n;
               if ((k==l) && (k==m) && (l==m)){
@@ -150,6 +151,7 @@ double temp(int N, dcomp Ec, Args&&... params) {
               else
               {
 		integral = integral + greens(k_x, k_y, k_z, Ec, forward<Args>(params)...);
+		/* Myfile<<k_x<<" "<<k_y<<" "<<k_z<<endl; */
 	      }
  	    }
           }
@@ -157,33 +159,33 @@ double temp(int N, dcomp Ec, Args&&... params) {
       }
     }
   }
-  for (int k = 0; k!=n+1; k++){
-    if (k%2!=0){
-      k_x = 2.*A - A*k/n;
-      for (int l = 0; l!=k+1; l++){
-        if (l%2!=0){
-          k_y = A*l/n;
-          for (int m = 0; m!=l+1; m++){
-            if (m%2!=0){
-              k_z = A*m/n;
-              if ((k==l) && (k==m) && (l==m)){
-                integral = integral + (1./6.)*greens(k_x, k_y, k_z, Ec, forward<Args>(params)...);
-		/* Myfile<<k_x<<" "<<k_y<<" "<<k_z<<endl; */
-              }
-              else if ((k==l) || (k==m) || (l==m)){
-                integral = integral + 0.5*greens(k_x, k_y, k_z, Ec, forward<Args>(params)...);
-		/* Myfile<<k_x<<" "<<k_y<<" "<<k_z<<endl; */
-              }
-              else
-              {
-		integral = integral + greens(k_x, k_y, k_z, Ec, forward<Args>(params)...);
-	      }
- 	    }
-          }
-	}
-      }
-    }
-  }
+  /* for (int k = 0; k!=n+1; k++){ */
+  /*   if (k%2!=0){ */
+  /*     k_x = 2.*A - A*k/n; */
+  /*     for (int l = 0; l!=k+1; l++){ */
+  /*       if (l%2!=0){ */
+  /*         k_y = A*l/n; */
+  /*         for (int m = 0; m!=l+1; m++){ */
+  /*           if (m%2!=0){ */
+  /*             k_z = A*m/n; */
+  /*             if ((k==l) && (k==m) && (l==m)){ */
+  /*               integral = integral + (1./6.)*greens(k_x, k_y, k_z, Ec, forward<Args>(params)...); */
+		/* /1* Myfile<<k_x<<" "<<k_y<<" "<<k_z<<endl; *1/ */
+  /*             } */
+  /*             else if ((k==l) || (k==m) || (l==m)){ */
+  /*               integral = integral + 0.5*greens(k_x, k_y, k_z, Ec, forward<Args>(params)...); */
+		/* /1* Myfile<<k_x<<" "<<k_y<<" "<<k_z<<endl; *1/ */
+  /*             } */
+  /*             else */
+  /*             { */
+		/* integral = integral + greens(k_x, k_y, k_z, Ec, forward<Args>(params)...); */
+	      /* } */
+ 	    /* } */
+  /*         } */
+	/* } */
+  /*     } */
+  /*   } */
+  /* } */
   integral = (3./(N*N*N))*integral;
   /* cout<<integral<<endl; */
   return integral;

@@ -7,6 +7,7 @@
 #include "TB_sk.h"
 #include <iomanip>
 #include "cunningham_spawn_old.h"
+/* #include "cunningham_spawn_diamond.h" */
 
 using namespace std;
 using namespace Eigen;
@@ -63,7 +64,8 @@ double greens(double k_x, double k_z, double a, dcomp omega, dmat &u, dmat &t_1,
 	/* T_21 = t_7 + t_1*exp(i*d_13.dot(K)) + t_5*exp(i*d_3.dot(K)) + t_12*exp(i*d_10.dot(K)); */
 	T_11 = t_15 + t_19*exp(i*d_13.dot(K)) + t_23*exp(i*d_17.dot(K)) + t_26*exp(i*d_14.dot(K)) + t_30*exp(i*d_18.dot(K));
 	/* T_21 = u_12; */
-	T_21 = t_5 + t_1*exp(i*d_21.dot(K)) + t_7*exp(i*d_13.dot(K)) + t_3*exp(i*d_17.dot(K));
+	/* T_21 = t_5 + t_1*exp(i*d_21.dot(K)) + t_7*exp(i*d_13.dot(K)) + t_3*exp(i*d_17.dot(K)); */
+	T_21 = t_6 + t_1*exp(i*d_21.dot(K)) + t_7*exp(i*d_13.dot(K)) + t_3*exp(i*d_17.dot(K));
 	T << T_11, zero, T_21, T_11;
 
       	Matrix<complex<double>, 18, 18> I = Matrix<complex<double>, 18, 18>::Identity();
@@ -140,6 +142,40 @@ Matrix<dcomp, 9, 9> read(Vector3d &dvec, int ispin){
 		rt(d-1,e-1) = (f + g*i)*eV_Ry;
       }
       return rt;
+}
+
+template <typename... Args>
+double temp(int N, Args&&... params) {
+	/* string Mydata; */
+	/* ofstream Myfile; */
+	/* Mydata = "dot.txt"; */
+	/* Myfile.open( Mydata.c_str(),ios::trunc ); */
+  double k_x, k_z;
+  double A = M_PI;
+  int n = 2*N;
+  double integral = 0;
+  for (int k = 0; k!=n+1; k++){
+    if (k%2!=0){
+      k_x = A*k/n;
+      for (int l = 0; l!=k+1; l++){
+        if (l%2!=0){
+          k_z = A*l/n;
+          if (k==l){
+              integral = integral + 0.5*greens(k_x, k_z, forward<Args>(params)...);
+		/* Myfile<<k_x<<" "<<k_y<<" "<<k_z<<endl; */
+          }
+          else
+          {
+            integral = integral + greens(k_x, k_z, forward<Args>(params)...);
+		/* Myfile<<k_x<<" "<<k_y<<" "<<k_z<<endl; */
+          }
+	}
+      }
+    }
+  }
+  integral = (1./(N*N))*integral;
+  /* cout<<integral<<endl; */
+  return integral;
 }
 
 int main(){
@@ -221,56 +257,84 @@ int main(){
 	double s, p, d1, d2, sss1, sss2, pps1, pps2, ppp1, ppp2, dds1, dds2, ddp1, ddp2, ddd1, ddd2, sps1, sps2, sds1, sds2, pds1, pds2, pdp1, pdp2;
 	double sss3, sps3, pps3, ppp3, sds3, pds3, pdp3, dds3, ddp3, ddd3;
 
-	sds1 = -0.07158; dds1 = -0.04897; ddp1 = 0.02434; ddd1 = -0.00178;
-	pps1 = 0.26892; ppp1 = -0.01859; sps1 = 0.16918;
-	pds1 = -0.11882; pdp1 = 0.03462; 
-	pdp2 = -0.01088; pds2 = -0.05257;
-	sds2 = -0.02805; dds2 = -0.02267; ddp2 = -0.00468; ddd2 = 0.00209;
-	ppp2 = 0.03060;
-	pps2 = 0.16341; 
-	sps2 = 0.06189; 
-	sss1 = -0.118047;
-	sss2 = -0.0227164;
+	/* sds1 = -0.07158; dds1 = -0.04897; ddp1 = 0.02434; ddd1 = -0.00178; */
+	/* pps1 = 0.26892; ppp1 = -0.01859; sps1 = 0.16918; */
+	/* pds1 = -0.11882; pdp1 = 0.03462; */ 
+	/* pdp2 = -0.01088; pds2 = -0.05257; */
+	/* sds2 = -0.02805; dds2 = -0.02267; ddp2 = -0.00468; ddd2 = 0.00209; */
+	/* ppp2 = 0.03060; */
+	/* pps2 = 0.16341; */ 
+	/* sps2 = 0.06189; */ 
+	/* sss1 = -0.118047; */
+	/* sss2 = -0.0227164; */
+
+	/* sss1 = -0.117924; sps1 = 0.169252; pps1 = 0.268776; ppp1 = -0.0187581; sds1 = -0.0757635; */
+	/* pds1 = -0.110995; pdp1 = 0.0287141; dds1 = -0.0447073; ddp1 = 0.0197826; ddd1 = 5.90525e-05; */
+	/* sss2 = -0.0220203; sps2 = 0.0614591; pps2 = 0.1639; ppp2 = 0.0290812; sds2 = -0.0326461; */
+	/* pds2 = -0.0571585; pdp2 = -0.0117408; dds2 = -0.0253075; ddp2 = -0.00318763; ddd2 = 0.0026379; */
+	/* sss3 = 0.017236; sps3 = -0.0252936; pps3 = -0.0503531; ppp3 = 0.0160445; sds3 = 0.0088867; */ 
+	/* pds3 = 0.0103232; pdp3 = -0.00234456; dds3 = 0.00533451; ddp3 = -0.00119393; ddd3 = -0.000529859; */
+
+	//this for spin down
+	sss1 = -0.121541; sps1 = 0.172875; pps1 = 0.273266; ppp1 = -0.0182001; sds1 = -0.0852609;
+	pds1 = -0.124371; pdp1 = 0.0233553; dds1 = -0.049139; ddp1 = 0.0262377; ddd1 = -0.00143019;
+	sss2 = -0.0239523; sps2 = 0.0608069; pps2 = 0.170197; ppp2 = 0.0314321; sds2 = -0.0365085;
+	pds2 = -0.0703064; pdp2 = -0.0146721; dds2 = -0.032293; ddp2 = -0.00262184; ddd2 = 0.00332746;
+	sss3 = 0.0190502; sps3 = -0.0285496; pps3 = -0.0500113; ppp3 = 0.0167854; sds3 = 0.00457944; 
+	pds3 = 0.00712668; pdp3 = -0.00213332; dds3 = 0.00432888; ddp3 = -0.00220879; ddd3 = 0.000162835;
 	s = 1.33239;
 	p = 1.94576;
 	d1 = 0.846975;
 	d2 = 0.79515;
 
-//this block from Papa
-      s =  1.14481; // on-site
-      p =  1.80769;
-      d1 =  0.5*(0.78456 + 0.75661);
-      d2 =  0.5*(0.78456 + 0.75661);
-      sss1 = -0.13243;   //  same atom hopping
-      sps1 =  0.17278;
-      pps1 =  0.25911;
-      ppp1 =  0.02653;
-      sds1 = -0.07145;
-      pds1 = -0.09702;
-      pdp1 =  0.02129;
-      dds1 = -0.05266;
-      ddp1 =  0.03276;
-      ddd1 = -0.00286;
-      sss2 = -0.03003;
-      sps2 =  0.07159;
-      pps2 =  0.18256;
-      ppp2 =  0.03703;
-      sds2 = -0.04075;
-      pds2 = -0.06522;
-      pdp2 = -0.00467;
-      dds2 = -0.03396;
-      ddp2 =  0.00581;
-      ddd2 =  0.00114;
-      sss3 =  0.01589;
-      sps3 = -0.02306;
-      pps3 = -0.04253;
-      ppp3 =  0.01538;
-      sds3 =  0.00016;
-      pds3 =  0.00222;
-      pdp3 = -0.00351;
-      dds3 =  0.00233;
-      ddp3 =  0.00013;
-      ddd3 = -0.00060;
+	/* //this for spin up */
+	/* sss1 = -0.121541; sps1 = 0.172875; pps1 = 0.273266; ppp1 = -0.0182001; sds1 = -0.0852609; */
+	/* pds1 = -0.124371; pdp1 = 0.0233553; dds1 = -0.049139; ddp1 = 0.0262377; ddd1 = -0.00143019; */
+	/* sss2 = -0.0239523; sps2 = 0.0608069; pps2 = 0.170197; ppp2 = 0.0314321; sds2 = -0.0365085; */
+	/* pds2 = -0.0703064; pdp2 = -0.0146721; dds2 = -0.032293; ddp2 = -0.00262184; ddd2 = 0.00332746; */
+	/* sss3 = 0.0190502; sps3 = -0.0285496; pps3 = -0.0500113; ppp3 = 0.0167854; sds3 = 0.00457944; */ 
+	/* pds3 = 0.00712668; pdp3 = -0.00213332; dds3 = 0.00432888; ddp3 = -0.00220879; ddd3 = 0.000162835; */
+      	/* s = 1.37057; */
+	/* p = 1.97431; */
+      	/* d1 = 1.00461; */
+      	/* d2 = 0.996866; */
+
+
+/* //this block from Papa */
+/*       s =  1.14481; // on-site */
+/*       p =  1.80769; */
+/*       d1 =  0.5*(0.78456 + 0.75661); */
+/*       d2 =  0.5*(0.78456 + 0.75661); */
+/*       sss1 = -0.13243;   //  same atom hopping */
+/*       sps1 =  0.17278; */
+/*       pps1 =  0.25911; */
+/*       ppp1 =  0.02653; */
+/*       sds1 = -0.07145; */
+/*       pds1 = -0.09702; */
+/*       pdp1 =  0.02129; */
+/*       dds1 = -0.05266; */
+/*       ddp1 =  0.03276; */
+/*       ddd1 = -0.00286; */
+/*       sss2 = -0.03003; */
+/*       sps2 =  0.07159; */
+/*       pps2 =  0.18256; */
+/*       ppp2 =  0.03703; */
+/*       sds2 = -0.04075; */
+/*       pds2 = -0.06522; */
+/*       pdp2 = -0.00467; */
+/*       dds2 = -0.03396; */
+/*       ddp2 =  0.00581; */
+/*       ddd2 =  0.00114; */
+/*       sss3 =  0.01589; */
+/*       sps3 = -0.02306; */
+/*       pps3 = -0.04253; */
+/*       ppp3 =  0.01538; */
+/*       sds3 =  0.00016; */
+/*       pds3 =  0.00222; */
+/*       pdp3 = -0.00351; */
+/*       dds3 =  0.00233; */
+/*       ddp3 =  0.00013; */
+/*       ddd3 = -0.00060; */
 
 	VectorXd nn(10),nnn(20);
 	nn<<sss1, sps1, pps1, ppp1, sds1, pds1, pdp1, dds1, ddp1, ddd1;
@@ -318,6 +382,43 @@ int main(){
 	/* t_18 = read(d_18, ispin); */
 	/* t_18 = Odagg*t_18*Oo; */
 	/* t_18 = convert(t_18); */
+	/* t_19 = read(d_19, ispin); */
+	/* t_19 = Odagg*t_19*Oo; */
+	/* t_19 = convert(t_19); */
+	/* t_20 = read(d_20, ispin); */
+	/* t_20 = Odagg*t_20*Oo; */
+	/* t_20 = convert(t_20); */
+	/* t_21 = read(d_21, ispin); */
+	/* t_21 = Odagg*t_21*Oo; */
+	/* t_21 = convert(t_21); */
+	/* t_22 = read(d_22, ispin); */
+	/* t_22 = Odagg*t_22*Oo; */
+	/* t_22 = convert(t_22); */
+	/* t_23 = read(d_23, ispin); */
+	/* t_23 = Odagg*t_23*Oo; */
+	/* t_23 = convert(t_23); */
+	/* t_24 = read(d_24, ispin); */
+	/* t_24 = Odagg*t_24*Oo; */
+	/* t_24 = convert(t_24); */
+	/* t_25 = read(d_25, ispin); */
+	/* t_25 = Odagg*t_25*Oo; */
+	/* t_25 = convert(t_25); */
+	/* t_26 = read(d_26, ispin); */
+	/* t_26 = Odagg*t_26*Oo; */
+	/* t_26 = convert(t_26); */
+	/* t_27 = read(d_27, ispin); */
+	/* t_27 = Odagg*t_27*Oo; */
+	/* t_27 = convert(t_27); */
+	/* t_28 = read(d_28, ispin); */
+	/* t_28 = Odagg*t_28*Oo; */
+	/* t_28 = convert(t_28); */
+	/* t_29 = read(d_29, ispin); */
+	/* t_29 = Odagg*t_29*Oo; */
+	/* t_29 = convert(t_29); */
+	/* t_30 = read(d_30, ispin); */
+	/* t_30 = Odagg*t_30*Oo; */
+	/* t_30 = convert(t_30); */
+
 
 	lambda.fill(0.);
 	lambda(0,0) = s;
@@ -350,6 +451,7 @@ int main(){
 	t_28 = TB(0,1,2,9,d_28,nn,nnn);
 	t_29 = TB(0,1,2,9,d_29,nn,nnn);
 	t_30 = TB(0,1,2,9,d_30,nn,nnn);
+
 	d_1 = 0.5*d_1;
 	d_2 = 0.5*d_2;
 	d_3 = 0.5*d_3;
@@ -391,9 +493,34 @@ int main(){
 
 		cout<<100*(j-start+step)/(end-start+step)<<"% completed"<<endl;
 
-		Myfile<<j<<" "<<-result*(a)*(a)/(4.*M_PI*M_PI*M_PI)<<endl;
+		Myfile<<j<<" "<<-result*(a)*(a)/(8.*M_PI*M_PI*M_PI)<<endl;
 		/* Myfile<<j<<" "<<-0.5*result/M_PI<<endl; */
 	}
+
+	/* double result; */
+	/* double result_tmp = 0; */
+	/* double start = 0.4; */
+	/* /1* double end = 0.4022; *1/ */
+	/* double end = 1.5; */
+	/* double step = 0.0026; */
+	/* int N; */
+	/* double error; */
+	/* for (double j = start; j<end; j+=step){ */
+	/* 	for (int kk = 1; kk < 7; kk++){ */
+	/* 		N = 4*pow(2, kk); */
+	/* 		result = temp(N, j + 1e-4*i, lambda, t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, */
+	/* 			t_13, t_14, t_15, t_16, t_17, t_18, t_19, t_20, t_21, t_22, t_23, t_24, t_25, */ 
+	/* 		       t_26, t_27, t_28, t_29, t_30, d_1, d_2, d_3, d_4, */
+	/* 			d_5, d_6, d_7, d_8, d_13, d_14, d_15, d_16, d_17, d_18, d_19, d_20, d_21, d_22, d_23, d_24, d_25, */ 
+	/* 		       d_26, d_27, d_28, d_29, d_30); */
+	/* 		error = abs(result-result_tmp); */
+	/* 		if (error < 0.7) break; */
+	/* 		result_tmp = result; */
+	/* 		if (kk == 6) cout<<"Beware! integration finished with error "<<error<<endl; */
+	/* 	} */
+	/* 	cout<<100*(j-start+step)/(end-start)<<"% completed"<<endl; */
+	/* 	Myfile<<j<<" "<<-result<<endl; */
+	/* } */
 
 	Myfile.close();
 	return 0;

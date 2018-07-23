@@ -8,7 +8,7 @@ int main(){
 	/* ifstream infile("Ag_spin_down.txt"); */
 	/* ifstream infile("Cu_111_spin_down2.txt"); */
 	/* ifstream infile("Cu_spin_down.txt"); */
-	ifstream infile("Fe_tdos_sk.txt");
+	ifstream infile("wan-tdos.txt");
 	string line;
 	double DOS = 0;
 	double E = 0;

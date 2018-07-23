@@ -375,6 +375,7 @@ void split(int layer, int nlay, int numnn, int nspin, int nins, int numat, int m
       // only caters for up to two nearest neighbours
       vector<MatrixXd, aligned_allocator<MatrixXd>> ddnn;
       ddnn.reserve(numnn+1);//the '+1' here is for the artificial 3rd NN - see notes on greens_hex.h
+      ddnn.reserve(numnn);
       MatrixXd ddnntmp(numat, numat);
       ddnntmp.fill(1./M_SQRT2);// be aware, this appears to be for fcc only
       ddnn.emplace_back(ddnntmp);
@@ -937,7 +938,7 @@ int main(){
       /* cout<<"(UP + DOWN - 2*AF)"<<endl; */
 
       ofstream Myfile;	
-      string Mydata = "IEC_CoCuCo_111.txt";
+      string Mydata = "IEC_CoCuCo_111_decim.txt";
       Myfile.open( Mydata.c_str(),ios::trunc );
       for (int in = 0; in < ndiff; in++){
         Myfile<<3*(in+1)-2<<" "<<-(vcuu_2(in)+vcdd_2(in)-vcdu_2(in)-vcud_2(in))/nsub<<endl;
