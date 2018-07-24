@@ -58,11 +58,6 @@ Matrix<dcomp, 9, 9> read(Vector3d &dvec, int ispin){
       string line;
       double a, b, c, d, e, f, g;
       double eV_Ry = 0.073498618;
-      /* double eV_Ry = 1; */
-      /* double iron_fermi = 12.63; // obtained from Wannier90 scf.out */
-      /* iron_fermi *= eV_Ry; */
-      /* double silver_fermi = 0.4635; //this is lazy - amend to carry this through */
-      /* double cshift = silver_fermi - iron_fermi; */
       complex<double> im;
       while (!infile.eof()) 
       {
@@ -76,195 +71,127 @@ Matrix<dcomp, 9, 9> read(Vector3d &dvec, int ispin){
       return rt;
 }
 
-VectorXd Eigens(double x, double y, double z, const Matrix<dcomp, 9, 9> lambda, const v3& d_1,
-	       	const v3& d_2, const v3& d_3, const v3& d_4, const v3& d_5, 
-		const v3& d_6, const v3& d_7, const v3& d_8,
-		const v3& d_13, const v3& d_14, const v3& d_15, const v3& d_16,
-		const v3& d_17, const v3& d_18, const v3& d_19, const v3& d_20,
-	       	const v3& d_21, const v3& d_22, const v3& d_23, const v3& d_24, 
-		const v3& d_25,	const v3& d_26, const v3& d_27, const v3& d_28,
-		const v3& d_29, const v3& d_30, const m3& t_1,
-	       	const m3& t_2, const m3& t_3, const m3& t_4, const m3& t_5, 
-		const m3& t_6, const m3& t_7, const m3& t_8,
-		const m3& t_13, const m3& t_14, const m3& t_15, const m3& t_16,
-		const m3& t_17, const m3& t_18, const m3& t_19, const m3& t_20,
-	       	const m3& t_21, const m3& t_22, const m3& t_23, const m3& t_24, 
-		const m3& t_25, const m3& t_26, const m3& t_27, const m3& t_28,
-		const m3& t_29, const m3& t_30){
-	Matrix<dcomp, 9, 9> Ew;
-	dcomp i;
-	i = -1.;
-	i = sqrt(i);
-	int sz = sqrt(t_1.size());
-
-	/* double b = 2.; */
-	Vector3d K;
-	/* K << x/b, y/b, z/b; */
-	K << x, y, z;
-	Ew = lambda + (t_1*exp(i*d_1.dot(K))+ t_2*exp(i*d_2.dot(K))+ t_3*exp(i*d_3.dot(K))
-		+ t_4*exp(i*d_4.dot(K)) + t_5*exp(i*d_5.dot(K)) + t_6*exp(i*d_6.dot(K))
-			+ t_7*exp(i*d_7.dot(K)) + t_8*exp(i*d_8.dot(K)))
-			+ t_13*exp(i*d_13.dot(K)) + t_14*exp(i*d_14.dot(K))
-			+ t_15*exp(i*d_15.dot(K)) + t_16*exp(i*d_16.dot(K))
-			+ t_17*exp(i*d_17.dot(K)) + t_18*exp(i*d_18.dot(K))
-			+ t_19*exp(i*d_19.dot(K)) + t_20*exp(i*d_20.dot(K))
-			+ t_21*exp(i*d_21.dot(K)) + t_22*exp(i*d_22.dot(K))
-			+ t_23*exp(i*d_23.dot(K)) + t_24*exp(i*d_24.dot(K))
-			+ t_25*exp(i*d_25.dot(K)) + t_26*exp(i*d_26.dot(K))
-			+ t_27*exp(i*d_27.dot(K)) + t_28*exp(i*d_28.dot(K))
-			+ t_29*exp(i*d_29.dot(K)) + t_30*exp(i*d_30.dot(K));
-	ComplexEigenSolver<MatrixXcd> CA(sz);
-	CA.compute(Ew);
-	VectorXd eigs;
-	eigs = CA.eigenvalues().real();
-	sort(eigs.data(), eigs.data()+eigs.size());
-	return eigs;
-}
-
-double xargs6(VectorXd& nnnn, const Matrix<dcomp, 9, 9> lambda, const v3& d_1,
-	       	const v3& d_2, const v3& d_3, const v3& d_4, const v3& d_5, 
-		const v3& d_6, const v3& d_7, const v3& d_8,
-		const v3& d_13, const v3& d_14, const v3& d_15, const v3& d_16,
-		const v3& d_17, const v3& d_18, const v3& d_19, const v3& d_20,
-	       	const v3& d_21, const v3& d_22, const v3& d_23, const v3& d_24, 
-		const v3& d_25,	const v3& d_26, const v3& d_27, const v3& d_28,
-		const v3& d_29, const v3& d_30, const m3& wt_1,
-	       	const m3& wt_2, const m3& wt_3, const m3& wt_4, const m3& wt_5, 
-		const m3& wt_6, const m3& wt_7, const m3& wt_8,
-		const m3& wt_13, const m3& wt_14, const m3& wt_15, const m3& wt_16,
-		const m3& wt_17, const m3& wt_18, const m3& wt_19, const m3& wt_20,
-	       	const m3& wt_21, const m3& wt_22, const m3& wt_23, const m3& wt_24, 
-		const m3& wt_25, const m3& wt_26, const m3& wt_27, const m3& wt_28,
-		const m3& wt_29, const m3& wt_30){
-
-	int sz = nnnn.size()/3;
-	VectorXd nn(sz), nnn(2*sz);
-	nn = nnnn.head(sz);
-	nnn = nnnn.tail(2*sz);
-	Matrix<dcomp, 9, 9> t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8;
-	Matrix<dcomp, 9, 9> t_13, t_14, t_15, t_16;
-	Matrix<dcomp, 9, 9> t_17, t_18;
-	Matrix<dcomp, 9, 9> t_19, t_20, t_21, t_22, t_23, t_24, t_25,
-		t_26, t_27, t_28, t_29, t_30;
-	t_1 = TB(0,1,0,9,d_1,nn,nnn);
-	t_2 = TB(0,1,0,9,d_2,nn,nnn);
-	t_3 = TB(0,1,0,9,d_3,nn,nnn);
-	t_4 = TB(0,1,0,9,d_4,nn,nnn);
-	t_5 = TB(0,1,0,9,d_5,nn,nnn);
-	t_6 = TB(0,1,0,9,d_6,nn,nnn);
-	t_7 = TB(0,1,0,9,d_7,nn,nnn);
-	t_8 = TB(0,1,0,9,d_8,nn,nnn);
-	t_13 = TB(0,1,1,9,d_13,nn,nnn);
-	t_14 = TB(0,1,1,9,d_14,nn,nnn);
-	t_15 = TB(0,1,1,9,d_15,nn,nnn);
-	t_16 = TB(0,1,1,9,d_16,nn,nnn);
-	t_17 = TB(0,1,1,9,d_17,nn,nnn);
-	t_18 = TB(0,1,1,9,d_18,nn,nnn);
-	t_19 = TB(0,1,2,9,d_19,nn,nnn);
-	t_20 = TB(0,1,2,9,d_20,nn,nnn);
-	t_21 = TB(0,1,2,9,d_21,nn,nnn);
-	t_22 = TB(0,1,2,9,d_22,nn,nnn);
-	t_23 = TB(0,1,2,9,d_23,nn,nnn);
-	t_24 = TB(0,1,2,9,d_24,nn,nnn);
-	t_25 = TB(0,1,2,9,d_25,nn,nnn);
-	t_26 = TB(0,1,2,9,d_26,nn,nnn);
-	t_27 = TB(0,1,2,9,d_27,nn,nnn);
-	t_28 = TB(0,1,2,9,d_28,nn,nnn);
-	t_29 = TB(0,1,2,9,d_29,nn,nnn);
-	t_30 = TB(0,1,2,9,d_30,nn,nnn);
-	Matrix<dcomp, 9, 9> u;
-	u.fill(0.);
-	u(0,0) = real(lambda(0,0));
-	u(1,1) = u(2,2) = u(3,3) = real((lambda(1,1) + lambda(2,2) + lambda(3,3))/3.);
-	u(4,4) = u(5,5) = u(6,6) = real((lambda(4,4) + lambda(5,5) + lambda(6,6))/3.);
-	u(7,7) = u(8,8) = real((lambda(7,7) + lambda(8,8))/2.);
-
-	double fret;
-	fret = 0;
-	VectorXd eigs, W_eigs;
-	double x, y, z;
-	/* int in = 6; */ 
-	/* int it = 0; */
-	double pi;
-	double b = 2.;
-	for (int k = 0; k < 351; k++)
-	{
-		if (k < 101){
-			pi = 2*M_PI*k/100.;
-			z = pi/b;
-			y = 0;
-			x = 0;
+void eigs(const vector<m3> &T, const vector<Vector3d> &D, const m3 &U, bool is_E,
+	       	bool is_eigval, bool is_eigvec,	vector<m3> &dummyE_or_vec, vector<VectorXd> &dummy_val){
+  dummyE_or_vec.clear();
+  dummy_val.clear();
+  if ((is_E == true) && (is_eigval == true))
+    cout<<"Error, is_E & is_eigval both set to true"<<endl;
+  m3 E;
+  dcomp i;
+  i = -1.;
+  i = sqrt(i);
+  const int n = 20;
+  Vector3d K;
+  double k_x, k_y, k_z;
+  const double A = M_PI;
+  int it = D.size();
+  for (int k = 0; k!=n+1; k++){
+    if (k%2!=0){
+      k_x = A*k/n;
+      for (int l = 0; l!=k+1; l++){
+        if (l%2!=0){
+          k_y = A*l/n;
+          for (int m = 0; m!=(k-l)/2 + 1; m++){
+            if (m%2!=0){
+              k_z = A*m/n;
+	      K <<k_x, k_y, k_z;
+	      E = U;
+	      for (int iter = 0; iter < it; iter++)
+	        E = E + T[iter]*exp(i*D[iter].dot(K));
+	      if (is_E == true)
+	        dummyE_or_vec.emplace_back(E);
+	      if (is_eigval == true){
+		ComplexEigenSolver<m3> CA;
+		CA.compute(E);
+		VectorXd eigs;
+		eigs = CA.eigenvalues().real();
+		/* sort(eigs.data(), eigs.data()+eigs.size()); */
+		dummy_val.emplace_back(eigs);
+		if (is_eigvec == true){
+		  m3 O;
+                  O = CA.eigenvectors();
+		  dummyE_or_vec.emplace_back(O);
 		}
-		if ((k > 100) && (k < 201)){
-			pi = M_PI*(k-100)/100.;
-			x = (2*M_PI-pi)/b;
-			y = pi/b;
-			z = pi/b;
-		}	
-		if ((k > 200) && (k < 251)){
-			pi = M_PI*(k-200)/50.;
-			x = (M_PI - pi)/b;
-			y = M_PI/b;
-			z = M_PI/b;
-		}
-		if ((k > 250) && (k < 351)){
-			pi = M_PI*(k-250)/100.;
-			x = 0;
-			y = (M_PI-pi)/b;
-			z = (M_PI-pi)/b;
-		}
+	      }
 
-	/* for (int xx = 0; xx < (in+1); xx++){ */
-	/* 	for (int yy = 0; yy < xx; yy++){ */
-	/* 		for (int zz = 0; zz < yy; zz++){ */
-	/* 			x = 2.*M_PI*xx/(in*1.); */
-	/* 			y = 2.*M_PI*yy/(in*1.); */
-	/* 			z = 2.*M_PI*zz/(in*1.); */
-	/* 			it++; */
-
-				eigs = Eigens(x, y, z, u,
-					d_1, d_2, d_3, d_4, d_5, d_6, d_7, d_8, 
-					d_13, d_14, d_15, d_16, d_17, d_18, d_19, d_20,
-					d_21, d_22, d_23, d_24, d_25, d_26, d_27, d_28,
-					d_29, d_30,
-					t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, 
-					t_13, t_14, t_15, t_16, t_17, t_18, t_19, t_20,
-					t_21, t_22, t_23, t_24, t_25, t_26, t_27, t_28,
-					t_29, t_30);
-				W_eigs = Eigens(x, y, z, lambda,
-					d_1, d_2, d_3, d_4, d_5, d_6, d_7, d_8, 
-					d_13, d_14, d_15, d_16, d_17, d_18, d_19, d_20,
-					d_21, d_22, d_23, d_24, d_25, d_26, d_27, d_28,
-					d_29, d_30,
-					wt_1, wt_2, wt_3, wt_4, wt_5, wt_6, wt_7, wt_8, 
-					wt_13, wt_14, wt_15, wt_16, wt_17, wt_18, wt_19, wt_20,
-					wt_21, wt_22, wt_23, wt_24, wt_25, wt_26, wt_27, wt_28,
-					wt_29, wt_30);
-				for (int k = 0; k < eigs.size(); k++)
-					fret += (eigs(k) - W_eigs(k))*(eigs(k) - W_eigs(k));
-			/* } */
-		/* } */
+	      
+ 	    }
+          }
 	}
-	/* cout<<it<<endl; */
-
-	return fret;
-
+      }
+    }
+  }
+  return;
 }
 
 template <typename func1, typename... Args>
-void dxargs(VectorXd& p, VectorXd& xi, func1&& func, Args&&... params){
-	double delta = 1e-4;
-	int n;
-	n = p.size();
-	VectorXd pd(n), pn(n);
-	pd = p;
-	pn = p;
-	for (int k = 0; k<p.size(); k++){
-		pd(k) = p(k) + delta;
-		pn(k) = p(k) - delta;
-		xi(k) = (forward<func1>(func)(pd, forward<Args>(params)...) 
-				- forward<func1>(func)(pn, forward<Args>(params)...))/(2.*delta); 
+void dxargs(VectorXd& p, VectorXd& xi, func1&& func, const vector<VectorXd>& Weigs,
+	       	const m3 &U, const vector<Vector3d> &D){
+	m3 t;
+	vector<m3> T;
+	for (int it = 0; it < 8; it++){//!!! 8 will need changing as NN increases!
+		t = TB(0,1,0,9,D[it],p,p);
+		T.emplace_back(t);
 	}
+
+	vector<VectorXd> Teigs, dummy;
+	vector<m3> Eig_vecs, dE;
+	eigs(T, D, U, false, true, true, Eig_vecs, Teigs);
+	double fret;
+	double weight;
+	double V;
+	for (int j = 0; j < p.size(); j++){
+		if (j == 0){
+			T.clear();
+			fret = 0.;
+			for (int it = 0; it < 8; it++){//!!! 8 will need changing as NN increases!
+				t = dsss();
+				T.emplace_back(t);
+			}
+			eigs(T, D, U, true, false, false, dE, dummy);
+			for (int it = 0; it < Teigs.size(); it ++){
+				for (int k = 0; k < Teigs[0].size(); k++){
+					if (k > 5)
+						weight = 0.2;
+					else
+						weight = 1.;
+					//SEARCH - very much more complicated than as below as need to choose correct column
+					//per eigenvalue
+					/* V = real((Eig_vecs[k].adjoint()*dE*Eig_vecs)/(Eig_vecs.adjoint()*Eig_vecs)); */
+					/* fret += 2.*V*(Teigs[it](k) - Weigs[it](k))*weight; */
+				}
+			}
+		}
+	}
+}
+
+double xargs(VectorXd& p, const vector<VectorXd>& Weigs, const m3 &U, const vector<Vector3d> &D){
+
+	m3 t;
+	vector<m3> T;
+	for (int it = 0; it < 8; it++){
+		t = TB(0,1,0,9,D[it],p,p);
+		T.emplace_back(t);
+	}
+
+	vector<VectorXd> Teigs;
+	vector<m3> dummyE;
+	eigs(T, D, U, false, true, false, dummyE, Teigs);
+	double fret = 0.;
+	double weight;
+	for (int it = 0; it < Teigs.size(); it ++){
+		for (int k = 0; k < Teigs[0].size(); k++){
+			if (k > 5)
+				weight = 0.2;
+			else
+				weight = 1.;
+			fret += (Teigs[it](k) - Weigs[it](k))*(Teigs[it](k) - Weigs[it](k))*weight;
+		}
+	}
+
+	return fret;
+
 }
 
 int main(){
@@ -407,10 +334,30 @@ int main(){
 	t_30 = read(d_30, ispin);
 	t_30 = Odagg*t_30*Oo;
 	t_30 = convert(t_30);
+	vector<m3> T;
+	T.emplace_back(t_1);
+	T.emplace_back(t_2);
+	T.emplace_back(t_3);
+	T.emplace_back(t_4);
+	T.emplace_back(t_5);
+	T.emplace_back(t_6);
+	T.emplace_back(t_7);
+	T.emplace_back(t_8);
+	vector<Vector3d> D;
+	D.emplace_back(d_1);
+	D.emplace_back(d_2);
+	D.emplace_back(d_3);
+	D.emplace_back(d_4);
+	D.emplace_back(d_5);
+	D.emplace_back(d_6);
+	D.emplace_back(d_7);
+	D.emplace_back(d_8);
+	vector<m3> dummyE;
+	vector<VectorXd> Weigs;
+	eigs(T, D, lambda, false, true, false, dummyE, Weigs);
 
 	double s, p, d1, d2, sss1, sss2, pps1, pps2, ppp1, ppp2, dds1, dds2, ddp1, ddp2, ddd1, ddd2, sps1, sps2, sds1, sds2, pds1, pds2, pdp1, pdp2;
 	//intial guess
-	sss2 = sps2 = pps2 = ppp2 = sds2 = pds2 = pdp2 = dds2 = ddp2 = ddd2 = 0.;
 	sss1 = -0.118047;
 	sps1 = 0.16918;
 	pps1 = 0.26892; 
@@ -425,42 +372,24 @@ int main(){
 	VectorXd nn(10),nnn(10);
 	nn<<sss1, sps1, pps1, ppp1, sds1, pds1, pdp1, dds1, ddp1, ddd1;
 	nnn<<sss2, sps2, pps2, ppp2, sds2, pds2, pdp2, dds2, ddp2, ddd2;
+	m3 U;
+	U(0,0) = lambda(0,0);
+	U(1,1) = U(2,2) = U(3,3) = (lambda(1,1) + lambda(2,2) + lambda(3,3))/3.;
+	U(4,4) = U(5,5) = U(6,6) = (lambda(4,4) + lambda(5,5) + lambda(6,6))/3.;
+	U(7,7) = U(8,8) = (lambda(7,7) + lambda(8,8))/2.;
 
 	double ftol = 1e-5;
 	double fret;
 	int iter;
-	VectorXd NNN(10);
-	NNN.fill(0.);
-	VectorXd NNNN(30);
-	NNNN.head(20) = nnnn;
-	NNNN.tail(10) = NNN;
-	cout<<endl<<endl;
-	cout<<"Finally, find up to 3rd neighbour terms in one run, using loads of k-points:"<<endl;
-	frprmn(NNNN, ftol, iter, fret, xargs6, lambda,
-			d_1, d_2, d_3, d_4, d_5, d_6, d_7, d_8, 
-		d_13, d_14, d_15, d_16, d_17, d_18, d_19, d_20,
-		d_21, d_22, d_23, d_24, d_25, d_26, d_27, d_28,
-		d_29, d_30,
-			t_1, t_2, t_3, t_4, t_5, t_6, t_7, t_8, 
-		t_13, t_14, t_15, t_16, t_17, t_18, t_19, t_20,
-		t_21, t_22, t_23, t_24, t_25, t_26, t_27, t_28,
-		t_29, t_30);
-	cout<<"1st nearest neighbour SK terms:"<<endl;
-	cout<<"sss1 = "<<NNNN(0)<<"; sps1 = "<<NNNN(1)<<"; pps1 = "<<NNNN(2)<<"; ppp1 = "
-		<<NNNN(3)<<"; sds1 = "<<NNNN(4)<<";"<<endl<<"pds1 = "<<NNNN(5)<<"; pdp1 = "<<NNNN(6)<<
-		"; dds1 = "<<NNNN(7)<<"; ddp1 = "<<NNNN(8)<<"; ddd1 = "<<NNNN(9)<<";"<<endl;
-	cout<<endl;
-	cout<<"2nd nearest neighbour SK terms:"<<endl;
-	cout<<"sss2 = "<<NNNN(10)<<"; sps2 = "<<NNNN(11)<<"; pps2 = "<<NNNN(12)<<"; ppp2 = "
-		<<NNNN(13)<<"; sds2 = "<<NNNN(14)<<";"<<endl<<"pds2 = "<<NNNN(15)<<"; pdp2 = "<<NNNN(16)<<
-		"; dds2 = "<<NNNN(17)<<"; ddp2 = "<<NNNN(18)<<"; ddd2 = "<<NNNN(19)<<";"<<endl;
-	cout<<endl;
-	cout<<"3rd nearest neighbour SK terms:"<<endl;
-	cout<<"sss3 = "<<NNNN(20)<<"; sps3 = "<<NNNN(21)<<"; pps3 = "<<NNNN(22)<<"; ppp3 = "
-		<<NNNN(23)<<"; sds3 = "<<NNNN(24)<<"; "<<endl<<"pds3 = "<<NNNN(25)<<"; pdp3 = "<<NNNN(26)<<
-		"; dds3 = "<<NNNN(27)<<"; ddp3 = "<<NNNN(28)<<"; ddd3 = "<<NNNN(29)<<";"<<endl;
+	cout<<"Find the SK potentials of the 1st neighbour terms:"<<endl;
+	frprmn(nn, ftol, iter, fret, xargs, Weigs, U, D);
+	cout<<"sss1 = "<<nn(0)<<"; sps1 = "<<nn(1)<<"; pps1 = "<<nn(2)<<"; ppp1 = "
+		<<nn(3)<<"; sds1 = "<<nn(4)<<";"<<endl<<"pds1 = "<<nn(5)<<"; pdp1 = "<<nn(6)<<
+		"; dds1 = "<<nn(7)<<"; ddp1 = "<<nn(8)<<"; ddd1 = "<<nn(9)<<";"<<endl;
 	cout<<endl;
 	cout<<"number of iterations: "<<iter<<endl;
 	cout<<"minimum of function: "<<fret<<endl;
+	cout<<endl<<endl;
+
 	return 0;
 }
