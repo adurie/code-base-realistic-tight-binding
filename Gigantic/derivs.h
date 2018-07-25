@@ -6,6 +6,7 @@
 
 using namespace std;
 using namespace Eigen;
+typedef complex<double> dcomp;
 
 //these derivatives are actually dH/d***, and are calculated in the Maple
 //worksheet sk_deriv.mw
@@ -16,7 +17,7 @@ Matrix<dcomp, 9, 9> dsss(){
 	return b;
 }
 
-Matrix<dcomp, 9, 9> dsps(Vector3d &pos){
+Matrix<dcomp, 9, 9> dsps(const Vector3d &pos){
 	Matrix<dcomp, 9, 9> b;
 	b.fill(0.);
 	double x, y, z;
@@ -36,7 +37,7 @@ Matrix<dcomp, 9, 9> dsps(Vector3d &pos){
 	return b;
 }
 
-Matrix<dcomp, 9, 9> dpps(Vector3d &pos){
+Matrix<dcomp, 9, 9> dpps(const Vector3d &pos){
 	Matrix<dcomp, 9, 9> b;
 	b.fill(0.);
 	double x, y, z;
@@ -65,7 +66,7 @@ Matrix<dcomp, 9, 9> dpps(Vector3d &pos){
 	return b;
 }
 
-Matrix<dcomp, 9, 9> dppp(Vector3d &pos){
+Matrix<dcomp, 9, 9> dppp(const Vector3d &pos){
 	Matrix<dcomp, 9, 9> b;
 	b.fill(0.);
 	double x, y, z;
@@ -94,7 +95,7 @@ Matrix<dcomp, 9, 9> dppp(Vector3d &pos){
 	return b;
 }
 
-Matrix<dcomp, 9, 9> dsds(Vector3d &pos){
+Matrix<dcomp, 9, 9> dsds(const Vector3d &pos){
 	double r3 = sqrt(3.);
 	Matrix<dcomp, 9, 9> b;
 	b.fill(0.);
@@ -119,7 +120,7 @@ Matrix<dcomp, 9, 9> dsds(Vector3d &pos){
 	return b;
 }
 
-Matrix<dcomp, 9, 9> dpds(Vector3d &pos){
+Matrix<dcomp, 9, 9> dpds(const Vector3d &pos){
 	double r3 = sqrt(3.);
 	Matrix<dcomp, 9, 9> b;
 	b.fill(0.);
@@ -170,7 +171,7 @@ Matrix<dcomp, 9, 9> dpds(Vector3d &pos){
 	return b;
 }
 
-Matrix<dcomp, 9, 9> dpdp(Vector3d &pos){
+Matrix<dcomp, 9, 9> dpdp(const Vector3d &pos){
 	double r3 = sqrt(3.);
 	Matrix<dcomp, 9, 9> b;
 	b.fill(0.);
@@ -221,7 +222,7 @@ Matrix<dcomp, 9, 9> dpdp(Vector3d &pos){
 	return b;
 }
 
-Matrix<dcomp, 9, 9> ddds(Vector3d &pos){
+Matrix<dcomp, 9, 9> ddds(const Vector3d &pos){
 	double r3 = sqrt(3.);
 	Matrix<dcomp, 9, 9> b;
 	b.fill(0.);
@@ -242,7 +243,7 @@ Matrix<dcomp, 9, 9> ddds(Vector3d &pos){
         double xxyy=xx*yy;
         double yyzz=yy*zz;
         double zzxx=zz*xx;
-	b(4,4) = 3*xxyy 
+	b(4,4) = 3*xxyy;
 	b(4,5) = 3*yy*zx;
 	b(4,6) = 3*xx*yz;
 	b(4,7) = 0.5*xy*(3*xx - 3*yy);
@@ -270,7 +271,7 @@ Matrix<dcomp, 9, 9> ddds(Vector3d &pos){
 	return b;
 }
 
-Matrix<dcomp, 9, 9> dddp(Vector3d &pos){
+Matrix<dcomp, 9, 9> dddp(const Vector3d &pos){
 	double r3 = sqrt(3.);
 	Matrix<dcomp, 9, 9> b;
 	b.fill(0.);
@@ -315,11 +316,11 @@ Matrix<dcomp, 9, 9> dddp(Vector3d &pos){
 	b(7,7) = xx + yy - (xx - yy)*(xx - yy);
 	b(7,8) = -r3*zz*(xx - yy);
 	b(8,7) = b(7,8);
-	b(8,8) = 3*zz(xx + yy);
+	b(8,8) = 3*zz*(xx + yy);
 	return b;
 }
 
-Matrix<dcomp, 9, 9> dddp(Vector3d &pos){
+Matrix<dcomp, 9, 9> dddd(const Vector3d &pos){
 	double r3 = sqrt(3.);
 	Matrix<dcomp, 9, 9> b;
 	b.fill(0.);
