@@ -86,7 +86,7 @@ void eigs(const vector<m3> &T, const vector<Vector3d> &D, const m3 &U, bool is_E
   Vector3d K;
   double k_x, k_y, k_z;
   const double A = M_PI;
-  int it = D.size();
+  int it = T.size();
   for (int k = 0; k!=n+1; k++){
     if (k%2!=0){
       k_x = A*k/n;
@@ -133,221 +133,203 @@ void eigs(const vector<m3> &T, const vector<Vector3d> &D, const m3 &U, bool is_E
 
 template <typename func1>
 void dxargs(VectorXd& p, VectorXd& xi, func1&& func, const vector<VectorXd>& Weigs,
-	       	const m3 &U, const vector<Vector3d> &D){
+	       	const m3 &U, const vector<Vector3d> &D, 
+		const VectorXd &nn, const int numnn, const int numnnn){
 	m3 t;
 	vector<m3> T;
-	for (int it = 0; it < 8; it++){//!!! 8 will need changing as NN increases!
-		t = TB(0,1,0,9,D[it],p,p);
+	int sz, sz2, sz3, sz4, sz5, sz6, total;
+	sz = nn.size();
+	sz2 = p.size();
+	sz6 = D.size();
+	sz4 = sz2 - 10;
+	total = numnn + numnnn;
+	sz5 = sz6 - total;
+	VectorXd p1, p2;
+	/* vector<Vector3d>::const_iterator first = D.begin() + numnn; */
+	/* vector<Vector3d>::const_iterator last = D.end(); */
+	/* vector<Vector3d> Dderiv(first,last); */
+	vector<Vector3d> Dderiv, Deriv2;
+	if (sz == 0){
+		Dderiv = D;
+	       	p1 = p.head(10);
+		if (sz2 > 10)
+		        p2 = p.tail(sz4);
+	}
+	if (sz == 10){
+		vector<Vector3d>::const_iterator first = D.begin() + numnn;
+		vector<Vector3d>::const_iterator last = D.end();
+		vector<Vector3d> Dderiv2(first,last);
+		Dderiv = Dderiv2;
+	       	p1 = nn;
+		p2 = p;
+	}
+	if (sz == 20){
+		vector<Vector3d>::const_iterator first = D.begin() + numnn + numnnn;
+		vector<Vector3d>::const_iterator last = D.end();
+		vector<Vector3d> Dderiv2(first,last);
+		Dderiv = Dderiv2;
+	       	p1 = nn.head(10);
+		p2.head(10) = nn.tail(10);
+		p2.tail(10) = p;
+	}
+	for (int it = 0; it < numnn; it++){
+		t = TB(0,1,0,9,D[it],p1,p1);
 		T.emplace_back(t);
 	}
+	if (sz2 > 10){
+		if (sz2 > 20){
+			for (int it = 0; it < sz5; it++){
+				t = TB(0,1,2,9,D[it],p1,p2);
+				T.emplace_back(t);
+			}
+		}
+		else{
+			for (int it = 0; it < numnnn; it++){
+				t = TB(0,1,1,9,D[it],p1,p2);
+				T.emplace_back(t);
+			}
+		}
+	}
+	sz3 = Dderiv.size();
 	vector<VectorXd> Teigs, dummy;
+	m3 dummy2;
+	dummy2.fill(0.);
 	vector<m3> Eig_vecs, dE;
 	eigs(T, D, U, false, true, true, Eig_vecs, Teigs);
 	double fret;
 	double weight;
 	double V;
+	int start;
+	int end;
+	if (sz == 0)
+		start = 0;
+	else if (sz == 10)
+		start = numnn;
+	else {
+		start = numnn + numnnn;
+		end = D.size();
+	}
 	for (int j = 0; j < p.size(); j++){
-		if (j == 0){
-			T.clear();
-			fret = 0.;
-			for (int it = 0; it < 8; it++){//!!! 8 will need changing as NN increases!
+		T.clear();
+		if (j%10 == 0){
+			for (int it = 0; it < sz3; it++){
 				t = dsss();
 				T.emplace_back(t);
 			}
-			eigs(T, D, U, true, false, false, dE, dummy);
-			for (int it = 0; it < Teigs.size(); it ++){
-				for (int k = 0; k < Teigs[0].size(); k++){
-					if (k > 5)
-						weight = 0.2;
-					else
-						weight = 1.;
-					V = (Eig_vecs[it].col(k).adjoint()*dE[it]*Eig_vecs[it].col(k)).real()(0);
-					fret += 2.*V*(Teigs[it](k) - Weigs[it](k))*weight;
-				}
-			}
 		}
-		if (j == 1){
-			T.clear();
-			fret = 0.;
-			for (int it = 0; it < 8; it++){//!!! 8 will need changing as NN increases!
-				t = dsps(D[it]);
+		if (j%10 == 1){
+			for (int it = 0; it < sz3; it++){
+				t = dsps(Dderiv[it]);
 				T.emplace_back(t);
 			}
-			eigs(T, D, U, true, false, false, dE, dummy);
-			for (int it = 0; it < Teigs.size(); it ++){
-				for (int k = 0; k < Teigs[0].size(); k++){
-					if (k > 5)
-						weight = 0.2;
-					else
-						weight = 1.;
-					V = (Eig_vecs[it].col(k).adjoint()*dE[it]*Eig_vecs[it].col(k)).real()(0);
-					fret += 2.*V*(Teigs[it](k) - Weigs[it](k))*weight;
-				}
-			}
 		}
-		if (j == 2){
-			T.clear();
-			fret = 0.;
-			for (int it = 0; it < 8; it++){//!!! 8 will need changing as NN increases!
-				t = dpps(D[it]);
+		if (j%10 == 2){
+			for (int it = 0; it < sz3; it++){
+				t = dpps(Dderiv[it]);
 				T.emplace_back(t);
 			}
-			eigs(T, D, U, true, false, false, dE, dummy);
-			for (int it = 0; it < Teigs.size(); it ++){
-				for (int k = 0; k < Teigs[0].size(); k++){
-					if (k > 5)
-						weight = 0.2;
-					else
-						weight = 1.;
-					V = (Eig_vecs[it].col(k).adjoint()*dE[it]*Eig_vecs[it].col(k)).real()(0);
-					fret += 2.*V*(Teigs[it](k) - Weigs[it](k))*weight;
-				}
-			}
 		}
-		if (j == 3){
-			T.clear();
-			fret = 0.;
-			for (int it = 0; it < 8; it++){//!!! 8 will need changing as NN increases!
-				t = dppp(D[it]);
+		if (j%10 == 3){
+			for (int it = 0; it < sz3; it++){
+				t = dppp(Dderiv[it]);
 				T.emplace_back(t);
 			}
-			eigs(T, D, U, true, false, false, dE, dummy);
-			for (int it = 0; it < Teigs.size(); it ++){
-				for (int k = 0; k < Teigs[0].size(); k++){
-					if (k > 5)
-						weight = 0.2;
-					else
-						weight = 1.;
-					V = (Eig_vecs[it].col(k).adjoint()*dE[it]*Eig_vecs[it].col(k)).real()(0);
-					fret += 2.*V*(Teigs[it](k) - Weigs[it](k))*weight;
-				}
-			}
 		}
-		if (j == 4){
-			T.clear();
-			fret = 0.;
-			for (int it = 0; it < 8; it++){//!!! 8 will need changing as NN increases!
-				t = dsds(D[it]);
+		if (j%10 == 4){
+			for (int it = 0; it < sz3; it++){
+				t = dsds(Dderiv[it]);
 				T.emplace_back(t);
 			}
-			eigs(T, D, U, true, false, false, dE, dummy);
-			for (int it = 0; it < Teigs.size(); it ++){
-				for (int k = 0; k < Teigs[0].size(); k++){
-					if (k > 5)
-						weight = 0.2;
-					else
-						weight = 1.;
-					V = (Eig_vecs[it].col(k).adjoint()*dE[it]*Eig_vecs[it].col(k)).real()(0);
-					fret += 2.*V*(Teigs[it](k) - Weigs[it](k))*weight;
-				}
-			}
 		}
-		if (j == 5){
-			T.clear();
-			fret = 0.;
-			for (int it = 0; it < 8; it++){//!!! 8 will need changing as NN increases!
-				t = dpds(D[it]);
+		if (j%10 == 5){
+			for (int it = 0; it < sz3; it++){
+				t = dpds(Dderiv[it]);
 				T.emplace_back(t);
 			}
-			eigs(T, D, U, true, false, false, dE, dummy);
-			for (int it = 0; it < Teigs.size(); it ++){
-				for (int k = 0; k < Teigs[0].size(); k++){
-					if (k > 5)
-						weight = 0.2;
-					else
-						weight = 1.;
-					V = (Eig_vecs[it].col(k).adjoint()*dE[it]*Eig_vecs[it].col(k)).real()(0);
-					fret += 2.*V*(Teigs[it](k) - Weigs[it](k))*weight;
-				}
-			}
 		}
-		if (j == 6){
-			T.clear();
-			fret = 0.;
-			for (int it = 0; it < 8; it++){//!!! 8 will need changing as NN increases!
-				t = dpdp(D[it]);
+		if (j%10 == 6){
+			for (int it = 0; it < sz3; it++){
+				t = dpdp(Dderiv[it]);
 				T.emplace_back(t);
 			}
-			eigs(T, D, U, true, false, false, dE, dummy);
-			for (int it = 0; it < Teigs.size(); it ++){
-				for (int k = 0; k < Teigs[0].size(); k++){
-					if (k > 5)
-						weight = 0.2;
-					else
-						weight = 1.;
-					V = (Eig_vecs[it].col(k).adjoint()*dE[it]*Eig_vecs[it].col(k)).real()(0);
-					fret += 2.*V*(Teigs[it](k) - Weigs[it](k))*weight;
-				}
-			}
 		}
-		if (j == 7){
-			T.clear();
-			fret = 0.;
-			for (int it = 0; it < 8; it++){//!!! 8 will need changing as NN increases!
-				t = ddds(D[it]);
+		if (j%10 == 7){
+			for (int it = 0; it < sz3; it++){
+				t = ddds(Dderiv[it]);
 				T.emplace_back(t);
 			}
-			eigs(T, D, U, true, false, false, dE, dummy);
-			for (int it = 0; it < Teigs.size(); it ++){
-				for (int k = 0; k < Teigs[0].size(); k++){
-					if (k > 5)
-						weight = 0.2;
-					else
-						weight = 1.;
-					V = (Eig_vecs[it].col(k).adjoint()*dE[it]*Eig_vecs[it].col(k)).real()(0);
-					fret += 2.*V*(Teigs[it](k) - Weigs[it](k))*weight;
-				}
-			}
 		}
-		if (j == 8){
-			T.clear();
-			fret = 0.;
-			for (int it = 0; it < 8; it++){//!!! 8 will need changing as NN increases!
-				t = dddp(D[it]);
+		if (j%10 == 8){
+			for (int it = 0; it < sz3; it++){
+				t = dddp(Dderiv[it]);
 				T.emplace_back(t);
 			}
-			eigs(T, D, U, true, false, false, dE, dummy);
-			for (int it = 0; it < Teigs.size(); it ++){
-				for (int k = 0; k < Teigs[0].size(); k++){
-					if (k > 5)
-						weight = 0.2;
-					else
-						weight = 1.;
-					V = (Eig_vecs[it].col(k).adjoint()*dE[it]*Eig_vecs[it].col(k)).real()(0);
-					fret += 2.*V*(Teigs[it](k) - Weigs[it](k))*weight;
-				}
-			}
 		}
-		if (j == 9){
-			T.clear();
-			fret = 0.;
-			for (int it = 0; it < 8; it++){//!!! 8 will need changing as NN increases!
-				t = dddd(D[it]);
+		if (j%10 == 9){
+			for (int it = 0; it < sz3; it++){
+				t = dddd(Dderiv[it]);
 				T.emplace_back(t);
 			}
-			eigs(T, D, U, true, false, false, dE, dummy);
-			for (int it = 0; it < Teigs.size(); it ++){
-				for (int k = 0; k < Teigs[0].size(); k++){
-					if (k > 5)
-						weight = 0.2;
-					else
-						weight = 1.;
-					V = (Eig_vecs[it].col(k).adjoint()*dE[it]*Eig_vecs[it].col(k)).real()(0);
-					fret += 2.*V*(Teigs[it](k) - Weigs[it](k))*weight;
-				}
+		}
+		eigs(T, Dderiv, dummy2, true, false, false, dE, dummy);
+		fret = 0.;
+		for (int it = 0; it < Teigs.size(); it ++){
+			for (int k = 0; k < Teigs[0].size(); k++){
+				if (k > 5)
+					weight = 0.2;
+				else
+					weight = 1.;
+				V = (Eig_vecs[it].col(k).adjoint()*dE[it]*Eig_vecs[it].col(k)).real()(0);
+				fret += 2.*V*(Teigs[it](k) - Weigs[it](k))*weight;
 			}
 		}
 		xi(j) = fret;
 	}
 }
 
-double xargs(VectorXd& p, const vector<VectorXd>& Weigs, const m3 &U, const vector<Vector3d> &D){
+double xargs(VectorXd& p, const vector<VectorXd>& Weigs, const m3 &U, const vector<Vector3d> &D,
+		const VectorXd &nn, const int numnn, const int numnnn){
 
 	m3 t;
 	vector<m3> T;
-	for (int it = 0; it < 8; it++){
-		t = TB(0,1,0,9,D[it],p,p);
+	int sz, sz2, sz3, sz4, sz5, total;
+	sz = nn.size();
+	sz2 = p.size();
+	sz4 = sz2 - 10;
+	total = numnn + numnnn;
+	sz5 = D.size() - total;
+	VectorXd p1, p2;
+	if (sz == 0){
+	       	p1 = p.head(10);
+		if (sz2 > 10)
+		        p2 = p.tail(sz4);
+	}
+	if (sz == 10){
+	       	p1 = nn;
+		p2 = p;
+	}
+	if (sz == 20){
+	       	p1 = nn.head(10);
+		p2.head(10) = nn.tail(10);
+		p2.tail(10) = p;
+	}
+	for (int it = 0; it < numnn; it++){
+		t = TB(0,1,0,9,D[it],p1,p1);
 		T.emplace_back(t);
+	}
+	if (sz2 > 10){
+		if (sz2 > 20){
+			for (int it = 0; it < sz5; it++){
+				t = TB(0,1,2,9,D[it],p1,p2);
+				T.emplace_back(t);
+			}
+		}
+		else{
+			for (int it = 0; it < numnnn; it++){
+				t = TB(0,1,1,9,D[it],p1,p2);
+				T.emplace_back(t);
+			}
+		}
 	}
 
 	vector<VectorXd> Teigs;
@@ -541,6 +523,7 @@ int main(){
 	pds1 = -0.11882; pdp1 = 0.03462; 
 	pdp2 = -0.01088; pds2 = -0.05257;
 	sds2 = -0.02805; dds2 = -0.02267; ddp2 = -0.00468; ddd2 = 0.00209;
+	sss2 = -0.0227063;
 	ppp2 = 0.03060;
 	pps2 = 0.16341; 
 	sps2 = 0.06189; 
@@ -556,11 +539,42 @@ int main(){
 	double ftol = 1e-5;
 	double fret;
 	int iter;
+	VectorXd dummy;
+	const int numnn = 8;
+	const int numnnn = 6;
 	cout<<"Find the SK potentials of the 1st neighbour terms:"<<endl;
-	frprmn(nn, ftol, iter, fret, xargs, Weigs, U, D);
+	frprmn(nn, ftol, iter, fret, xargs, Weigs, U, D, dummy, numnn, numnnn);
 	cout<<"sss1 = "<<nn(0)<<"; sps1 = "<<nn(1)<<"; pps1 = "<<nn(2)<<"; ppp1 = "
 		<<nn(3)<<"; sds1 = "<<nn(4)<<";"<<endl<<"pds1 = "<<nn(5)<<"; pdp1 = "<<nn(6)<<
 		"; dds1 = "<<nn(7)<<"; ddp1 = "<<nn(8)<<"; ddd1 = "<<nn(9)<<";"<<endl;
+	cout<<endl;
+	cout<<"number of iterations: "<<iter<<endl;
+	cout<<"minimum of function: "<<fret<<endl;
+	cout<<endl<<endl;
+	T.emplace_back(t_13);
+	T.emplace_back(t_14);
+	T.emplace_back(t_15);
+	T.emplace_back(t_16);
+	T.emplace_back(t_17);
+	T.emplace_back(t_18);
+	D.emplace_back(d_13);
+	D.emplace_back(d_14);
+	D.emplace_back(d_15);
+	D.emplace_back(d_16);
+	D.emplace_back(d_17);
+	D.emplace_back(d_18);
+	eigs(T, D, lambda, false, true, false, dummyE, Weigs);
+	cout<<"Now find the SK potentials of the 2nd neighbour terms, keeping 1st neighbour terms fixed:"<<endl;
+	frprmn(nnn, ftol, iter, fret, xargs, Weigs, U, D, nn, numnn, numnnn);
+	cout<<"1st nearest neighbour SK terms:"<<endl;
+	cout<<"sss1 = "<<nn(0)<<"; sps1 = "<<nn(1)<<"; pps1 = "<<nn(2)<<"; ppp1 = "
+		<<nn(3)<<"; sds1 = "<<nn(4)<<";"<<endl<<"pds1 = "<<nn(5)<<"; pdp1 = "<<nn(6)<<
+		"; dds1 = "<<nn(7)<<"; ddp1 = "<<nn(8)<<"; ddd1 = "<<nn(9)<<";"<<endl;
+	cout<<endl;
+	cout<<"2nd nearest neighbour SK terms:"<<endl;
+	cout<<"sss2 = "<<nnn(0)<<"; sps2 = "<<nnn(1)<<"; pps2 = "<<nnn(2)<<"; ppp2 = "
+		<<nnn(3)<<"; sds2 = "<<nnn(4)<<";"<<endl<<"pds2 = "<<nnn(5)<<"; pdp2 = "<<nnn(6)<<
+		"; dds2 = "<<nnn(7)<<"; ddp2 = "<<nnn(8)<<"; ddd2 = "<<nnn(9)<<";"<<endl;
 	cout<<endl;
 	cout<<"number of iterations: "<<iter<<endl;
 	cout<<"minimum of function: "<<fret<<endl;

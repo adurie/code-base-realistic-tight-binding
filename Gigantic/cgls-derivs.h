@@ -19,7 +19,8 @@ typedef Matrix<dcomp, 9, 9> m3;
 
 template <typename func1>
 void dxargs(VectorXd&, VectorXd&, func1&&, const vector<VectorXd>&,
-	       	const m3&, const vector<Vector3d>&);
+	       	const m3&, const vector<Vector3d>&,
+		const VectorXd&, const int, const int);
 
 template <typename func1, typename... Args>
 double f1dim(double x, int n, VectorXd &pcom, VectorXd &xicom, func1&& func, Args&&... params)
