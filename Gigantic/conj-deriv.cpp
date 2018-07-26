@@ -209,64 +209,70 @@ void dxargs(VectorXd& p, VectorXd& xi, func1&& func, const vector<VectorXd>& Wei
 		start = numnn + numnnn;
 		end = D.size();
 	}
+	start = 0;// MUST CHANGE THIS
+	end = 8;// MUST CHANGE THIS
 	for (int j = 0; j < p.size(); j++){
 		T.clear();
+		if (j > 9){
+			start = 8;// MUST CHANGE THIS
+			end = 14;// MUST CHANGE THIS
+		}
 		if (j%10 == 0){
-			for (int it = 0; it < sz3; it++){
+			for (int it = start; it < end; it++){
 				t = dsss();
 				T.emplace_back(t);
 			}
 		}
 		if (j%10 == 1){
-			for (int it = 0; it < sz3; it++){
+			for (int it = start; it < end; it++){
 				t = dsps(Dderiv[it]);
 				T.emplace_back(t);
 			}
 		}
 		if (j%10 == 2){
-			for (int it = 0; it < sz3; it++){
+			for (int it = start; it < end; it++){
 				t = dpps(Dderiv[it]);
 				T.emplace_back(t);
 			}
 		}
 		if (j%10 == 3){
-			for (int it = 0; it < sz3; it++){
+			for (int it = start; it < end; it++){
 				t = dppp(Dderiv[it]);
 				T.emplace_back(t);
 			}
 		}
 		if (j%10 == 4){
-			for (int it = 0; it < sz3; it++){
+			for (int it = start; it < end; it++){
 				t = dsds(Dderiv[it]);
 				T.emplace_back(t);
 			}
 		}
 		if (j%10 == 5){
-			for (int it = 0; it < sz3; it++){
+			for (int it = start; it < end; it++){
 				t = dpds(Dderiv[it]);
 				T.emplace_back(t);
 			}
 		}
 		if (j%10 == 6){
-			for (int it = 0; it < sz3; it++){
+			for (int it = start; it < end; it++){
 				t = dpdp(Dderiv[it]);
 				T.emplace_back(t);
 			}
 		}
 		if (j%10 == 7){
-			for (int it = 0; it < sz3; it++){
+			for (int it = start; it < end; it++){
 				t = ddds(Dderiv[it]);
 				T.emplace_back(t);
 			}
 		}
 		if (j%10 == 8){
-			for (int it = 0; it < sz3; it++){
+			for (int it = start; it < end; it++){
 				t = dddp(Dderiv[it]);
 				T.emplace_back(t);
 			}
 		}
 		if (j%10 == 9){
-			for (int it = 0; it < sz3; it++){
+			for (int it = start; it < end; it++){
 				t = dddd(Dderiv[it]);
 				T.emplace_back(t);
 			}
@@ -563,18 +569,21 @@ int main(){
 	D.emplace_back(d_16);
 	D.emplace_back(d_17);
 	D.emplace_back(d_18);
+	VectorXd NNN(20);
+	NNN.head(10) = nn;
+	NNN.tail(10) = nnn;
 	eigs(T, D, lambda, false, true, false, dummyE, Weigs);
 	cout<<"Now find the SK potentials of the 2nd neighbour terms, keeping 1st neighbour terms fixed:"<<endl;
-	frprmn(nnn, ftol, iter, fret, xargs, Weigs, U, D, nn, numnn, numnnn);
+	frprmn(NNN, ftol, iter, fret, xargs, Weigs, U, D, dummy, numnn, numnnn);
 	cout<<"1st nearest neighbour SK terms:"<<endl;
-	cout<<"sss1 = "<<nn(0)<<"; sps1 = "<<nn(1)<<"; pps1 = "<<nn(2)<<"; ppp1 = "
-		<<nn(3)<<"; sds1 = "<<nn(4)<<";"<<endl<<"pds1 = "<<nn(5)<<"; pdp1 = "<<nn(6)<<
-		"; dds1 = "<<nn(7)<<"; ddp1 = "<<nn(8)<<"; ddd1 = "<<nn(9)<<";"<<endl;
+	cout<<"sss1 = "<<NNN(0)<<"; sps1 = "<<NNN(1)<<"; pps1 = "<<NNN(2)<<"; ppp1 = "
+		<<NNN(3)<<"; sds1 = "<<NNN(4)<<";"<<endl<<"pds1 = "<<NNN(5)<<"; pdp1 = "<<NNN(6)<<
+		"; dds1 = "<<NNN(7)<<"; ddp1 = "<<NNN(8)<<"; ddd1 = "<<NNN(9)<<";"<<endl;
 	cout<<endl;
 	cout<<"2nd nearest neighbour SK terms:"<<endl;
-	cout<<"sss2 = "<<nnn(0)<<"; sps2 = "<<nnn(1)<<"; pps2 = "<<nnn(2)<<"; ppp2 = "
-		<<nnn(3)<<"; sds2 = "<<nnn(4)<<";"<<endl<<"pds2 = "<<nnn(5)<<"; pdp2 = "<<nnn(6)<<
-		"; dds2 = "<<nnn(7)<<"; ddp2 = "<<nnn(8)<<"; ddd2 = "<<nnn(9)<<";"<<endl;
+	cout<<"sss2 = "<<NNN(10)<<"; sps2 = "<<NNN(11)<<"; pps2 = "<<NNN(12)<<"; ppp2 = "
+		<<NNN(13)<<"; sds2 = "<<NNN(14)<<";"<<endl<<"pds2 = "<<NNN(15)<<"; pdp2 = "<<NNN(16)<<
+		"; dds2 = "<<NNN(17)<<"; ddp2 = "<<NNN(18)<<"; ddd2 = "<<NNN(19)<<";"<<endl;
 	cout<<endl;
 	cout<<"number of iterations: "<<iter<<endl;
 	cout<<"minimum of function: "<<fret<<endl;
