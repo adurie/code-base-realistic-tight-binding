@@ -82,10 +82,10 @@ void eigs(const vector<m3> &T, const vector<Vector3d> &D, const m3 &U, bool is_E
   dcomp i;
   i = -1.;
   i = sqrt(i);
-  const int n = 20;
+  const int n = 40;
   Vector3d K;
   double k_x, k_y, k_z;
-  const double A = M_PI;
+  const double A = 2*M_PI;
   int it = T.size();
   for (int k = 0; k!=n+1; k++){
     if (k%2!=0){
@@ -137,19 +137,22 @@ void dxargs(VectorXd& p, VectorXd& xi, func1&& func, const vector<VectorXd>& Wei
 		const VectorXd &nn, const int numnn, const int numnnn){
 	m3 t;
 	vector<m3> T;
-	int sz, sz2, sz3, sz4, sz5, sz6, total;
+	int sz, sz1, sz2, sz3, sz4, sz6, total;
 	sz = nn.size();
 	sz2 = p.size();
+	sz3 = sz + sz2;
+	sz1 = sz3 - 10;
 	sz6 = D.size();
 	sz4 = sz2 - 10;
 	total = numnn + numnnn;
-	sz5 = sz6 - total;
-	VectorXd p1, p2;
-	/* vector<Vector3d>::const_iterator first = D.begin() + numnn; */
-	/* vector<Vector3d>::const_iterator last = D.end(); */
-	/* vector<Vector3d> Dderiv(first,last); */
+	VectorXd p1(10), p2(sz1);
 	vector<Vector3d> Dderiv, Deriv2;
+	int start1, end1, end2, end3;
 	if (sz == 0){
+		start1 = 0;
+		end1 = numnn;
+		end2 = total;
+		end3 = sz6;
 		Dderiv = D;
 	       	p1 = p.head(10);
 		if (sz2 > 10)
@@ -162,35 +165,40 @@ void dxargs(VectorXd& p, VectorXd& xi, func1&& func, const vector<VectorXd>& Wei
 		Dderiv = Dderiv2;
 	       	p1 = nn;
 		p2 = p;
+		start1 = 0;
+		end1 = numnnn;
+		end2 = Dderiv.size();
+		end3 = 0;
 	}
 	if (sz == 20){
-		vector<Vector3d>::const_iterator first = D.begin() + numnn + numnnn;
+		vector<Vector3d>::const_iterator first = D.begin() + total;
 		vector<Vector3d>::const_iterator last = D.end();
 		vector<Vector3d> Dderiv2(first,last);
 		Dderiv = Dderiv2;
 	       	p1 = nn.head(10);
 		p2.head(10) = nn.tail(10);
 		p2.tail(10) = p;
+		start1 = 0;
+		end1 = Dderiv.size();
+		end2 = 0;
+		end3 = 0;
 	}
 	for (int it = 0; it < numnn; it++){
 		t = TB(0,1,0,9,D[it],p1,p1);
 		T.emplace_back(t);
 	}
-	if (sz2 > 10){
-		if (sz2 > 20){
-			for (int it = 0; it < sz5; it++){
+	if (sz3 > 10){
+		for (int it = numnn; it < total; it++){
+			t = TB(0,1,1,9,D[it],p1,p2);
+			T.emplace_back(t);
+		}
+		if (sz3 > 20){
+			for (int it = total; it < sz6; it++){
 				t = TB(0,1,2,9,D[it],p1,p2);
 				T.emplace_back(t);
 			}
 		}
-		else{
-			for (int it = 0; it < numnnn; it++){
-				t = TB(0,1,1,9,D[it],p1,p2);
-				T.emplace_back(t);
-			}
-		}
 	}
-	sz3 = Dderiv.size();
 	vector<VectorXd> Teigs, dummy;
 	m3 dummy2;
 	dummy2.fill(0.);
@@ -201,21 +209,19 @@ void dxargs(VectorXd& p, VectorXd& xi, func1&& func, const vector<VectorXd>& Wei
 	double V;
 	int start;
 	int end;
-	if (sz == 0)
-		start = 0;
-	else if (sz == 10)
-		start = numnn;
-	else {
-		start = numnn + numnnn;
-		end = D.size();
-	}
-	start = 0;// MUST CHANGE THIS
-	end = 8;// MUST CHANGE THIS
 	for (int j = 0; j < p.size(); j++){
 		T.clear();
+		if (j < 10){
+			start = start1;
+			end = end1;
+		}
 		if (j > 9){
-			start = 8;// MUST CHANGE THIS
-			end = 14;// MUST CHANGE THIS
+			start = end1;
+			end = end2;
+		}
+		if (j > 19){
+			start = end2;
+			end = end3;
 		}
 		if (j%10 == 0){
 			for (int it = start; it < end; it++){
@@ -298,13 +304,15 @@ double xargs(VectorXd& p, const vector<VectorXd>& Weigs, const m3 &U, const vect
 
 	m3 t;
 	vector<m3> T;
-	int sz, sz2, sz3, sz4, sz5, total;
+	int sz, sz1, sz2, sz3, sz4, sz5, total;
 	sz = nn.size();
 	sz2 = p.size();
+	sz3 = sz + sz2;
+	sz1 = sz3 - 10;
 	sz4 = sz2 - 10;
 	total = numnn + numnnn;
-	sz5 = D.size() - total;
-	VectorXd p1, p2;
+	sz5 = D.size();
+	VectorXd p1(10), p2(sz1);
 	if (sz == 0){
 	       	p1 = p.head(10);
 		if (sz2 > 10)
@@ -323,16 +331,14 @@ double xargs(VectorXd& p, const vector<VectorXd>& Weigs, const m3 &U, const vect
 		t = TB(0,1,0,9,D[it],p1,p1);
 		T.emplace_back(t);
 	}
-	if (sz2 > 10){
-		if (sz2 > 20){
-			for (int it = 0; it < sz5; it++){
-				t = TB(0,1,2,9,D[it],p1,p2);
-				T.emplace_back(t);
-			}
+	if (sz3 > 10){
+		for (int it = numnn; it < total; it++){
+			t = TB(0,1,1,9,D[it],p1,p2);
+			T.emplace_back(t);
 		}
-		else{
-			for (int it = 0; it < numnnn; it++){
-				t = TB(0,1,1,9,D[it],p1,p2);
+		if (sz3 > 20){
+			for (int it = total; it < sz5; it++){
+				t = TB(0,1,2,9,D[it],p1,p2);
 				T.emplace_back(t);
 			}
 		}
@@ -550,13 +556,12 @@ int main(){
 	const int numnnn = 6;
 	cout<<"Find the SK potentials of the 1st neighbour terms:"<<endl;
 	frprmn(nn, ftol, iter, fret, xargs, Weigs, U, D, dummy, numnn, numnnn);
-	cout<<"sss1 = "<<nn(0)<<"; sps1 = "<<nn(1)<<"; pps1 = "<<nn(2)<<"; ppp1 = "
+	cout<<showpos<<fixed<<setprecision(8)<<"sss1 = "<<nn(0)<<"; sps1 = "<<nn(1)<<"; pps1 = "<<nn(2)<<"; ppp1 = "
 		<<nn(3)<<"; sds1 = "<<nn(4)<<";"<<endl<<"pds1 = "<<nn(5)<<"; pdp1 = "<<nn(6)<<
 		"; dds1 = "<<nn(7)<<"; ddp1 = "<<nn(8)<<"; ddd1 = "<<nn(9)<<";"<<endl;
 	cout<<endl;
-	cout<<"number of iterations: "<<iter<<endl;
+	cout<<noshowpos<<"number of iterations: "<<iter<<endl;
 	cout<<"minimum of function: "<<fret<<endl;
-	cout<<endl<<endl;
 	T.emplace_back(t_13);
 	T.emplace_back(t_14);
 	T.emplace_back(t_15);
@@ -569,14 +574,24 @@ int main(){
 	D.emplace_back(d_16);
 	D.emplace_back(d_17);
 	D.emplace_back(d_18);
+	eigs(T, D, lambda, false, true, false, dummyE, Weigs);
+	cout<<string(100, '*')<<endl;
+	cout<<"Now find the SK potentials of the 2nd neighbour terms, keeping 1st neighbour terms fixed:"<<endl;
+	frprmn(nnn, ftol, iter, fret, xargs, Weigs, U, D, nn, numnn, numnnn);
+	cout<<showpos<<"sss2 = "<<nnn(0)<<"; sps2 = "<<nnn(1)<<"; pps2 = "<<nnn(2)<<"; ppp2 = "
+		<<nnn(3)<<"; sds2 = "<<nnn(4)<<";"<<endl<<"pds2 = "<<nnn(5)<<"; pdp2 = "<<nnn(6)<<
+		"; dds2 = "<<nnn(7)<<"; ddp2 = "<<nnn(8)<<"; ddd2 = "<<nnn(9)<<";"<<endl;
+	cout<<endl;
+	cout<<noshowpos<<"number of iterations: "<<iter<<endl;
+	cout<<"minimum of function: "<<fret<<endl;
+	cout<<string(100, '*')<<endl;
 	VectorXd NNN(20);
 	NNN.head(10) = nn;
 	NNN.tail(10) = nnn;
-	eigs(T, D, lambda, false, true, false, dummyE, Weigs);
-	cout<<"Now find the SK potentials of the 2nd neighbour terms, keeping 1st neighbour terms fixed:"<<endl;
+	cout<<"Now find the SK potentials up to 2nd neighbour terms:"<<endl;
 	frprmn(NNN, ftol, iter, fret, xargs, Weigs, U, D, dummy, numnn, numnnn);
 	cout<<"1st nearest neighbour SK terms:"<<endl;
-	cout<<"sss1 = "<<NNN(0)<<"; sps1 = "<<NNN(1)<<"; pps1 = "<<NNN(2)<<"; ppp1 = "
+	cout<<showpos<<"sss1 = "<<NNN(0)<<"; sps1 = "<<NNN(1)<<"; pps1 = "<<NNN(2)<<"; ppp1 = "
 		<<NNN(3)<<"; sds1 = "<<NNN(4)<<";"<<endl<<"pds1 = "<<NNN(5)<<"; pdp1 = "<<NNN(6)<<
 		"; dds1 = "<<NNN(7)<<"; ddp1 = "<<NNN(8)<<"; ddd1 = "<<NNN(9)<<";"<<endl;
 	cout<<endl;
@@ -585,9 +600,68 @@ int main(){
 		<<NNN(13)<<"; sds2 = "<<NNN(14)<<";"<<endl<<"pds2 = "<<NNN(15)<<"; pdp2 = "<<NNN(16)<<
 		"; dds2 = "<<NNN(17)<<"; ddp2 = "<<NNN(18)<<"; ddd2 = "<<NNN(19)<<";"<<endl;
 	cout<<endl;
-	cout<<"number of iterations: "<<iter<<endl;
+	cout<<noshowpos<<"number of iterations: "<<iter<<endl;
 	cout<<"minimum of function: "<<fret<<endl;
-	cout<<endl<<endl;
+	cout<<string(100, '*')<<endl;
+	T.emplace_back(t_19);
+	T.emplace_back(t_20);
+	T.emplace_back(t_21);
+	T.emplace_back(t_22);
+	T.emplace_back(t_23);
+	T.emplace_back(t_24);
+	T.emplace_back(t_25);
+	T.emplace_back(t_26);
+	T.emplace_back(t_27);
+	T.emplace_back(t_28);
+	T.emplace_back(t_29);
+	T.emplace_back(t_30);
+	D.emplace_back(d_19);
+	D.emplace_back(d_20);
+	D.emplace_back(d_21);
+	D.emplace_back(d_22);
+	D.emplace_back(d_23);
+	D.emplace_back(d_24);
+	D.emplace_back(d_25);
+	D.emplace_back(d_26);
+	D.emplace_back(d_27);
+	D.emplace_back(d_28);
+	D.emplace_back(d_29);
+	D.emplace_back(d_30);
+	eigs(T, D, lambda, false, true, false, dummyE, Weigs);
+	cout<<"Now find 3rd neighbour terms, keeping 1st & 2nd neighbour terms fixed:"<<endl;
+	VectorXd nnnn(10);
+	nnnn.fill(0.);
+	frprmn(nnnn, ftol, iter, fret, xargs, Weigs, U, D, NNN, numnn, numnnn);
+	cout<<showpos<<"sss3 = "<<nnnn(0)<<"; sps3 = "<<nnnn(1)<<"; pps3 = "<<nnnn(2)<<"; ppp3 = "
+		<<nnnn(3)<<"; sds3 = "<<nnnn(4)<<";"<<endl<<"pds3 = "<<nnnn(5)<<"; pdp3 = "<<nnnn(6)<<
+		"; dds3 = "<<nnnn(7)<<"; ddp3 = "<<nnnn(8)<<"; ddd3 = "<<nnnn(9)<<";"<<endl;
+	cout<<endl;
+	cout<<noshowpos<<"number of iterations: "<<iter<<endl;
+	cout<<"minimum of function: "<<fret<<endl;
+	cout<<string(100, '*')<<endl;
+	VectorXd NNNN(30);
+	NNNN.head(20) = NNN;
+	NNNN.tail(10) = nnnn;
+	cout<<"Finally, find up to 3rd neighbour terms:"<<endl;
+	frprmn(NNNN, ftol, iter, fret, xargs, Weigs, U, D, dummy, numnn, numnnn);
+	cout<<"1st nearest neighbour SK terms:"<<endl;
+	cout<<showpos<<"sss1 = "<<NNNN(0)<<"; sps1 = "<<NNNN(1)<<"; pps1 = "<<NNNN(2)<<"; ppp1 = "
+		<<NNNN(3)<<"; sds1 = "<<NNNN(4)<<";"<<endl<<"pds1 = "<<NNNN(5)<<"; pdp1 = "<<NNNN(6)<<
+		"; dds1 = "<<NNNN(7)<<"; ddp1 = "<<NNNN(8)<<"; ddd1 = "<<NNNN(9)<<";"<<endl;
+	cout<<endl;
+	cout<<"2nd nearest neighbour SK terms:"<<endl;
+	cout<<"sss2 = "<<NNNN(10)<<"; sps2 = "<<NNNN(11)<<"; pps2 = "<<NNNN(12)<<"; ppp2 = "
+		<<NNNN(13)<<"; sds2 = "<<NNNN(14)<<";"<<endl<<"pds2 = "<<NNNN(15)<<"; pdp2 = "<<NNNN(16)<<
+		"; dds2 = "<<NNNN(17)<<"; ddp2 = "<<NNNN(18)<<"; ddd2 = "<<NNNN(19)<<";"<<endl;
+	cout<<endl;
+	cout<<"3rd nearest neighbour SK terms:"<<endl;
+	cout<<"sss3 = "<<NNNN(20)<<"; sps3 = "<<NNNN(21)<<"; pps3 = "<<NNNN(22)<<"; ppp3 = "
+		<<NNNN(23)<<"; sds3 = "<<NNNN(24)<<"; "<<endl<<"pds3 = "<<NNNN(25)<<"; pdp3 = "<<NNNN(26)<<
+		"; dds3 = "<<NNNN(27)<<"; ddp3 = "<<NNNN(28)<<"; ddd3 = "<<NNNN(29)<<";"<<endl;
+	cout<<endl;
+	cout<<noshowpos<<"number of iterations: "<<iter<<endl;
+	cout<<"minimum of function: "<<fret<<endl;
+	cout<<string(100, '*')<<endl;
 
 	return 0;
 }
