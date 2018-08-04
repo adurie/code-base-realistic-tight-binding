@@ -134,10 +134,10 @@ double temp(int N, dcomp Ec, Args&&... params) {
   for (int k = 0; k!=n+1; k++){
     if (k%2!=0){
       k_x = A*k/n;
-      for (int l = 0; l!=k+1; l++){
+      for (int l = 0; l!=k+2; l++){
         if (l%2!=0){
           k_y = A*l/n;
-          for (int m = 0; m!=(k-l)/2 + 1; m++){
+          for (int m = 0; m!=(k-l)/2 + 2; m++){
             if (m%2!=0){
               k_z = A*m/n;
               if ((k==l) && (k==m) && (l==m)){

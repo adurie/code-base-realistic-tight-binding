@@ -280,15 +280,15 @@ Matrix<dcomp, 9, 9> convert(Matrix<dcomp, 9, 9> &t){
 	//row ordering comes from inspecting the diagonalised onsite matrix
 	//U, and comparing to Papaconstantopoulos
 	vector<int> m;
-	m.emplace_back(5);
-	m.emplace_back(6);
-	m.emplace_back(7);
-	m.emplace_back(8);
+	m.emplace_back(0);
 	m.emplace_back(2);
 	m.emplace_back(3);
-	m.emplace_back(4);
 	m.emplace_back(1);
-	m.emplace_back(0);
+	m.emplace_back(8);
+	m.emplace_back(6);
+	m.emplace_back(5);
+	m.emplace_back(7);
+	m.emplace_back(4);
 	for (int i = 0; i<9; i++){
 		for (int j = 0; j<9; j++){
 			result(i,j) = t(m[i],m[j]);
@@ -302,7 +302,8 @@ Matrix<dcomp, 9, 9> read(Vector3d &dvec, int ispin){
       if (ispin == +1)
         input = "iron_up_hr.dat";
       if (ispin == -1)
-        input = "iron_dn_hr.dat";
+	      input = "hr3.dat";
+        /* input = "iron_dn_hr.dat"; */
       ifstream infile(input);
       Matrix<dcomp, 9, 9> rt;
       rt.fill(0.);
@@ -408,6 +409,7 @@ int main(){
 	Matrix<dcomp, 9, 9> t_19, t_20, t_21, t_22, t_23, t_24, t_25,
 		t_26, t_27, t_28, t_29, t_30;
 	u = read(d_0, ispin);
+	cout<<u<<endl<<endl;
 
 	SelfAdjointEigenSolver<Matrix<dcomp, 9, 9>> uu;
 	uu.compute(u);
@@ -438,7 +440,7 @@ int main(){
 	/* cout<<t_13.real()<<endl<<endl; */
 
 	/* cout<<(Odagg*u*O).real()<<endl<<endl; */
-	lambda = convert(lambda);
+	lambda = convert(u);
 	/* cout<<lambda<<endl<<endl; */
 
 	/* t_3 = read(d_3, ispin); */
@@ -486,86 +488,90 @@ int main(){
 	//initialise onsite and hopping matrices for each nn
 
 	t_1 = read(d_1, ispin);
-	t_1 = Odagg*t_1*Oo;
+	/* t_1 = Odagg*t_1*Oo; */
 	t_1 = convert(t_1);
 	t_2 = read(d_2, ispin);
-	t_2 = Odagg*t_2*Oo;
+	/* t_2 = Odagg*t_2*Oo; */
 	t_2 = convert(t_2);
 	t_3 = read(d_3, ispin);
-	t_3 = Odagg*t_3*Oo;
+	/* t_3 = Odagg*t_3*Oo; */
 	t_3 = convert(t_3);
 	t_4 = read(d_4, ispin);
-	t_4 = Odagg*t_4*Oo;
+	/* t_4 = Odagg*t_4*Oo; */
 	t_4 = convert(t_4);
 	t_5 = read(d_5, ispin);
-	t_5 = Odagg*t_5*Oo;
+	/* t_5 = Odagg*t_5*Oo; */
 	t_5 = convert(t_5);
 	t_6 = read(d_6, ispin);
-	t_6 = Odagg*t_6*Oo;
+	/* t_6 = Odagg*t_6*Oo; */
 	t_6 = convert(t_6);
 	t_7 = read(d_7, ispin);
-	t_7 = Odagg*t_7*Oo;
+	/* t_7 = Odagg*t_7*Oo; */
 	t_7 = convert(t_7);
 	t_8 = read(d_8, ispin);
-	t_8 = Odagg*t_8*Oo;
+	/* t_8 = Odagg*t_8*Oo; */
 	t_8 = convert(t_8);
 	t_13 = read(d_13, ispin);
-	t_13 = Odagg*t_13*Oo;
+	/* t_13 = Odagg*t_13*Oo; */
 	t_13 = convert(t_13);
+	cout<<t_13.real()<<endl<<endl;
 	t_14 = read(d_14, ispin);
-	t_14 = Odagg*t_14*Oo;
+	/* t_14 = Odagg*t_14*Oo; */
 	t_14 = convert(t_14);
 	t_15 = read(d_15, ispin);
-	t_15 = Odagg*t_15*Oo;
+	/* t_15 = Odagg*t_15*Oo; */
 	t_15 = convert(t_15);
+	cout<<t_15.real()<<endl<<endl;
 	t_16 = read(d_16, ispin);
-	t_16 = Odagg*t_16*Oo;
+	/* t_16 = Odagg*t_16*Oo; */
 	t_16 = convert(t_16);
 	t_17 = read(d_17, ispin);
-	t_17 = Odagg*t_17*Oo;
+	/* t_17 = Odagg*t_17*Oo; */
 	t_17 = convert(t_17);
+	cout<<t_17.real()<<endl<<endl;
 	t_18 = read(d_18, ispin);
-	t_18 = Odagg*t_18*Oo;
+	/* t_18 = Odagg*t_18*Oo; */
 	t_18 = convert(t_18);
 
 	t_19 = read(d_19, ispin);
-	t_19 = Odagg*t_19*Oo;
+	/* t_19 = Odagg*t_19*Oo; */
 	t_19 = convert(t_19);
 	t_20 = read(d_20, ispin);
-	t_20 = Odagg*t_20*Oo;
+	/* t_20 = Odagg*t_20*Oo; */
 	t_20 = convert(t_20);
 	t_21 = read(d_21, ispin);
-	t_21 = Odagg*t_21*Oo;
+	/* t_21 = Odagg*t_21*Oo; */
 	t_21 = convert(t_21);
 	t_22 = read(d_22, ispin);
-	t_22 = Odagg*t_22*Oo;
+	/* t_22 = Odagg*t_22*Oo; */
 	t_22 = convert(t_22);
 	t_23 = read(d_23, ispin);
-	t_23 = Odagg*t_23*Oo;
+	/* t_23 = Odagg*t_23*Oo; */
 	t_23 = convert(t_23);
 	t_24 = read(d_24, ispin);
-	t_24 = Odagg*t_24*Oo;
+	/* t_24 = Odagg*t_24*Oo; */
 	t_24 = convert(t_24);
 	t_25 = read(d_25, ispin);
-	t_25 = Odagg*t_25*Oo;
+	/* t_25 = Odagg*t_25*Oo; */
 	t_25 = convert(t_25);
 	t_26 = read(d_26, ispin);
-	t_26 = Odagg*t_26*Oo;
+	/* t_26 = Odagg*t_26*Oo; */
 	t_26 = convert(t_26);
 	t_27 = read(d_27, ispin);
-	t_27 = Odagg*t_27*Oo;
+	/* t_27 = Odagg*t_27*Oo; */
 	t_27 = convert(t_27);
 	t_28 = read(d_28, ispin);
-	t_28 = Odagg*t_28*Oo;
+	/* t_28 = Odagg*t_28*Oo; */
 	t_28 = convert(t_28);
 	t_29 = read(d_29, ispin);
-	t_29 = Odagg*t_29*Oo;
+	/* t_29 = Odagg*t_29*Oo; */
 	t_29 = convert(t_29);
 	t_30 = read(d_30, ispin);
-	t_30 = Odagg*t_30*Oo;
+	/* t_30 = Odagg*t_30*Oo; */
 	t_30 = convert(t_30);
 
 	Matrix<double,10,1> nn1,nn2,nn3,nn4,nn5,nn6,nn7,nn8,nnav,nnn1,nnn2,nnn3,nnn4,nnn5,nnn6,nnnav;
+	Matrix<double,10,1> nnnn1,nnnn2,nnnn3,nnnn4,nnnn5,nnnn6,nnnn7,nnnn8,nnnn9,nnnn10,nnnn11,nnnn12,nnnnav;
 	Matrix<double,9,9> test;
 
 	test = t_1.real();
@@ -599,6 +605,32 @@ int main(){
 	test = t_18.real();
 	nnn6 = sk_extraction(test, d_18);
 	nnnav = (nnn1+nnn2+nnn3+nnn4+nnn5+nnn6)/6.;
+
+	test = t_19.real();
+	nnnn1 = sk_extraction(test, d_19);
+	test = t_20.real();
+	nnnn2 = sk_extraction(test, d_20);
+	test = t_21.real();
+	nnnn3 = sk_extraction(test, d_21);
+	test = t_22.real();
+	nnnn4 = sk_extraction(test, d_22);
+	test = t_23.real();
+	nnnn5 = sk_extraction(test, d_23);
+	test = t_24.real();
+	nnnn6 = sk_extraction(test, d_24);
+	test = t_25.real();
+	nnnn7 = sk_extraction(test, d_25);
+	test = t_26.real();
+	nnnn8 = sk_extraction(test, d_26);
+	test = t_27.real();
+	nnnn9 = sk_extraction(test, d_27);
+	test = t_28.real();
+	nnnn10 = sk_extraction(test, d_28);
+	test = t_29.real();
+	nnnn11 = sk_extraction(test, d_29);
+	test = t_30.real();
+	nnnn12 = sk_extraction(test, d_30);
+	nnnnav = (nnnn1+nnnn2+nnnn3+nnnn4+nnnn5+nnnn6+nnnn7+nnnn8+nnnn9+nnnn10+nnnn11+nnnn12)/12.;
 	cout<<"nn1 = "<<nn1.transpose()<<endl;
 	cout<<"nn2 = "<<nn2.transpose()<<endl;
 	cout<<"nn3 = "<<nn3.transpose()<<endl;
@@ -615,6 +647,19 @@ int main(){
 	cout<<"nnn5 = "<<nnn5.transpose()<<endl;
 	cout<<"nnn6 = "<<nnn6.transpose()<<endl;
 	cout<<"nnnav= "<<nnnav.transpose()<<endl;
+	cout<<"nnnn1 = "<<nnnn1.transpose()<<endl;
+	cout<<"nnnn2 = "<<nnnn2.transpose()<<endl;
+	cout<<"nnnn3 = "<<nnnn3.transpose()<<endl;
+	cout<<"nnnn4 = "<<nnnn4.transpose()<<endl;
+	cout<<"nnnn5 = "<<nnnn5.transpose()<<endl;
+	cout<<"nnnn6 = "<<nnnn6.transpose()<<endl;
+	cout<<"nnnn7 = "<<nnnn7.transpose()<<endl;
+	cout<<"nnnn8 = "<<nnnn8.transpose()<<endl;
+	cout<<"nnnn9 = "<<nnnn9.transpose()<<endl;
+	cout<<"nnnn10 = "<<nnnn10.transpose()<<endl;
+	cout<<"nnnn11 = "<<nnnn11.transpose()<<endl;
+	cout<<"nnnn12 = "<<nnnn12.transpose()<<endl;
+	cout<<"nnnnav= "<<nnnnav.transpose()<<endl;
 
 	dcomp i;
 	i = -1.;
@@ -708,7 +753,7 @@ int main(){
 	/* cout<<"sps = "<<sps1<<endl; */
 
 	ppp2 = (1./16.)*real(E_gamma(1,1) + E_H(1,1) - 2.*E_N(1,1)); //obtained from Papa formula in intro
-	/* pps2 = (1./16.)*real(E_gamma(1,1) + E_H(1,1) + 2.*(-E_N(2,2) - E_N(3,3) + E_N(1,1)));//obtained from Papa formula in intro */
+	pps2 = (1./16.)*real(E_gamma(1,1) + E_H(1,1) + 2.*(-E_N(2,2) - E_N(3,3) + E_N(1,1)));//obtained from Papa formula in intro
 	cout<<endl;
 	//this block obtained from matching eigenvalues, see block below accurate!
 	/* ppp2 = 0.03060; */
@@ -717,7 +762,7 @@ int main(){
 
 	cout<<"Papa 2nd neighbours"<<endl;
 	/* cout<<"sss = "<<sss2<<endl; */
-	/* cout<<"pps = "<<pps2<<endl; */
+	cout<<"pps = "<<pps2<<endl;
 	cout<<"ppp = "<<ppp2<<endl;
 	double delta;
 	//magic 1.693948 below extracted from 5th element of onsite matrix (x2)
@@ -1417,8 +1462,17 @@ pds3 = +0.01172195; pdp3 = -0.00190808; dds3 = +0.00445770; ddp3 = -0.00078898; 
 /*       ddd3 = -0.00060; */
 
 	VectorXd nn(10),nnn(20);
-	nn<<sss1, sps1, pps1, ppp1, sds1, pds1, pdp1, dds1, ddp1, ddd1;
-	nnn<<sss2, sps2, pps2, ppp2, sds2, pds2, pdp2, dds2, ddp2, ddd2, sss3, sps3, pps3, ppp3, sds3, pds3, pdp3, dds3, ddp3, ddd3;
+	/* nn<<sss1, sps1, pps1, ppp1, sds1, pds1, pdp1, dds1, ddp1, ddd1; */
+	/* nnn<<sss2, sps2, pps2, ppp2, sds2, pds2, pdp2, dds2, ddp2, ddd2, sss3, sps3, pps3, ppp3, sds3, pds3, pdp3, dds3, ddp3, ddd3; */
+	/* nn = nn1; */
+	/* nn = nn5; */
+	nn = nnav;
+	/* nnn.head(10) = nnn1; */
+	/* nnn.head(10) = nnn3; */
+	nnn.head(10) = nnnav;
+	/* nnn.tail(10) = nnnn1; */
+	/* nnn.tail(10) = nnnn5; */
+	nnn.tail(10) = nnnnav;
 	cout<<"full 1st nn SK potentials;"<<endl;
 	cout<<"sss = "<<nn(0)<<endl;
 	cout<<"sps = "<<nn(1)<<endl;
@@ -1456,37 +1510,37 @@ pds3 = +0.01172195; pdp3 = -0.00190808; dds3 = +0.00445770; ddp3 = -0.00078898; 
 	cout<<"ddd = "<<nnn(19)<<endl;
 	/* cout<<endl<<t_13.real().bottomRightCorner(5,5)<<endl<<endl; */
 
-	lambda.fill(0.);
-	lambda(0,0) = s;
-	lambda(1,1) = lambda(2,2) = lambda(3,3) = p;
-	lambda(4,4) = lambda(5,5) = lambda(6,6) = d1;
-	lambda(7,7) = lambda(8,8) = d2;
-	t_1 = TB(0,1,0,9,d_1,nn,nnn);
-	t_2 = TB(0,1,0,9,d_2,nn,nnn);
-	t_3 = TB(0,1,0,9,d_3,nn,nnn);
-	t_4 = TB(0,1,0,9,d_4,nn,nnn);
-	t_5 = TB(0,1,0,9,d_5,nn,nnn);
-	t_6 = TB(0,1,0,9,d_6,nn,nnn);
-	t_7 = TB(0,1,0,9,d_7,nn,nnn);
-	t_8 = TB(0,1,0,9,d_8,nn,nnn);
-	t_13 = TB(0,1,1,9,d_13,nn,nnn);
-	t_14 = TB(0,1,1,9,d_14,nn,nnn);
-	t_15 = TB(0,1,1,9,d_15,nn,nnn);
-	t_16 = TB(0,1,1,9,d_16,nn,nnn);
-	t_17 = TB(0,1,1,9,d_17,nn,nnn);
-	t_18 = TB(0,1,1,9,d_18,nn,nnn);
-	t_19 = TB(0,1,2,9,d_19,nn,nnn);
-	t_20 = TB(0,1,2,9,d_20,nn,nnn);
-	t_21 = TB(0,1,2,9,d_21,nn,nnn);
-	t_22 = TB(0,1,2,9,d_22,nn,nnn);
-	t_23 = TB(0,1,2,9,d_23,nn,nnn);
-	t_24 = TB(0,1,2,9,d_24,nn,nnn);
-	t_25 = TB(0,1,2,9,d_25,nn,nnn);
-	t_26 = TB(0,1,2,9,d_26,nn,nnn);
-	t_27 = TB(0,1,2,9,d_27,nn,nnn);
-	t_28 = TB(0,1,2,9,d_28,nn,nnn);
-	t_29 = TB(0,1,2,9,d_29,nn,nnn);
-	t_30 = TB(0,1,2,9,d_30,nn,nnn);
+	/* lambda.fill(0.); */
+	/* lambda(0,0) = s; */
+	/* lambda(1,1) = lambda(2,2) = lambda(3,3) = p; */
+	/* lambda(4,4) = lambda(5,5) = lambda(6,6) = d1; */
+	/* lambda(7,7) = lambda(8,8) = d2; */
+	/* t_1 = TB(0,1,0,9,d_1,nn,nnn); */
+	/* t_2 = TB(0,1,0,9,d_2,nn,nnn); */
+	/* t_3 = TB(0,1,0,9,d_3,nn,nnn); */
+	/* t_4 = TB(0,1,0,9,d_4,nn,nnn); */
+	/* t_5 = TB(0,1,0,9,d_5,nn,nnn); */
+	/* t_6 = TB(0,1,0,9,d_6,nn,nnn); */
+	/* t_7 = TB(0,1,0,9,d_7,nn,nnn); */
+	/* t_8 = TB(0,1,0,9,d_8,nn,nnn); */
+	/* t_13 = TB(0,1,1,9,d_13,nn,nnn); */
+	/* t_14 = TB(0,1,1,9,d_14,nn,nnn); */
+	/* t_15 = TB(0,1,1,9,d_15,nn,nnn); */
+	/* t_16 = TB(0,1,1,9,d_16,nn,nnn); */
+	/* t_17 = TB(0,1,1,9,d_17,nn,nnn); */
+	/* t_18 = TB(0,1,1,9,d_18,nn,nnn); */
+	/* t_19 = TB(0,1,2,9,d_19,nn,nnn); */
+	/* t_20 = TB(0,1,2,9,d_20,nn,nnn); */
+	/* t_21 = TB(0,1,2,9,d_21,nn,nnn); */
+	/* t_22 = TB(0,1,2,9,d_22,nn,nnn); */
+	/* t_23 = TB(0,1,2,9,d_23,nn,nnn); */
+	/* t_24 = TB(0,1,2,9,d_24,nn,nnn); */
+	/* t_25 = TB(0,1,2,9,d_25,nn,nnn); */
+	/* t_26 = TB(0,1,2,9,d_26,nn,nnn); */
+	/* t_27 = TB(0,1,2,9,d_27,nn,nnn); */
+	/* t_28 = TB(0,1,2,9,d_28,nn,nnn); */
+	/* t_29 = TB(0,1,2,9,d_29,nn,nnn); */
+	/* t_30 = TB(0,1,2,9,d_30,nn,nnn); */
 
 	/* cout<<endl<<t_13.real().bottomRightCorner(5,5)<<endl<<endl; */
 

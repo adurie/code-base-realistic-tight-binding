@@ -82,24 +82,24 @@ void eigs(const vector<m3> &T, const vector<Vector3d> &D, const m3 &U, bool is_E
   dcomp i;
   i = -1.;
   i = sqrt(i);
-  const int n = 40;
+  const int n = 8;
   Vector3d K;
   double k_x, k_y, k_z;
-  const double A = 2*M_PI;
+  const double A = M_PI;
   int it = T.size();
   for (int k = 0; k!=n+1; k++){
-    if (k%2!=0){
+    /* if (k%2!=0){ */
       k_x = A*k/n;
       for (int l = 0; l!=k+1; l++){
-        if (l%2!=0){
+        /* if (l%2!=0){ */
           k_y = A*l/n;
           for (int m = 0; m!=(k-l)/2 + 1; m++){
-            if (m%2!=0){
+            /* if (m%2!=0){ */
               k_z = A*m/n;
 	      K <<k_x, k_y, k_z;
 	      E = U;
 	      for (int iter = 0; iter < it; iter++)
-	        E = E + T[iter]*exp(i*D[iter].dot(K));
+	        E = E + T[iter]*exp(i*D[iter].dot(K)/2.);
 	      if (is_E == true)
 	        dummyE_or_vec.emplace_back(E);
 	      if (is_eigval == true){
@@ -120,11 +120,9 @@ void eigs(const vector<m3> &T, const vector<Vector3d> &D, const m3 &U, bool is_E
 		  dummy_val.emplace_back(eigs);
 		}
 	      }
-
-	      
- 	    }
-          }
-	}
+ 	    /* } */
+          /* } */
+	/* } */
       }
     }
   }
@@ -290,7 +288,7 @@ void dxargs(VectorXd& p, VectorXd& xi, func1&& func, const vector<VectorXd>& Wei
 				if (k > 5)
 					weight = 0.2;
 				else
-					weight = 1.;
+					weight = 2.;
 				V = (Eig_vecs[it].col(k).adjoint()*dE[it]*Eig_vecs[it].col(k)).real()(0);
 				fret += 2.*V*(Teigs[it](k) - Weigs[it](k))*weight;
 			}
@@ -354,7 +352,7 @@ double xargs(VectorXd& p, const vector<VectorXd>& Weigs, const m3 &U, const vect
 			if (k > 5)
 				weight = 0.2;
 			else
-				weight = 1.;
+				weight = 2.;
 			fret += (Teigs[it](k) - Weigs[it](k))*(Teigs[it](k) - Weigs[it](k))*weight;
 		}
 	}
@@ -554,6 +552,7 @@ int main(){
 	VectorXd dummy;
 	const int numnn = 8;
 	const int numnnn = 6;
+	cout<<"Number of k-points in k-point mesh: "<<Weigs.size()<<endl<<endl;
 	cout<<"Find the SK potentials of the 1st neighbour terms:"<<endl;
 	frprmn(nn, ftol, iter, fret, xargs, Weigs, U, D, dummy, numnn, numnnn);
 	cout<<showpos<<fixed<<setprecision(8)<<"sss1 = "<<nn(0)<<"; sps1 = "<<nn(1)<<"; pps1 = "<<nn(2)<<"; ppp1 = "
