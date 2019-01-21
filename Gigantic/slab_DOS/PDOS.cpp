@@ -1,14 +1,17 @@
 #include <cmath>
+#define EIGEN_USE_MKL_ALL
 #include <iostream>
 #include <eigen3/Eigen/Dense>
 #include <vector>
 #include <iomanip>
 #include <fstream>
+#include "cunningham.h"
 
 using namespace std;
 using namespace Eigen;
 typedef complex<double> dcomp;
 typedef Vector2d v2;
+// TODO make Matrix sizes more general - 45x45 = (9x5)x(9x5) i.e 9 bands, 5 atoms, dependent on input file
 typedef vector<Matrix<dcomp, 45, 45>, aligned_allocator<Matrix<dcomp, 45, 45>>> vm;
 typedef vector<v2, aligned_allocator<v2>> vv;
 typedef Matrix<dcomp, 45, 45> bigM;
@@ -62,7 +65,7 @@ Matrix<dcomp, 45, 45> read(Vector2d &dvec, int ispin){
       return rt;
 }
 
-Matrix<dcomp, 45, 45> H_k(vm &Ham, vv &pos, double k_x, double k_y){
+Matrix<dcomp, 45, 45> H_k(double k_x, double k_y, vm &Ham, vv &pos){
 	// diagonalise Hamiltonian in k-space representation, here H_k(k_x, k_y)
 	dcomp im;
 	im = -1.;
@@ -77,8 +80,28 @@ Matrix<dcomp, 45, 45> H_k(vm &Ham, vv &pos, double k_x, double k_y){
 	return Ham_k;
 }
 
+/* template <typename... Args> */
+double Greens(double k_x, double k_y, double a, double eps, vm &Ham, vv &pos){ //Args&&... params){
+	// 'a' still here for legacy reasons
+	// Calculate G(eps, k||) = (eps - H(k||) + im*delta)^(-1)
+	// TODO make this perform a trace over a subset of G, 
+	// to calculate PDOS
+	bigM I = bigM::Identity();
+	dcomp im;
+	im = -1.;
+	im = sqrt(im);
+	const double delta = 1e-5;
+	bigM G, Gtmp, tmp;
+	tmp = H_k(k_x, k_y, Ham, pos);//forward<Args>(params)...);
+	Gtmp = I*(eps + delta*im) - tmp;
+	G = Gtmp.inverse(); // This is the power of eigen!
+	double rho; //DOS, rho = (-1/pi)*ImTrG
+	rho = static_cast<double>(G.imag().trace());
+	return rho;
+}
+
 int main(){
-	const int ispin = -1; // TODO shoudn't this be determined at runtime?
+	const int ispin = +1; // TODO shoudn't this be determined at runtime?
 
 	Vector2d lat_1, lat_2;
 	lat_1 << 1, 0; // This and the below loop to generate 
@@ -97,17 +120,24 @@ int main(){
 		k++;
 		cout<<(k/9.)*100<<"% completed"<<endl; // TODO fix % so more general
 	}
-	// Calculate G(eps, k||) = (eps - H(k||) + im*delta)^(-1)
-	bigM I = bigM::Identity();
-	dcomp im;
-	im = -1.;
-	im = sqrt(im);
-	double eps = 3.;
-	const double delta = 1e-5;
-	bigM G, Gtmp, tmp;
-	tmp = H_k(Ham, pos, M_PI, M_PI);
-	Gtmp = I*(eps + delta*im) - tmp;
-	G = Gtmp.inverse(); // This is the power of eigen!
-	cout<<G.topLeftCorner(9,9).real();
+	cout<<"Done!"<<endl;
+	double rho;
+	//see integration header for what the following zero values are interpreted as
+	int k_start = 0;
+	int k_max = 0;
+	double abs_error = 1e-1;
+	const double a = 1; // for legacy reasons only
+	string Mydata = "DOS.dat";
+	ofstream Myfile;	
+	Myfile.open( Mydata.c_str(),ios::trunc );
+	cout<<"Calculating PDOS"<<endl; // perform integration over k_|| graph as a function of energy
+	for (double eps = -12.; eps < 12.1; eps += 0.1){
+		rho = kspace(&Greens, k_start, abs_error, k_max, a, eps, Ham, pos);
+		rho *= (-1./M_PI);
+		Myfile<<eps<<" "<<rho<<endl;
+		cout<<((eps+12)/24.)*100<<"% complete"<<endl;
+	}
+	Myfile.close();
+	/* rho = Greens(3., Ham, pos, M_PI, M_PI); */
 	return 0;
 }
