@@ -2,6 +2,8 @@
 #define INT_FULL_H
 //This has been edited as it wouldn't accept type double previously
 //it will no longer take a general type, as a result
+//routine verified with int_{-pi}^{pi} x^2 + y^2
+//note integration is divided by 4pi^2
 
 #include <cmath>
 #include <eigen3/Eigen/Dense>
@@ -78,24 +80,25 @@ double kspace(func&& predicate, int iterations, double rel, int start, const dou
 	double integral;
 	double tmp;
 	double rel_error;
+	integral = 0.;
 
-	for (int k = 0; k!=n+1; k++){
+	for (int k = -n; k!=n+1; k++){
 		if (k%2!=0){
 			x = A*k/n;
-			for (int l = 0; l!=k+1; l++){
+			for (int l = -n; l!=n+1; l++){
 				if (l%2!=0){
 					z = A*l/n;
 					/* Myfile<<x<<" , "<<z<<endl; */
-					if ((k==1) && (l==1))
-						integral = 0.5*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
-					else{
-						if (k==l){
+					/* if ((k==1) && (l==1)) */
+					/* 	integral = 0.5*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...); */
+					/* else{ */
+					/* 	if (k==l){ */
 							/* integral += 0.5*predicate(x,z,forward<T>(params)); */
-							integral = integral + 0.5*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
-						}
-						else
+							/* integral = integral + 0.5*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...); */
+						/* } */
+						/* else */
 							integral = integral + std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
-					}
+					/* } */
 				}
 			}
 		}
@@ -108,21 +111,21 @@ double kspace(func&& predicate, int iterations, double rel, int start, const dou
 	while (condition != 1){
 		Nnew = 3*n;
 		tmp = integral;
-		for (int k = 0; k!=Nnew+1; k++){
+		for (int k = -Nnew; k!=Nnew+1; k++){
 			if (k%2!=0){
 				x = A*k/Nnew;
-				for (int l = 0; l!=k+1; l++){
+				for (int l = -Nnew; l!=Nnew+1; l++){
 					if ((l%2!=0) && ((k%3!=0) || (l%3!=0))){
 						z = A*l/Nnew;
 						/* Myfile<<x<<" , "<<z<<endl; */
-						if (k==l){
-							/* integral += 0.5*predicate(x,z,forward<T>(params)); */
-							integral = integral + 0.5*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
-						}
-						else{
+						/* if (k==l){ */
+						/* 	/1* integral += 0.5*predicate(x,z,forward<T>(params)); *1/ */
+						/* 	integral = integral + 0.5*std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...); */
+						/* } */
+						/* else{ */
 							/* integral += predicate(x,z,forward<T>(params)); */
 							integral = integral + std::forward<func>(predicate)(x,z,a,std::forward<Args>(params)...);
-						}
+						/* } */
 					}
 				}
 			}
@@ -145,7 +148,7 @@ double kspace(func&& predicate, int iterations, double rel, int start, const dou
 		if (Nnew>=128 && rel_error <= error)
 			condition = 1;
 	}
-	integral = integral*(8./(Nnew*Nnew));
+	integral = integral*(1./(Nnew*Nnew));
 
 	return integral;
 }

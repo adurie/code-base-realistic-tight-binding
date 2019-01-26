@@ -81,22 +81,19 @@ Matrix<dcomp, 45, 45> H_k(double k_x, double k_y, vm &Ham, vv &pos){
 }
 
 /* template <typename... Args> */
-double Greens(double k_x, double k_y, double a, double eps, vm &Ham, vv &pos){ //Args&&... params){
-	// 'a' still here for legacy reasons
+double Greens(double eps, vector<double> &ham){
 	// Calculate G(eps, k||) = (eps - H(k||) + im*delta)^(-1)
 	// TODO make this perform a trace over a subset of G, 
 	// to calculate PDOS
-	bigM I = bigM::Identity();
 	dcomp im;
 	im = -1.;
 	im = sqrt(im);
 	const double delta = 1e-5;
-	bigM G, Gtmp, tmp;
-	tmp = H_k(k_x, k_y, Ham, pos);//forward<Args>(params)...);
-	Gtmp = I*(eps + delta*im) - tmp;
-	G = Gtmp.inverse(); // This is the power of eigen!
-	double rho; //DOS, rho = (-1/pi)*ImTrG
-	rho = static_cast<double>(G.imag().trace());
+	double rho = 0.; //DOS, rho = (-1/pi)*ImTrG
+	dcomp G = 0.;
+	for (int k = 0; k<ham.size(); k++)
+		G += 1./(eps + im*delta - ham[k]);
+	rho = imag(G);
 	return rho;
 }
 
@@ -118,8 +115,46 @@ int main(){
 			Ham.emplace_back(read(result, ispin));
 		}
 		k++;
-		cout<<(k/9.)*100<<"% completed"<<endl; // TODO fix % so more general
+		cout<<"     "<<(k/9.)*100<<"% completed"<<endl; // TODO fix % so more general
 	}
+	cout<<"Done!"<<endl;
+	double x,z;
+	int n = 1600; // The number of k-points used per meridian (half)
+	vector<int> KK, LL; // These keep track of l, n in the loop after
+	vector<vector<double>> kHam;
+	SelfAdjointEigenSolver<bigM> CA;
+	bigM tmp;
+	Matrix<double, 45, 1> eigs;
+	vector<double> Eigs;
+	cout<<endl;
+	cout<<"Building a table of k-space Hamiltonians"<<endl;
+	//more efficient to build k_hams out of integration loop
+	//the loop utilises the suggestions of
+	//https://math.stackexchange.com/questions/3086903/trace-of-a-the-inverse-of-a-complex-matrix
+	//Tr(D_w)^{-1} where D_w is the eigenvalues of -H + w
+
+	for (int k = 0; k!=n+1; k++){
+		if (k%2!=0){
+			x = M_PI*k/n;
+			for (int l = 0; l!=k+1; l++){
+				if (l%2!=0){
+					z = M_PI*l/n;
+					tmp = H_k(x, z, Ham, pos);
+		  			CA.compute(tmp, false);
+		  			eigs = CA.eigenvalues();
+					for (int aa = 0; aa < eigs.size(); aa++)
+						Eigs.emplace_back(eigs(aa));
+					kHam.emplace_back(Eigs);
+					Eigs.clear();
+					KK.emplace_back(k);
+					LL.emplace_back(l);
+				}
+			}
+		}
+		if (k%20 == 0)
+			cout<<"     "<<k/(n*1.+1)*100.<<"% completed"<<endl;
+	}
+	cout<<"     100% completed"<<endl;
 	cout<<"Done!"<<endl;
 	// The following block checks whether the hamiltonian is hermitian
 	/* Matrix<dcomp, 45, 45> mtmp; */
@@ -127,21 +162,37 @@ int main(){
 	/* cout<<fixed<<mtmp<<endl; */
 
 	double rho;
-	//see integration header for what the following zero values are interpreted as
-	int k_start = 0;
-	int k_max = 0;
-	double abs_error = 1e-1;
-	const double a = 1; // for legacy reasons only
-	string Mydata = "DOS_full.dat";
+	string Mydata = "DOS_quick.dat";
 	ofstream Myfile;	
 	Myfile.open( Mydata.c_str(),ios::trunc );
+	cout<<endl;
 	cout<<"Calculating PDOS"<<endl; // perform integration over k_|| graph as a function of energy
-	for (double eps = -12.; eps < 12.1; eps += 0.1){
-		rho = kspace(&Greens, k_start, abs_error, k_max, a, eps, Ham, pos);
-		rho *= (-1./M_PI);
+	vector<double> vtmp;
+	vtmp.reserve(kHam[0].size());
+	int counter = 0; // This to give percentage output
+	for (double eps = -12.; eps < 12.1; eps += 0.05){
+		rho = 0.;
+		for (int k = 0; k < KK.size(); k++){
+			vtmp = kHam[k];
+			if ((KK[k]==1) && (LL[k]==1))
+				rho += 0.5*Greens(eps, vtmp);
+			else{
+				if (KK[k]==LL[k]){
+					rho += 0.5*Greens(eps, vtmp);
+				}
+				else
+					rho += Greens(eps, vtmp);
+			}
+		}
+		rho *= (-8./M_PI)/(n*n);
 		Myfile<<eps<<" "<<rho<<endl;
-		cout<<((eps+12)/24.)*100<<"% complete"<<endl;
+		counter++;
+		if (counter%10 == 0)
+			cout<<"     "<<((eps+12)/24.)*100<<"% complete"<<endl;
 	}
 	Myfile.close();
+	cout<<"     100% completed"<<endl;
+	cout<<"Done!"<<endl;
+
 	return 0;
 }
