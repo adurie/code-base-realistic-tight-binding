@@ -7,7 +7,7 @@ using namespace std;
 //this program relies on both spin states having the same energy axis
 //the merged file should also be generated in this manner. See merge_DOS.cpp
 int main(){
-	ifstream infile("merge_DOS.dat");//make more general?
+	ifstream infile("Co_total_pdos_l5.dat");//make more general?
 	string line;
 	double s1,s2;
 	getline(infile, line);
@@ -22,7 +22,7 @@ int main(){
 	double step = s2 - s1;
 	double a, b;
 	double group = 9; //Co is in group 9
-	double no_atoms = 5; // There are 5 atoms in the unit cell
+	double no_atoms = 1; // There are 5 atoms in the unit cell
 	double Fermi = group*no_atoms;
 	//This to calculate Fermi level
 	while (E < Fermi) 
@@ -35,8 +35,8 @@ int main(){
 	}
 	cout<<"Fermi level = "<<a<<"eV"<<endl;
 	cout<<"Termination energy = "<<E<<"eV, against reference "<<Fermi<<"eV"<<endl;
-	ifstream infile2("DOS_up.dat");//make more general?
-	ifstream infile3("DOS_dn_smear_total.dat");//make more general?
+	ifstream infile2("Co_up_pdos_l5.dat");//make more general?
+	ifstream infile3("Co_dn_pdos_l5.dat");//make more general?
 	double E1, E2, DOS1, DOS2;
 	DOS1 = 0;
 	DOS2 = 0;
