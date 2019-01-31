@@ -25,7 +25,7 @@ int main(int argc, char* argv[]){
 		getline(infile2, line);
 		istringstream iss2(line);
 		iss2 >> c >> d;
-		Myfile<<a<<" "<<(b+d)/2.<<endl; //divide by two here when using Wannier
+		Myfile<<(a+c)/2.<<" "<<(b+d)/2.<<endl; //divide by two on the second here when using Wannier
 	}
 	Myfile.close();
 	return 0;

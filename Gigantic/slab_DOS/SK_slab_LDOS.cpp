@@ -5,63 +5,48 @@
 #include <vector>
 #include <iomanip>
 #include <fstream>
+#include "TB_Co_Cu.h"
 
 using namespace std;
 using namespace Eigen;
 typedef complex<double> dcomp;
 typedef Vector2d v2;
+typedef Vector3d v3;
 // TODO make Matrix sizes more general - 45x45 = (9x5)x(9x5) i.e 9 bands, 5 atoms, dependent on input file
 typedef vector<Matrix<dcomp, 45, 45>, aligned_allocator<Matrix<dcomp, 45, 45>>> vm;
 typedef vector<v2, aligned_allocator<v2>> vv;
 typedef Matrix<dcomp, 45, 45> bigM;
+typedef Matrix<dcomp, 9, 9> smallM;
 
 //Purpose: To calculate the partial DOS. Current system, slab geometry with 5 atom unit cell
 //but *hr.dat decides system.
 
-Matrix<dcomp, 45, 45> read(Vector2d &dvec, int ispin){
-      // read in Hamiltonians from *hr.dat
-      string input;
-      // TODO make more general
-      if (ispin == +1)
-        input = "cobalt_up_hr.dat";
-      if (ispin == -1)
-        input = "cobalt_dn_hr.dat";
-      ifstream infile(input);
-      Matrix<dcomp, 45, 45> rt;
-      rt.fill(0.);
-      Vector2d a_1, a_2;
-      a_1 << 1, 0; // reinterpret *.hr.dat in terms of lattice vectors
-      a_2 << 0, 1; // here 2D simple cubic
-      Vector2d A;
-  
-      dcomp i;
-      i = -1;
-      i = sqrt(i);
-      string line;
-      double a, b, c, d, e, f, g;
-      /* double eV_Ry = 0.073498618; // convert to Ryds */
-      double eV_Ry = 1; // keep as eV for now
-      for (int ii=0; ii<9; ii++) // ignore file header TODO make more general
-      	infile.ignore(100,'\n');
-      while (!infile.eof()) 
-      {
-	getline(infile, line);
-	istringstream iss(line);
-	iss >> a >> b >> c >> d >> e >> f >> g;
-	A = a*a_1 + b*a_2;
-	if ((A(0) == dvec(0)) && (A(1) == dvec(1))){
-		rt(d-1,e-1) = (f + g*i)*eV_Ry;
-		if ((d==45) && (e==45)) // no point in reading after NxNth element TODO make more general
-			break;
+bigM supercell(smallM &ii, smallM &iip1, smallM &iip2, smallM &ip1i, smallM &ip2i, smallM &Z){
+	bigM H;
+	/* H << ii, iip1, iip2, Z, Z, */
+	/*      ip1i, ii, iip1, iip2, Z, */
+	/*      ip2i, ip1i, ii, iip1, iip2, */
+	/*      Z, ip2i, ip1i, ii, iip1, */
+	/*      Z, Z, ip2i, ip1i, ii; */
+	for (int i = 0; i < 5; i++)
+		H.block(i*9, i*9, 9, 9) = ii;
+	for (int i = 0; i < 4; i++){
+		H.block(i*9, i*9 + 9, 9, 9) = iip1;
+		H.block(i*9 + 9, i*9, 9, 9) = ip1i;
 	}
-	else{
-		for (int ii=0; ii<2024; ii++) // if (0,0) element doesn't match, skip by NxN TODO make more general
-			infile.ignore(100,'\n');
-
+	for (int i = 0; i < 3; i++){
+		H.block(i*9, i*9 + 18, 9, 9) = iip2;
+		H.block(i*9 + 18, i*9, 9, 9) = ip2i;
 	}
-	
-      }
-      return rt;
+	for (int i = 0; i < 2; i++){
+		H.block(i*9, i*9 + 27, 9, 9) = Z;
+		H.block(i*9 + 27, i*9, 9, 9) = Z;
+	}
+	H.block(0, 36, 9, 9) = Z;
+	H.block(36, 0, 9, 9) = Z;
+	double Ry_eV = 1./0.073498618; // convert from Rydbergs to eV 
+	H = Ry_eV*H;
+	return H;
 }
 
 Matrix<dcomp, 45, 45> H_k(double k_x, double k_y, vm &Ham, vv &pos){
@@ -99,24 +84,116 @@ double Greens(double eps, vector<double> &ham){
 int main(){
 	const int ispin = +1; // TODO shoudn't this be determined at runtime?
 
-	Vector2d lat_1, lat_2;
-	lat_1 << 1, 0; // This and the below loop to generate 
-	lat_2 << 0, 1; // position of each neighbour
-	Vector2d result;
-	vm Ham; // Dimensions based on number of bands & atoms in unit cell. TODO generalise
-	vv pos; // by extracting information from *hr.dat. pos to contain all position vectors.
-	int k = 0;
-	cout<<"Reading in Wannier90 Hamiltonians"<<endl;
-	for (int i = -4; i < 5; i++){ // i & j range taken from *hr.dat. TODO generalise
-		for (int j = -4; j < 5; j++){
-			result = i*lat_1 + j*lat_2;
-			pos.emplace_back(result);
-			Ham.emplace_back(read(result, ispin));
-		}
-		k++;
-		cout<<"     "<<(k/9.)*100<<"% completed"<<endl; // TODO fix % so more general
+	int index;
+	if (ispin == +1)
+		index = 0;
+	else if (ispin == -1)
+		index = 1;
+	else{
+		cout<<"Error spin polarisation not defined"<<endl;
+		exit(EXIT_FAILURE);
 	}
-	cout<<"Done!"<<endl;
+
+	// generate 9x9 SK hams, naming convention should be obvious;
+	smallM U, tn100, tnm100, tn010, tnm010, tnhhh, tnmhmhh, tnmhhh, tnhmhh,
+	       tnmhmhmh, tnhhmh, tnhmhmh, tnmhhmh, tnn110, tnnm1m10, tnn1m10,
+	       tnnm110, tnn002, tnnm002;
+	v3 v3tmp;
+
+	v3tmp << 1, 0, 0;
+	//onsite matrix (in 9x9)
+	U = TB(index, 0, 0, 8, v3tmp);
+	//first neighbours (in 9x9 - I say this as definition changes in supercell)
+	tn100    = TB(index, 1, 0, 8, v3tmp);
+	v3tmp << -1, 0, 0;
+	tnm100   = TB(index, 1, 0, 8, v3tmp);
+	v3tmp << 0, 1, 0;
+	tn010    = TB(index, 1, 0, 8, v3tmp);
+	v3tmp << 0, -1, 0;
+	tnm010   = TB(index, 1, 0, 8, v3tmp);
+	v3tmp << 0.5, 0.5, M_SQRT1_2;
+	tnhhh    = TB(index, 1, 0, 8, v3tmp);
+	v3tmp << -0.5, -0.5, M_SQRT1_2;
+	tnmhmhh  = TB(index, 1, 0, 8, v3tmp);
+	v3tmp << -0.5, 0.5, M_SQRT1_2;
+	tnmhhh   = TB(index, 1, 0, 8, v3tmp);
+	v3tmp << 0.5, -0.5, M_SQRT1_2;
+	tnhmhh   = TB(index, 1, 0, 8, v3tmp);
+	v3tmp << -0.5, -0.5, -M_SQRT1_2;
+	tnmhmhmh = TB(index, 1, 0, 8, v3tmp);
+	v3tmp << 0.5, 0.5, -M_SQRT1_2;
+	tnhhmh   = TB(index, 1, 0, 8, v3tmp);
+	v3tmp << 0.5, -0.5, -M_SQRT1_2;
+	tnhmhmh  = TB(index, 1, 0, 8, v3tmp);
+	v3tmp << -0.5, 0.5, -M_SQRT1_2;
+	tnmhhmh  = TB(index, 1, 0, 8, v3tmp);
+	//2nd neighbours in 9x9
+	v3tmp << 1, 1, 0;
+	tnn110   = TB(index, 1, 1, 8, v3tmp);
+	v3tmp << -1, -1, 0;
+	tnnm1m10 = TB(index, 1, 1, 8, v3tmp);
+	v3tmp << 1, -1, 0;
+	tnn1m10  = TB(index, 1, 1, 8, v3tmp);
+	v3tmp << -1, 1, 0;
+	tnnm110  = TB(index, 1, 1, 8, v3tmp);
+	v3tmp << 0, 0, M_SQRT2;
+	tnn002   = TB(index, 1, 1, 8, v3tmp);
+	v3tmp << 0, 0, -M_SQRT2;
+	tnnm002  = TB(index, 1, 1, 8, v3tmp);
+
+	//now to generate 45x45 supercell hams onsite and offsite with position vecs
+	bigM bigtmp;
+	v2 in_plane_latt;
+	vm Ham; // Dimensions based on number of bands & atoms in unit cell. TODO generalise
+	vv pos; // pos to contain all in plane position vectors.
+	smallM Z;
+	Z = smallM::Zero();
+
+	in_plane_latt << 0, 0;
+	bigtmp = supercell(U, tnhhh, tnn002, tnmhmhmh, tnnm002, Z);
+	pos.emplace_back(in_plane_latt);
+	Ham.emplace_back(bigtmp);
+
+	in_plane_latt << 1, 0;
+	bigtmp = supercell(tn100, Z, Z, tnhmhmh, Z, Z);
+	pos.emplace_back(in_plane_latt);
+	Ham.emplace_back(bigtmp);
+
+	in_plane_latt << -1, 0;
+	bigtmp = supercell(tnm100, tnmhhh, Z, Z, Z, Z);
+	pos.emplace_back(in_plane_latt);
+	Ham.emplace_back(bigtmp);
+
+	in_plane_latt << 0, 1;
+	bigtmp = supercell(tn010, Z, Z, tnmhhmh, Z, Z);
+	pos.emplace_back(in_plane_latt);
+	Ham.emplace_back(bigtmp);
+
+	in_plane_latt << 0, -1;
+	bigtmp = supercell(tnm010, tnhmhh, Z, Z, Z, Z);
+	pos.emplace_back(in_plane_latt);
+	Ham.emplace_back(bigtmp);
+
+	in_plane_latt << 1, 1;
+	bigtmp = supercell(tnn110, Z, Z, tnhhmh, Z, Z);
+	pos.emplace_back(in_plane_latt);
+	Ham.emplace_back(bigtmp);
+
+	in_plane_latt << -1, -1;
+	bigtmp = supercell(tnnm1m10, tnmhmhh, Z, Z, Z, Z);
+	pos.emplace_back(in_plane_latt);
+	Ham.emplace_back(bigtmp);
+
+	in_plane_latt << 1, -1;
+	bigtmp = supercell(tnn1m10, Z, Z, Z, Z, Z);
+	pos.emplace_back(in_plane_latt);
+	Ham.emplace_back(bigtmp);
+
+	in_plane_latt << -1, 1;
+	bigtmp = supercell(tnnm110, Z, Z, Z, Z, Z);
+	pos.emplace_back(in_plane_latt);
+	Ham.emplace_back(bigtmp);
+
 	double x,z;
 	int n = 1600; // The number of k-points used per meridian (half)
 	vector<int> KK, LL; // These keep track of l, n in the loop after
@@ -126,7 +203,7 @@ int main(){
 	Matrix<double, 45, 1> eigs;
 	vector<double> Eigs;
 
-	/* string Mydata = "bands_wan.dat"; */
+	/* string Mydata = "bands.dat"; */
 	/* ofstream Myfile; */	
 	/* Myfile.open( Mydata.c_str(),ios::trunc ); */
 	/* double k_x, k_y, k_z, b, pi; */
@@ -194,13 +271,14 @@ int main(){
 	}
 	cout<<"     100% completed"<<endl;
 	cout<<"Done!"<<endl;
+
 	// The following block checks whether the hamiltonian is hermitian
 	/* Matrix<dcomp, 45, 45> mtmp; */
 	/* mtmp = H_k(0.22, -2.7, Ham, pos); */
-	/* cout<<fixed<<mtmp<<endl; */
+	/* cout<<mtmp-mtmp.adjoint()<<endl; */
 
 	double rho;
-	string Mydata = "DOS_quick.dat";
+	string Mydata = "SK_DOS_up_quick.dat";
 	ofstream Myfile;	
 	Myfile.open( Mydata.c_str(),ios::trunc );
 	cout<<endl;
@@ -208,7 +286,7 @@ int main(){
 	vector<double> vtmp;
 	vtmp.reserve(kHam[0].size());
 	int counter = 0; // This to give percentage output
-	for (double eps = -12.; eps < 12.1; eps += 0.05){
+	for (double eps = 0.; eps < 24.1; eps += 0.05){
 		rho = 0.;
 		for (int k = 0; k < KK.size(); k++){
 			vtmp = kHam[k];
@@ -226,7 +304,7 @@ int main(){
 		Myfile<<eps<<" "<<rho<<endl;
 		counter++;
 		if (counter%10 == 0)
-			cout<<"     "<<((eps+12)/24.)*100<<"% complete"<<endl;
+			cout<<"     "<<((eps)/24.)*100<<"% complete"<<endl;
 	}
 	Myfile.close();
 	cout<<"     100% completed"<<endl;
