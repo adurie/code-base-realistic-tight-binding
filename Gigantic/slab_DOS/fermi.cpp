@@ -7,7 +7,7 @@ using namespace std;
 //this program relies on both spin states having the same energy axis
 //the merged file should also be generated in this manner. See merge_DOS.cpp
 int main(){
-	ifstream infile("Co_field_total_ldos.dat");//make more general?
+	ifstream infile("SK_DOS_total.dat");//make more general?
 	string line;
 	double s1,s2;
 	getline(infile, line);
@@ -35,13 +35,13 @@ int main(){
 	}
 	cout<<"Fermi level = "<<a<<"eV"<<endl;
 	cout<<"Termination energy = "<<E<<"eV, against reference "<<Fermi<<"eV"<<endl;
-	ifstream infile2("Co_field_up_ldos.dat");//make more general?
-	ifstream infile3("Co_field_dn_ldos.dat");//make more general?
-	ifstream infile4("Co_field_total_pdos_l1.dat");//make more general?
-	/* ifstream infile5("Co_field_total_pdos_l2.dat");//make more general? */
-	/* ifstream infile6("Co_field_total_pdos_l3.dat");//make more general? */
-	/* ifstream infile7("Co_field_total_pdos_l4.dat");//make more general? */
-	ifstream infile8("Co_field_total_pdos_l5.dat");//make more general?
+	ifstream infile2("SK_DOS_eigs.dat");//make more general?
+	ifstream infile3("SK_DOS_dn_full.dat");//make more general?
+	ifstream infile4("SK_PDOS_l1_total.dat");//make more general?
+	ifstream infile5("SK_PDOS_l2_total.dat");//make more general?
+	ifstream infile6("SK_PDOS_l3_total.dat");//make more general?
+	ifstream infile7("SK_PDOS_l4_total.dat");//make more general?
+	ifstream infile8("SK_PDOS_l5_total.dat");//make more general?
 	double E1, E2, E3, E4, E5, E6, E7, DOS1, DOS2, DOS3, DOS4, DOS5, DOS6, DOS7;
 	DOS1 = 0; DOS2 = 0; DOS3 = 0; DOS4 = 0; DOS5 = 0; DOS6 = 0; DOS7 = 0;
 	double fermi_level = a;
@@ -74,33 +74,33 @@ int main(){
 		DOS3+=b;
 		E3 = DOS3*step;
 	}
-	/* a = -23; */
-	/* while (a < fermi_level) */ 
-	/* { */
-	/* 	getline(infile5, line); */
-	/* 	istringstream iss(line); */
-	/* 	iss >> a >> b; */
-	/* 	DOS4+=b; */
-	/* 	E4 = DOS4*step; */
-	/* } */
-	/* a = -23; */
-	/* while (a < fermi_level) */ 
-	/* { */
-	/* 	getline(infile6, line); */
-	/* 	istringstream iss(line); */
-	/* 	iss >> a >> b; */
-	/* 	DOS5+=b; */
-	/* 	E5 = DOS5*step; */
-	/* } */
-	/* a = -23; */
-	/* while (a < fermi_level) */ 
-	/* { */
-	/* 	getline(infile7, line); */
-	/* 	istringstream iss(line); */
-	/* 	iss >> a >> b; */
-	/* 	DOS6+=b; */
-	/* 	E6 = DOS6*step; */
-	/* } */
+	a = -23;
+	while (a < fermi_level) 
+	{
+		getline(infile5, line);
+		istringstream iss(line);
+		iss >> a >> b;
+		DOS4+=b;
+		E4 = DOS4*step;
+	}
+	a = -23;
+	while (a < fermi_level) 
+	{
+		getline(infile6, line);
+		istringstream iss(line);
+		iss >> a >> b;
+		DOS5+=b;
+		E5 = DOS5*step;
+	}
+	a = -23;
+	while (a < fermi_level) 
+	{
+		getline(infile7, line);
+		istringstream iss(line);
+		iss >> a >> b;
+		DOS6+=b;
+		E6 = DOS6*step;
+	}
 	g = -23;
 	while (g <= fermi_level) 
 	{
@@ -117,9 +117,9 @@ int main(){
 	/* cout<<e<<endl; */
 	cout<<"layer one contains "<<E3<<" electrons"<<endl;
 	/* cout<<f<<endl; */
-	/* cout<<"layer two contains "<<E4<<" electrons"<<endl; */
-	/* cout<<"layer three contains "<<E5<<" electrons"<<endl; */
-	/* cout<<"layer four contains "<<E6<<" electrons"<<endl; */
+	cout<<"layer two contains "<<E4<<" electrons"<<endl;
+	cout<<"layer three contains "<<E5<<" electrons"<<endl;
+	cout<<"layer four contains "<<E6<<" electrons"<<endl;
 	cout<<"layer five contains "<<E7<<" electrons"<<endl;
 	/* cout<<g<<endl; */
 

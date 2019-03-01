@@ -221,6 +221,13 @@ int main(){
 	//https://math.stackexchange.com/questions/3086903/trace-of-a-the-inverse-of-a-complex-matrix
 	//Tr(D_w)^{-1} where D_w is the eigenvalues of -H + w
 
+	/* //This for DOS at fixed k_|| */
+	/* tmp = H_k(2.53, 0, Ham, pos); */
+	/* CA.compute(tmp); */
+	/* eigs = CA.eigenvalues(); */
+	/* eigv = CA.eigenvectors(); */
+
+	//This for integrated DOS in k||
 	for (int k = 0; k!=n+1; k++){
 		if (k%2!=0){
 			x = M_PI*k/n;
@@ -243,6 +250,7 @@ int main(){
 	}
 	cout<<"     100% completed"<<endl;
 	cout<<"Done!"<<endl;
+
 	// The following block checks whether the hamiltonian is hermitian
 	/* Matrix<dcomp, 45, 45> mtmp; */
 	/* mtmp = H_k(0.22, -2.7, Ham, pos); */
@@ -273,6 +281,12 @@ int main(){
 	for (double eps = 0.; eps < 24.1; eps += 0.05){
 		rho = 0.;
 		rhop1 = 0.; rhop2 = 0.; rhop3 =0.; rhop4 = 0.; rhop5 = 0.;
+
+		/* //This for DOS at fixed k_|| */
+		/* rho += Greens(eps, eigv, eigs, trhop1, trhop2, trhop3, trhop4, trhop5); */
+		/* rhop1 += trhop1; rhop2 += trhop2; rhop3 += trhop3; rhop4 += trhop4; rhop5 += trhop5; */
+
+		//This for integrated DOS in k||
 		for (int k = 0; k < KK.size(); k++){
 			tvecs = vecs[k];
 			teigs = lams[k];
@@ -291,6 +305,7 @@ int main(){
 				}
 			}
 		}
+
 		rho *= factor;
 		rhop1 *= factor;
 		rhop2 *= factor;
